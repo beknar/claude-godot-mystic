@@ -6,7 +6,6 @@ extends Node2D
 
 const TILE := 16
 const SHEET := preload("res://assets/pack/TILESET_brighter.png")
-const SWAY_SHADER := preload("res://shaders/flower_sway.gdshader")
 const WALKER_SCENE := preload("res://scenes/forest/walker.tscn")
 const SOURCE := 0
 const FLIP := 1 # alternative tile id for horizontally flipped cells
@@ -30,9 +29,14 @@ const RIDGE_FRONT := 8
 @onready var collision: StaticBody2D = $Collision
 
 var terrain: PaintedTerrain
+# Ambience: one wind that the leaves, streaks, and cloud shadows all follow.
+var wind: Wind
+var leaves: AmbientLeaves
+var streaks: WindStreaks
+var clouds: CloudShadows
+var _leaf_colors := {} # art name -> {light, dark}
 var tone_layers: Array[TileMapLayer] = []
 var accent_layer: TileMapLayer
-var sway_layer: TileMapLayer # flowers that move in the wind
 var report := ""
 var _atlas: TileSetAtlasSource
 var _pixels: Image
@@ -55,16 +59,9 @@ func _ready() -> void:
 	accent_layer.name = "Accents"
 	add_child(accent_layer)
 	move_child(accent_layer, tone_layers[-1].get_index() + 1)
-	sway_layer = TileMapLayer.new()
-	sway_layer.name = "DecoSway"
-	var sway_material := ShaderMaterial.new()
-	sway_material.shader = SWAY_SHADER
-	sway_material.set_shader_parameter("art_rows", _art_rows())
-	sway_layer.material = sway_material
-	add_child(sway_layer)
-	move_child(sway_layer, deco_layer.get_index() + 1)
-	for layer in [ground, features_layer, deco_layer, accent_layer, sway_layer] + tone_layers:
+	for layer in [ground, features_layer, deco_layer, accent_layer] + tone_layers:
 		layer.tile_set = tiles
+	_add_ambience()
 	build(map_id, recipe)
 
 
@@ -75,7 +72,7 @@ func build(id: int, pinned := -1) -> void:
 	recipe = pinned
 	terrain = PaintedTerrain.new()
 	report = terrain.generate(map_id, recipe)
-	for layer in [ground, features_layer, deco_layer, accent_layer, sway_layer] + tone_layers:
+	for layer in [ground, features_layer, deco_layer, accent_layer] + tone_layers:
 		layer.clear()
 	for node in [patches, actors, collision]:
 		for child in node.get_children():
@@ -88,27 +85,93 @@ func build(id: int, pinned := -1) -> void:
 	_place_ridges()
 	_place_props()
 	_spawn_walker()
+	_reset_ambience()
 	print(report)
 
 
-# One texel per atlas cell: R = first row with art, G = last row with art.
-# The sway shader leans each flower from its own base to its own top.
-func _art_rows() -> ImageTexture:
-	var cols := _pixels.get_width() / TILE
-	var rows := _pixels.get_height() / TILE
-	var img := Image.create(cols, rows, false, Image.FORMAT_RGBA8)
-	for cy in rows:
-		for cx in cols:
-			var first := TILE - 1
-			var last := 0
-			for y in TILE:
-				for x in TILE:
-					if _pixels.get_pixel(cx * TILE + x, cy * TILE + y).a > 0.0:
-						first = mini(first, y)
-						last = maxi(last, y)
-						break
-			img.set_pixel(cx, cy, Color8(first, last, 0, 255))
-	return ImageTexture.create_from_image(img)
+func _add_ambience() -> void:
+	wind = Wind.new()
+	wind.name = "Wind"
+	add_child(wind)
+	streaks = WindStreaks.new()
+	streaks.name = "WindStreaks"
+	streaks.wind = wind
+	add_child(streaks)
+	move_child(streaks, actors.get_index()) # under the y-sorted actors
+	leaves = AmbientLeaves.new()
+	leaves.name = "Leaves"
+	leaves.wind = wind
+	add_child(leaves)
+	clouds = CloudShadows.new()
+	clouds.name = "CloudShadows"
+	clouds.wind = wind
+	add_child(clouds)
+
+
+func _reset_ambience() -> void:
+	var map_rect := Rect2(0, 0, PaintedTerrain.WIDTH * TILE, PaintedTerrain.HEIGHT * TILE)
+	streaks.bounds = map_rect
+	clouds.reset(map_rect)
+	var sources: Array[Dictionary] = []
+	for prop in terrain.props:
+		if not prop.has("art") or not (prop.art in PaintedTerrain.TREES or prop.art in PaintedTerrain.SHADE_TREES):
+			continue
+		var art: Dictionary = PaintedTerrain.PROPS[prop.art]
+		var top_left := Vector2((prop.cell + art.cell) * TILE)
+		var size := Vector2(art.region.size * TILE)
+		sources.append({
+			"crown": Rect2(top_left + Vector2(5, 4), Vector2(size.x - 10, size.y * 0.45)),
+			"base_y": top_left.y + art.base.y,
+		}.merged(_colors_of(prop.art, Rect2i(art.region.position * TILE, Vector2i(art.region.size.x * TILE, art.region.size.y * TILE / 2)))))
+	# The canopy wall (Deep forest) sheds leaves along its lower edge.
+	var canopy_cols := {}
+	for cell in terrain.canopy:
+		canopy_cols[cell.x / 4] = true
+	for block in canopy_cols:
+		var atlas: Vector2i = terrain.canopy[Vector2i(block * 4, 0)]
+		sources.append({
+			"crown": Rect2(block * 4 * TILE, TILE, 4 * TILE, 2 * TILE),
+			"base_y": 4 * TILE + 8.0,
+		}.merged(_colors_of("canopy_%s" % atlas, Rect2i(atlas * TILE, Vector2i(4 * TILE, 4 * TILE)))))
+	leaves.set_sources(sources)
+
+
+# Leaf colors for a tree, from its sprite: `light` are the brightest common
+# foliage (or blossom) colors that still stand out from the lawn, `dark` is
+# its darkest common foliage color for the leaf's edge.
+func _colors_of(key: String, region: Rect2i) -> Dictionary:
+	if _leaf_colors.has(key):
+		return _leaf_colors[key]
+	var lawn := _pixels.get_pixel(0, 0)
+	var counts := {}
+	for y in range(region.position.y, region.end.y):
+		for x in range(region.position.x, region.end.x):
+			var p := _pixels.get_pixel(x, y)
+			if p.a < 0.5 or (p.r > p.g and p.r > p.b and p.get_luminance() < 0.5):
+				continue # transparent, or trunk and branch browns
+			var k := p.to_rgba32()
+			counts[k] = counts.get(k, 0) + 1
+	var keys := counts.keys()
+	keys.sort_custom(func(a, b): return counts[a] > counts[b])
+	var common: Array[Color] = []
+	for k in keys.slice(0, 10):
+		common.append(Color.hex(k))
+	var light: Array[Color] = []
+	var dark := Color(0.09, 0.25, 0.24)
+	var darkest := 2.0
+	for c in common:
+		var l := c.get_luminance()
+		if l < darkest:
+			darkest = l
+			dark = c
+		var off_lawn := absf(c.r - lawn.r) + absf(c.g - lawn.g) + absf(c.b - lawn.b)
+		if l > 0.3 and off_lawn > 0.12:
+			light.append(c)
+	light = light.slice(0, 3)
+	if light.is_empty():
+		light.append(common[0] if not common.is_empty() else Color(0.35, 0.55, 0.3))
+	_leaf_colors[key] = {"light": light, "dark": dark}
+	return _leaf_colors[key]
 
 
 func _build_tileset() -> TileSet:
@@ -167,7 +230,7 @@ func _paint() -> void:
 			for cell in blob.tiles:
 				_put(features_layer, cell, blob.tiles[cell])
 	for cell in terrain.deco:
-		_put(sway_layer if terrain.sway.has(cell) else deco_layer, cell, terrain.deco[cell])
+		_put(deco_layer, cell, terrain.deco[cell])
 
 
 # Edge cells of a grass tone zone, drawn per pixel from the zone's own fill

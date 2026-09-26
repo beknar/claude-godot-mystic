@@ -421,22 +421,6 @@ dark. Two to four per map (more on Hedge garden). Lawn cells sometimes
 use `(0, 17)` (lawn with a tuft), and mid and dark fills sometimes
 `(11, 15)` and `(11, 21)`.
 
-**Swaying flowers.** Flowers and flower carpets in breezy patches sit on
-a separate `DecoSway` layer with `shaders/flower_sway.gdshader`: each cell
-leans by whole pixels on a slow wave, measured from each flower's own
-drawn rows (its top row moves most, its bottom three rows stay planted;
-per-cell heights come from an `art_rows` lookup texture built from the
-sheet, so short flowers lean as much as tall ones), the phase ripples
-across the map, and a slow gust
-varies the strength. A shifted pixel from outside the cell is left
-transparent, so no neighbouring atlas cell bleeds in. The tile atlas pads
-each cell with a 1 px border in the texture it draws from, so the shader
-finds a cell with an 18 px stride when padding is on. Which flowers sway
-comes from a smooth wind field plus a small per-flower chance (a position
-hash, so the layout is unchanged); a carpet sways as a whole. A balancing
-pass keeps 40–70 % of a map's flowers swaying: on a calm map the windiest
-still flowers join in until 45 % sway, on a gusty map the calmest stop. The walk check fails outside that band.
-
 **Deco by tone.** On lawn and mid: sprouts `(5–7, 1–3)`, `(6–7, 5)` and
 flowers `(8–10, 2–7)`. On dark and deep: mostly the darkest sprouts
 `(5–7, 4)`, `(5, 5)`. Flower carpets `(5–7, 6–8)`: one to three per map on
@@ -708,6 +692,30 @@ the face. Grass zones fade away from ridges as they do from the path. Ridgeline 
 
 Not used: the thin diagonal hedge pieces `(0–1, 4)`, `(0–1, 8)`, which
 draw as scattered leaf bits.
+
+## Ambience (Painted Lands scenes)
+
+Motion lives outside the tile art, in four scripts that `forest.gd` adds:
+
+- `scripts/wind.gd` (`Wind`) — the one wind every effect reads. Its
+  heading eases to a new direction every 20–40 s (over about 4 s), base
+  strength drifts between 0.3 and 0.8, and gusts rise and fall on top every
+  6–16 s.
+- `scripts/ambient_leaves.gd` — leaves fall from every tree crown (and the
+  canopy wall's lower edge), flutter, tumble between two- and three-pixel
+  shapes, drift with the wind, lie on the ground a few seconds, and skitter
+  in gusts. Colors come from each tree's sprite: a light foliage or blossom
+  color that stands off the lawn, edged with the tree's darkest green, so a
+  leaf reads on any grass tone. More fall in gusts.
+- `scripts/wind_streaks.gd` — pale one-pixel wisps skim along the wind in
+  view, fading toward the tail; about a third curl into a small eddy. More
+  in gusts. Drawn under the y-sorted actors.
+- `scripts/cloud_shadows.gd` — three lumpy cloud shadows in translucent
+  deep-grass green with a narrow ordered-dither rim, drifting with the wind
+  and wrapping in on the upwind side.
+
+Everything moves on whole world pixels and uses the sheet's colors; no
+new art. Map generation is unchanged.
 
 ## Forest generator
 
