@@ -9,10 +9,10 @@ shared inventory, composition steps, and QC checklist. This README gives an
 overview; when the two disagree, `AGENTS.md` wins.
 
 > **Status:** built so far: `scenes/clearing/clearing.tscn` (the main scene),
-> `scenes/player/player.tscn`, `scripts/terrain.gd`, `scripts/clearing.gd`,
-> `scripts/player.gd`, both art packs, the AI character sheets, and
-> `addons/godot_mcp`. Grove, hollow, ford, heath, forest, and wilds are not
-> built yet.
+> `scenes/grove/grove.tscn`, `scenes/player/player.tscn`,
+> `scripts/terrain.gd`, `scripts/clearing.gd`, `scripts/player.gd`, both art
+> packs, the AI character sheets, and `addons/godot_mcp`. Hollow, ford,
+> heath, forest, and wilds are not built yet.
 
 ## Running
 
