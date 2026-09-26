@@ -14,7 +14,7 @@ overview; when the two disagree, `AGENTS.md` wins.
 > player and walker scenes, the Mystic Woods and Painted Lands generators,
 > both art packs, the AI character sheets, and `addons/godot_mcp`. Hollow,
 > ford, and heath are not built yet. The Painted Lands generator draws all
-> 25 recipes.
+> 28 recipes.
 
 ## Running
 
@@ -56,8 +56,8 @@ generator.
 The randomizer runs the Painted Lands generator with the wilds settings.
 Press Esc for its menu: it shows the current map id, recipe, and check
 result, and **Regenerate with a new seed** builds a fresh map from a random
-id with the same rules (`recipe = id % 25`). The recipe picker can pin the
-next seed to any of the 25 recipes.
+id with the same rules (`recipe = id % 28`). The recipe picker can pin the
+next seed to any of the 28 recipes.
 
 To check every recipe headless:
 
@@ -138,10 +138,10 @@ report repeated 3×3 windows. The clearing report prints that count.
 
 ## Painted Lands pipeline
 
-`recipe = seed % 25` selects one of 25 recipes (Pastoral, Crossroads,
+`recipe = seed % 28` selects one of 28 recipes (Pastoral, Crossroads,
 Pond walk, …, Switchback, then Cave mouth, Terraces, Stone ruins, Woodcutter
-camp, Rock garden). The forest and wilds scenes pin recipes 3 and 5. The
-recipe sets houses (0, 1, or 2 on recipes 10 and 23
+camp, Rock garden, Deep forest, Village square, Hedge garden). The forest and wilds scenes pin recipes 3 and 5. The
+recipe sets houses (0, 1, 2 on recipes 10 and 23, 3 on 26
 only), water, fences, gates, plateau, path shape, dirt-patch blobs, and
 props. The full table is in `AGENTS.md`.
 

@@ -99,14 +99,14 @@ Painted Lands map (pipeline: § Painted Lands):
   idle is column 3, walk is 3, 4, 3, 5. No attack row. Movement is
   still eight-direction.
   The scene pins recipe 3 (`recipe = 3`). New seeds use
-  `recipe = seed % 25` from the table below.
+  `recipe = seed % 28` from the table below.
 - `scenes/wilds/wilds.tscn` — map id `75125`, recipe 5 Open meadow
   (pinned: `recipe = 5`).
   No house. A straight cobble road runs from edge to edge. Round dirt
   blobs, bushes, and land rocks. No pond and no signs.
 - `scenes/randomizer/randomizer.tscn` — the wilds settings (starts at map
   id `75125`) plus an Esc menu that regenerates from a random new id with
-  the same generator. Any of the 25 recipes can come up, or be pinned.
+  the same generator. Any of the 28 recipes can come up, or be pinned. Its first map is pinned to recipe 5.
 
 There is no health, enemy, or save. The editor addon
 `addons/godot_mcp` is how this repo is driven from the Godot MCP server.
@@ -286,8 +286,8 @@ Inner corners (fully surrounded cell, one open diagonal):
 Rows 6–8 of each set (`(21–32, 6–8)`) are ragged sparse-dirt versions of
 the same 3×3 layout, with inner corners in rows 9–10 (`(22–23, 9–10)`,
 `(25–26, 9–10)`, `(28–29, 9–10)`, `(31–32, 9–10)`). Irregular blobs use the
-ragged set of the same mode (transparent on lawn, mid or dark baked inside
-a zone); round blobs use the smooth sets. The dirt sets have no standalone one-cell island
+ragged set of the same mode (transparent or the lawn-baked `(21–23, 6–8)`
+on lawn, mid or dark baked inside a zone); round blobs use the smooth sets. The dirt sets have no standalone one-cell island
 and no three-sided cap, so a round blob is a rounded rectangle (2×2,
 3×2, 2×3, 4×2, 2×4) and an irregular blob is two rectangles joined with
 arms at least two cells thick.
@@ -412,6 +412,15 @@ Mode D, `(27–29, 0–2)` with inner corners `(27, 3)`, `(29, 3)`, `(27, 5)`,
 `(29, 5)` on dark. Half the island placement tries start inside a zone.
 On plain lawn, Mode A or B as above.
 
+**Grass accents.** Small blobs of the next darker tone from the baked sets
+`(12–20, 0–2)`, with the hole rings `(12–20, 3–5)` for inner corners and
+for ring-shaped accents (a 5×5 whose center 3×3 is the ring). An accent
+goes only where the ground under it and its ring is exactly the tone
+baked into the cell: mid on plain lawn, dark on pure mid, deep on pure
+dark. Two to four per map (more on Hedge garden). Lawn cells sometimes
+use `(0, 17)` (lawn with a tuft), and mid and dark fills sometimes
+`(11, 15)` and `(11, 21)`.
+
 **Deco by tone.** On lawn and mid: sprouts `(5–7, 1–3)`, `(6–7, 5)` and
 flowers `(8–10, 2–7)`. On dark and deep: mostly the darkest sprouts
 `(5–7, 4)`, `(5, 5)`. Flower carpets `(5–7, 6–8)`: one to three per map on
@@ -481,7 +490,8 @@ Upper: outer (21,0) / north (22,0)
 ## Houses (0 or 1, unless the recipe names more)
 
 Default is **zero or one** house per map. Two only on recipes 10 (West
-hamlet) and 23 (Woodcutter camp), which name both prefabs.
+hamlet) and 23 (Woodcutter camp), three only on 26 (Village square); those
+recipes name every prefab.
 
 The sheet has four complete buildings. Never mix tiles from two
 prefabs. Regions are in sheet cells; the doorstep is the cell the path
@@ -493,9 +503,9 @@ ends on, relative to the region's top-left. When the recipe has exactly one hous
 | 0 | Porch cottage | Large purple-roof house with wooden deck | `(38–45, 10–14)` | 2 | `(3, 5)` |
 | 1 | Flower cottage | White walls, flowering vine on the wall | `(38–45, 15–19)` | 2 | `(2, 4)` |
 | 2 | Gable cottage | Tall pointed roof, large windows | `(38–45, 25–29)` | 2 | `(2, 4)` |
-| 3 | Hut | Small 3×3 wood hut with door and deck | `(46–48, 10–12)` | 1 | `(1, 3)` |
+| 3 | Hut | Small wood hut with door and deck | `(46–48, 9–12)` | 2 | `(1, 4)` |
 | 4 | Shed | The hut kit's second wall, no deck | `(46–48, 13–15)` | 1 | `(1, 3)` |
-| 5 | Barn | The doorless copy of the porch cottage | `(38–45, 20–24)` | 2 | `(2, 5)` |
+| 5 | Barn | The doorless copy of the porch cottage, with the loose door `(46, 25)`, windows `(47, 24–25)`, `(47, 26)`, and door `(46, 26)` hung on its walls | `(38–45, 20–24)` | 2 | `(2, 5)` |
 
 Houses 0–2 end two pixels into column 45; the hut-kit deck starts at
 x 728 in row 19, so clip region widths to 115 px. The shed and barn are
@@ -562,7 +572,22 @@ fence cluster: `(27, 23–27)` and `(28, 23–27)`. Enumerate them in
 A recipe that lists signs must pick 1–3 different ids from those ten,
 never the same id three times, never a crate standing in for a sign.
 
-**Camp props** — big campfire `(34–37, 29)` (four frames) with ash
+**More props** — torch variants `(36, 26–27)`, `(37, 26–27)`; a third
+crate stack `(20–21, 28–29)`; tall grass `(20, 27)` near doors; a
+flowerpot `(46, 20–21)` beside cottage and hut doorsteps; the plank deck
+`(46–48, 19)` at the shed door; a second water-grass clump `(47–48, 7–8)`.
+Both campfires are two rows tall (flames reach row 28).
+
+**Canopy wall** (recipe 25) — the seamless 4×4 canopy blocks
+`(21–24, 11–14)` (plain) or `(21–24, 18–21)` (blossom) fill the top four
+rows and block; trees with grassy bases stand three to four cells apart in
+front so their crowns cover the canopy's straight lower edge.
+
+**Shade trees** — `(25–28, 11–15)` and `(25–28, 18–22)` carry dark ground
+shade in their base row; they grow only on the darkest grass, where the
+shade matches the ground.
+
+**Camp props** — big campfire `(34–37, 28–29)` (four frames) with ash
 `(28, 29)` beside it, burning between a camp's buildings.
 
 **Rock outcrops** — a small raised top on a short face, one per tone:
@@ -588,11 +613,16 @@ part of that set is the pond fill), with two or three animated sparkles
 a bump when a 3×3 or larger rectangle fits two cells from the shore and
 two from the first pool. Open water scrolls: full shallow cells use
 `(47–50, 0)` and half the deep interior `(47–50, 1)` (four frames, random
-start); the other half uses the seamless deep fills `(40–43, 5–8)`.
+start); the other half uses the seamless deep fills `(40–43, 5–8)`. Open
+water right beside a deep pool uses the still shallow frame the sheet
+draws around the deep set (`(35–39, 5–9)` minus the deep 3×3).
 Shore on every water–lawn edge. Then water plants / water rocks per
 recipe. No 1-tile canals. World size is the blob, not 5×3.
 
-Fences: 4-connected rails, real corners, min run 3. Rail `(30, 25)`,
+Fences: 4-connected rails, real corners, min run 3. Plain-rail variants
+`(29, 25)`, `(29–30, 27)`, a second east end `(31, 27)` and post
+`(31, 26)`, and the shorter back rails `(29–30, 24)` on a yard's north
+row. Rail `(30, 25)`,
 east end with post `(31, 25)`, post `(29, 26)`; west ends and west posts
 are the same cells flipped horizontally. Torches may sit
 on posts. Signs may sit next to a gate, not on the rail tile.
@@ -623,11 +653,24 @@ light lawn at the foot, so those tops use stairs. A cave mouth
 middle is the walkable entrance). About a fifth of plain face columns are
 the vine-covered face `(0–1, 18–20)`.
 
+More of the kit: each plateau picks one of two rock faces, `(4–6, 15–17)`
+or `(2–4, 18–20)`, with plain rock `(2–3, 16)` for some middle cells; the
+south rim of light, mid, and dark tops uses the six rim variants in rows
+23, 22, and 21 (columns 0–5); stairs are flanked by the shaded rock
+`(0, 24–26)` and `(4, 24–26)`; a one-wide stair `(5, 24)`, `(5, 25)`,
+`(2, 26)` serves some mid and dark tops; stone tops sprinkle in
+`(11, 27)`.
+
+Not used: the pit and plateau inner-corner pieces `(7–8, 12–17)`,
+`(14–17, 15–17)`, `(14–17, 21–23)`, `(14–17, 27–29)` (their layout could
+not be confirmed), and the thin diagonal hedge pieces `(0–1, 4)`,
+`(0–1, 8)`, which draw as scattered leaf bits.
+
 ## Forest generator
 
 ```
 seed = map_id
-recipe = seed % 25                # or the scene's pinned recipe
+recipe = seed % 28                # or the scene's pinned recipe
 n_houses = recipe.houses          # 0, 1, or 2 only if table says 2
 house_ids = named id, else (seed // 20) % 4 for the first;
             second house = (first + 1 + seed) % 4
@@ -648,7 +691,7 @@ trees  = Poisson
 verify walk + reject list
 ```
 
-### Recipe table (`recipe = seed % 25`)
+### Recipe table (`recipe = seed % 28`)
 
 Houses = 0, 1, or 2 (2 only here when written). P/P2 = pond(s).
 F = fence yard. G = gate line. C = plateau. L = approx-45° lean.
@@ -683,9 +726,12 @@ rocks (WR), campfire (CF), torches (T), signs (S).
 | 22 | Stone ruins | 0 | none | C (stone, ramp) | to the ramp | I 1–2 | LR obstacles, stone outcrops, ruins clutter, T, S=2 |
 | 23 | Woodcutter camp | **2** (4 and 5) | none | F | trunk + spur | I 2 | big CF + ash, logs heavy, S=1 |
 | 24 | Rock garden | 0 | P + WP + WR | none | edge + L | R 2–3 | outcrops, bushes |
+| 25 | Deep forest | 0 | none | none | 1 trunk | I 1–2 | canopy wall, logs heavy, bushes, S=1; darker tone cover |
+| 26 | Village square | **3** (0, 1, 2) | none | none | plaza + 2 trunks | R 1–2 | T at plaza corners, S=3 |
+| 27 | Hedge garden | 1×2 | none | F+G | through gate | R 2 | hedges heavy, carpets heavy, T, S=1 |
 
 `1×N` means one house of prefab N. Only recipes 10 and 23 place two
-houses. Recipes 5, 12, 18, 20, 22, 24 place zero. C2 is two plateaus.
+houses and 26 three. Recipes 5, 12, 18, 20, 22, 24, 25 place zero. C2 is two plateaus.
 The forest and wilds scenes pin recipes 3 and 5, so adding recipes
 never changes those maps.
 

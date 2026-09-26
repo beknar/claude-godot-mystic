@@ -92,7 +92,7 @@ Painted Lands only:
 - [ ] Pond shores are rounded (not a 5×3 wave rectangle)
 - [ ] Actor does not draw through `HOUSE_BODY` when the recipe has a house
 - [ ] No 1-tile 45° stair
-- [ ] House count is 0 or 1, or 2 only on recipes 10 and 23
+- [ ] House count is 0 or 1, 2 only on recipes 10 and 23, 3 only on 26
 - [ ] House prefab matches the recipe (not always the porch cottage)
 - [ ] Each PATCH is a 3–8 cell blob (no 2-cell L, no 1×N strip)
       autotiled with `(30–32, 0–2)` or `(24–26, 0–2)` corners/edges —
@@ -110,9 +110,9 @@ Painted Lands only:
 ## 6. Painted Lands forest generator
 
 Atlas numbers, house counts, PATCH blob autotile, and the 20-row
-table: `AGENTS.md` § Painted Lands. `recipe = seed % 25` (the forest and
+table: `AGENTS.md` § Painted Lands. `recipe = seed % 28` (the forest and
 wilds scenes pin theirs). Houses default to 0 or 1. Two houses only on
-recipes 10 and 23.
+recipes 10 and 23, three on 26.
 
 Do not use `plains.png` dirt, meadow `(80, 155, 102)`, or the
 Mystic Woods default cliff threshold `0.64` here.
@@ -131,7 +131,7 @@ Mystic Woods default cliff threshold `0.64` here.
   and water rocks from the same cluster.
 - FENCE / GATE — recipe.
 - CLIFF_* — recipes 4 and 16 only.
-- HOUSE count 0 or 1, or 2 on recipes 10 and 23. Prefabs 0 porch, 1 flower,
+- HOUSE count 0 or 1, 2 on recipes 10 and 23, 3 on 26. Prefabs 0 porch, 1 flower,
   2 gable, 3 hut. Body collides (sort at doorstep). Roof does not
   (sort at eave).
 - BUSH, LAND_ROCK, WATER_PLANT, WATER_ROCK, CAMPFIRE, TORCH, SIGN[0..9],
@@ -146,7 +146,7 @@ torches, house parts, characters).
 
 ### Generator order
 
-1. `recipe = seed % 25` (or the scene's pinned recipe); house count from the table.
+1. `recipe = seed % 28` (or the scene's pinned recipe); house count from the table.
 2. fBm height + moisture (4 octaves).
 3. Pond / plateau candidates; drop specks; keep only if the recipe wants them.
 4. Flatten spawn + each house disk.

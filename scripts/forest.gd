@@ -24,6 +24,7 @@ const FLIP := 1 # alternative tile id for horizontally flipped cells
 
 var terrain: PaintedTerrain
 var tone_layers: Array[TileMapLayer] = []
+var accent_layer: TileMapLayer
 var report := ""
 var _atlas: TileSetAtlasSource
 var _pixels: Image
@@ -41,7 +42,12 @@ func _ready() -> void:
 		add_child(layer)
 		move_child(layer, ground.get_index() + 1 + i)
 		tone_layers.append(layer)
-	for layer in [ground, features_layer, deco_layer] + tone_layers:
+	# Grass accents sit on the tones, under the features.
+	accent_layer = TileMapLayer.new()
+	accent_layer.name = "Accents"
+	add_child(accent_layer)
+	move_child(accent_layer, tone_layers[-1].get_index() + 1)
+	for layer in [ground, features_layer, deco_layer, accent_layer] + tone_layers:
 		layer.tile_set = tiles
 	build(map_id, recipe)
 
@@ -53,7 +59,7 @@ func build(id: int, pinned := -1) -> void:
 	recipe = pinned
 	terrain = PaintedTerrain.new()
 	report = terrain.generate(map_id, recipe)
-	for layer in [ground, features_layer, deco_layer] + tone_layers:
+	for layer in [ground, features_layer, deco_layer, accent_layer] + tone_layers:
 		layer.clear()
 	for node in [patches, actors, collision]:
 		for child in node.get_children():
@@ -112,6 +118,10 @@ func _paint() -> void:
 		_put(features_layer, cell, terrain.fence[cell].atlas, terrain.fence[cell].flip)
 	for cell in terrain.hedge:
 		_put(features_layer, cell, terrain.hedge[cell])
+	for cell in terrain.canopy:
+		_put(features_layer, cell, terrain.canopy[cell])
+	for cell in terrain.accents:
+		_put(accent_layer, cell, terrain.accents[cell])
 	for blob in terrain.blobs:
 		if blob.mode != "B":
 			# Mode A: the dirt set whose grass is transparent, so the ground
@@ -279,6 +289,10 @@ func _place_houses() -> void:
 			Vector2(0, eave - region.size.y)))
 		for block in art.blocks:
 			_add_box(body, Rect2(Vector2(block.position) - Vector2(0, region.size.y), Vector2(block.size)))
+		# Loose door and windows hung on the wall (the barn).
+		for overlay in art.get("overlays", []):
+			var sprite := _region_sprite(Rect2(overlay.src), Vector2(overlay.at) - Vector2(0, region.size.y))
+			body.add_child(sprite)
 		actors.add_child(body)
 
 
@@ -378,4 +392,4 @@ func _hash(x: int, y: int, salt: int) -> float:
 
 
 func _solid_ground(cell: Vector2i) -> bool:
-	return terrain.water.has(cell) or terrain.ledge.has(cell) or terrain.hedge.has(cell)
+	return terrain.water.has(cell) or terrain.ledge.has(cell) or terrain.hedge.has(cell) or terrain.canopy.has(cell)
