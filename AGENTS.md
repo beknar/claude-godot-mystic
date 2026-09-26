@@ -429,9 +429,8 @@ varies the strength. A shifted pixel from outside the cell is left
 transparent, so no neighbouring atlas cell bleeds in. Which flowers sway
 comes from a smooth wind field plus a small per-flower chance (a position
 hash, so the layout is unchanged); a carpet sways as a whole. A balancing
-pass keeps 20–70 % of a map's flowers swaying (about 44 % on average): on
-a calm map the windiest still flowers join in until a quarter sway, on a
-gusty map the calmest stop. The walk check fails outside that band.
+pass keeps 40–70 % of a map's flowers swaying: on a calm map the windiest
+still flowers join in until 45 % sway, on a gusty map the calmest stop. The walk check fails outside that band.
 
 **Deco by tone.** On lawn and mid: sprouts `(5–7, 1–3)`, `(6–7, 5)` and
 flowers `(8–10, 2–7)`. On dark and deep: mostly the darkest sprouts

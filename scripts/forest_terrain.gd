@@ -2477,8 +2477,8 @@ func _scatter_deco() -> void:
 	_balance_sway()
 
 
-# Keeps the swaying share between 20 % and 70 %: on a calm map, the
-# windiest still flowers join in until a quarter sway; on a gusty map the
+# Keeps the swaying share between 40 % and 70 %: on a calm map, the
+# windiest still flowers join in until 45 % sway; on a gusty map the
 # calmest stop until two thirds do. Ranking by the wind field keeps the
 # swaying flowers in patches.
 func _balance_sway() -> void:
@@ -2491,10 +2491,10 @@ func _balance_sway() -> void:
 	if total == 0:
 		return
 	var by_wind := func(a: Vector2i, b: Vector2i) -> bool: return _wind(a) > _wind(b)
-	if moving.size() < total * 0.2:
+	if moving.size() < total * 0.4:
 		still.sort_custom(by_wind)
 		for c in still:
-			if sway.size() >= ceili(total * 0.25):
+			if sway.size() >= ceili(total * 0.45):
 				break
 			sway[c] = true
 	elif moving.size() > total * 0.7:
@@ -2518,7 +2518,7 @@ func _is_flower(atlas: Vector2i) -> bool:
 # flowers move and calm patches where few do, plus a little per-flower
 # chance (`jitter`) so a patch has no hard edge.
 func _windy(c: Vector2i, jitter: float) -> bool:
-	var chance := smoothstep(0.42, 0.66, _wind(c))
+	var chance := smoothstep(0.34, 0.6, _wind(c))
 	return _hash(c.x, c.y, 802) < lerpf(jitter, 1.0 - jitter, chance) # a hash, not the rng, so the layout stays the same
 
 
@@ -2644,7 +2644,7 @@ func _verify() -> String:
 		if not deco.has(c):
 			fails.append("sway cell %s has no deco" % c)
 	var sway_share := float(sway.size()) / maxf(1.0, flowers)
-	if flowers >= 10 and (sway_share < 0.2 or sway_share > 0.7):
+	if flowers >= 10 and (sway_share < 0.4 or sway_share > 0.7):
 		fails.append("%d of %d flowers sway" % [sway.size(), flowers])
 	for c in accents:
 		if accents[c] == NONE:

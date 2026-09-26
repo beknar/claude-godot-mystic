@@ -77,7 +77,7 @@ map has zones of darker grass in three nested tones with organic, dithered
 edges that curve away from the path. Dirt islands inside a zone use the dirt tile
 whose grass is that tone, deco follows the tone underneath, and flower
 carpets dot the open lawn. Some maps get hedgerows, and many ponds become
-lakes with a deep, sparkling center. About two in five flowers, grouped in
+lakes with a deep, sparkling center. About half the flowers, grouped in
 breezy patches, sway gently in the wind.
 
 ## Player
