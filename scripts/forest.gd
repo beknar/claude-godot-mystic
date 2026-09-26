@@ -11,6 +11,9 @@ const SOURCE := 0
 const FLIP := 1 # alternative tile id for horizontally flipped cells
 
 @export var map_id := 91003
+## Pins the recipe (-1: map_id % recipe count). The fixed scenes pin theirs
+## so adding recipes never changes them.
+@export var recipe := -1
 
 @onready var ground: TileMapLayer = $Ground
 @onready var features_layer: TileMapLayer = $Features
@@ -40,15 +43,16 @@ func _ready() -> void:
 		tone_layers.append(layer)
 	for layer in [ground, features_layer, deco_layer] + tone_layers:
 		layer.tile_set = tiles
-	build(map_id)
+	build(map_id, recipe)
 
 
 # Generates `id` and repaints every layer. Safe to call again to replace
 # the current map.
-func build(id: int) -> void:
+func build(id: int, pinned := -1) -> void:
 	map_id = id
+	recipe = pinned
 	terrain = PaintedTerrain.new()
-	report = terrain.generate(map_id)
+	report = terrain.generate(map_id, recipe)
 	for layer in [ground, features_layer, deco_layer] + tone_layers:
 		layer.clear()
 	for node in [patches, actors, collision]:
@@ -77,12 +81,14 @@ func _build_tileset() -> TileSet:
 func _put(layer: TileMapLayer, cell: Vector2i, atlas: Vector2i, flip := false, alt_id := -1) -> void:
 	if not _atlas.has_tile(atlas):
 		_atlas.create_tile(atlas)
-		if PaintedTerrain.WATER_FRAME_REGION.has_point(atlas):
-			# Pond cells cycle through the four shore frames on the sheet.
-			_atlas.set_tile_animation_separation(atlas, Vector2i(PaintedTerrain.WATER_FRAME_STEP - 1, 0))
-			_atlas.set_tile_animation_frames_count(atlas, PaintedTerrain.WATER_FRAMES)
-			for i in PaintedTerrain.WATER_FRAMES:
-				_atlas.set_tile_animation_frame_duration(atlas, i, 0.35)
+		var anim := PaintedTerrain.animation_for(atlas)
+		if not anim.is_empty():
+			_atlas.set_tile_animation_separation(atlas, Vector2i(anim.step - 1, 0))
+			_atlas.set_tile_animation_frames_count(atlas, anim.frames)
+			for i in anim.frames:
+				_atlas.set_tile_animation_frame_duration(atlas, i, anim.duration)
+			if anim.random:
+				_atlas.set_tile_animation_mode(atlas, TileSetAtlasSource.TILE_ANIMATION_MODE_RANDOM_START_TIMES)
 	var alt := FLIP if flip else maxi(alt_id, 0)
 	if alt != 0 and not _atlas.has_alternative_tile(atlas, alt):
 		_atlas.create_alternative_tile(atlas, alt)
@@ -104,10 +110,13 @@ func _paint() -> void:
 		_put(features_layer, cell, terrain.features[cell])
 	for cell in terrain.fence:
 		_put(features_layer, cell, terrain.fence[cell].atlas, terrain.fence[cell].flip)
+	for cell in terrain.hedge:
+		_put(features_layer, cell, terrain.hedge[cell])
 	for blob in terrain.blobs:
-		if blob.mode == "A":
-			# Mode A: the dirt set whose grass is transparent, so the lawn
-			# already under each cell shows through. No second green.
+		if blob.mode != "B":
+			# Mode A: the dirt set whose grass is transparent, so the ground
+			# under each cell shows through. Modes M and D: the set whose baked
+			# grass is the zone's own tone. None of them adds a second green.
 			for cell in blob.tiles:
 				_put(features_layer, cell, blob.tiles[cell])
 	for cell in terrain.deco:
@@ -369,4 +378,4 @@ func _hash(x: int, y: int, salt: int) -> float:
 
 
 func _solid_ground(cell: Vector2i) -> bool:
-	return terrain.water.has(cell) or terrain.ledge.has(cell)
+	return terrain.water.has(cell) or terrain.ledge.has(cell) or terrain.hedge.has(cell)

@@ -5,6 +5,7 @@
 [node name="Forest" type="Node2D"]
 texture_filter = 1
 script = ExtResource("1_script")
+recipe = 3
 map_id = 91003
 
 [node name="Ground" type="TileMapLayer" parent="."]

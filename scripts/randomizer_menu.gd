@@ -43,8 +43,9 @@ func _set_open(open: bool) -> void:
 func _on_regenerate() -> void:
 	var id := _rng.randi_range(20, MAX_ID)
 	var pinned := _recipe.selected - 1
+	var count := PaintedTerrain.RECIPES.size()
 	if pinned >= 0:
-		id = id - id % 20 + pinned
+		id = id - id % count + pinned
 	map.build(id)
 	_refresh()
 	_set_open(false)
@@ -98,7 +99,7 @@ func _build_ui() -> void:
 	_recipe = OptionButton.new()
 	_recipe.add_theme_font_size_override("font_size", FONT_SIZE)
 	_recipe.get_popup().add_theme_font_size_override("font_size", FONT_SIZE)
-	_recipe.add_item("Next recipe: any (seed % 20)")
+	_recipe.add_item("Next recipe: any (seed %% %d)" % PaintedTerrain.RECIPES.size())
 	for i in PaintedTerrain.RECIPES.size():
 		_recipe.add_item("Next recipe: %d %s" % [i, PaintedTerrain.RECIPES[i].name])
 	box.add_child(_recipe)

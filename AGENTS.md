@@ -98,13 +98,15 @@ Painted Lands map (pipeline: § Painted Lands):
   mirrored), down, up. Columns 3–5 repeat 0–2 with a ground shadow;
   idle is column 3, walk is 3, 4, 3, 5. No attack row. Movement is
   still eight-direction.
-  New forest seeds use `recipe = seed % 20` from the table below.
-- `scenes/wilds/wilds.tscn` — map id `75125`, recipe 5 Open meadow.
+  The scene pins recipe 3 (`recipe = 3`). New seeds use
+  `recipe = seed % 25` from the table below.
+- `scenes/wilds/wilds.tscn` — map id `75125`, recipe 5 Open meadow
+  (pinned: `recipe = 5`).
   No house. A straight cobble road runs from edge to edge. Round dirt
   blobs, bushes, and land rocks. No pond and no signs.
 - `scenes/randomizer/randomizer.tscn` — the wilds settings (starts at map
   id `75125`) plus an Esc menu that regenerates from a random new id with
-  the same generator. Any of the 20 recipes can come up, or be pinned.
+  the same generator. Any of the 25 recipes can come up, or be pinned.
 
 There is no health, enemy, or save. The editor addon
 `addons/godot_mcp` is how this repo is driven from the Godot MCP server.
@@ -282,7 +284,10 @@ Inner corners (fully surrounded cell, one open diagonal):
 | NW | `(32,4)` | `(26,5)` |
 
 Rows 6–8 of each set (`(21–32, 6–8)`) are ragged sparse-dirt versions of
-the same 3×3 layout. The dirt sets have no standalone one-cell island
+the same 3×3 layout, with inner corners in rows 9–10 (`(22–23, 9–10)`,
+`(25–26, 9–10)`, `(28–29, 9–10)`, `(31–32, 9–10)`). Irregular blobs use the
+ragged set of the same mode (transparent on lawn, mid or dark baked inside
+a zone); round blobs use the smooth sets. The dirt sets have no standalone one-cell island
 and no three-sided cap, so a round blob is a rounded rectangle (2×2,
 3×2, 2×3, 4×2, 2×4) and an irregular blob is two rectangles joined with
 arms at least two cells thick.
@@ -395,6 +400,34 @@ use the transparent ones.
 Reject a tone zone with a straight edge, a stair-step outline, a darker
 level touching the lawn directly, or any tone pixel on a path cell.
 
+Cut gaps: the dark cut is at least 0.12 above the mid cut and the deep cut
+at least 0.11 above the dark cut, so each lighter tone keeps a band wide
+enough to stand on its own around the darker one.
+
+**Dirt islands inside a zone.** When an island's cells are at least 95 %
+one tone (at most 5 % of the next darker) and its one-cell ring at least
+85 % (at most 15 %), it uses the dirt set whose baked grass *is* that
+tone, as plain tiles with no halo: Mode M, set B `(24–26, 0–5)` on mid;
+Mode D, `(27–29, 0–2)` with inner corners `(27, 3)`, `(29, 3)`, `(27, 5)`,
+`(29, 5)` on dark. Half the island placement tries start inside a zone.
+On plain lawn, Mode A or B as above.
+
+**Deco by tone.** On lawn and mid: sprouts `(5–7, 1–3)`, `(6–7, 5)` and
+flowers `(8–10, 2–7)`. On dark and deep: mostly the darkest sprouts
+`(5–7, 4)`, `(5, 5)`. Flower carpets `(5–7, 6–8)`: one to three per map on
+plain lawn, either the whole 3×3 or its four corner cells as a 2×2, at
+least six cells apart.
+
+### Hedgerows
+
+Dark hedge `(0–2, 1–3)` (inner corners `(3–4, 1–2)`) and light hedge
+`(0–2, 5–7)` (inner corners `(3–4, 5–6)`), autotiled as rows two cells
+thick, 5–10 long, sometimes an L. On recipes with bushes or a fence yard,
+one to three rows. The dark hedge goes only on plain lawn; the light hedge
+only where the row and its ring are at least 90 % dark tone. Hedges block;
+a row that would cut the spawn off from any goal is not placed. Never a
+lone 3×3 hedge square.
+
 ## Dirt path atlas (cobble PATH only)
 
 ## Dirt path atlas (cobble PATH only)
@@ -447,8 +480,8 @@ Upper: outer (21,0) / north (22,0)
 
 ## Houses (0 or 1, unless the recipe names more)
 
-Default is **zero or one** house per map. Two or more only when the
-recipe `Houses` cell is an integer ≥ 2.
+Default is **zero or one** house per map. Two only on recipes 10 (West
+hamlet) and 23 (Woodcutter camp), which name both prefabs.
 
 The sheet has four complete buildings. Never mix tiles from two
 prefabs. Regions are in sheet cells; the doorstep is the cell the path
@@ -461,10 +494,12 @@ ends on, relative to the region's top-left. When the recipe has exactly one hous
 | 1 | Flower cottage | White walls, flowering vine on the wall | `(38–45, 15–19)` | 2 | `(2, 4)` |
 | 2 | Gable cottage | Tall pointed roof, large windows | `(38–45, 25–29)` | 2 | `(2, 4)` |
 | 3 | Hut | Small 3×3 wood hut with door and deck | `(46–48, 10–12)` | 1 | `(1, 3)` |
+| 4 | Shed | The hut kit's second wall, no deck | `(46–48, 13–15)` | 1 | `(1, 3)` |
+| 5 | Barn | The doorless copy of the porch cottage | `(38–45, 20–24)` | 2 | `(2, 5)` |
 
 Houses 0–2 end two pixels into column 45; the hut-kit deck starts at
-x 728 in row 19, so clip region widths to 115 px. `(38–45, 20–24)` is
-a doorless copy of the porch cottage and is not a prefab.
+x 728 in row 19, so clip region widths to 115 px. The shed and barn are
+outbuildings; only recipes that name them (23) place them.
 
 Split every placed prefab:
 
@@ -521,16 +556,39 @@ its buffer — crates `(21, 27)`, `(22, 27)`, stacks `(22–23, 28–29)`,
 `(24–25, 28–29)`, chests `(26–27, 28–29)`. All clutter blocks. A crate is
 never a sign.
 
-**Signs** — eight distinct sign / notice / post tiles in the crate and
-fence cluster: `(27, 23–27)` and `(28, 23–25)`; `(28, 26)` and
-`(28, 27)` are spares. Enumerate them in `forest_terrain.gd` as
-`SIGN[0..7]`.
-A recipe that lists signs must pick 1–3 different ids from that eight,
+**Signs** — ten distinct sign / notice / post tiles in the crate and
+fence cluster: `(27, 23–27)` and `(28, 23–27)`. Enumerate them in
+`forest_terrain.gd` as `SIGN[0..9]`.
+A recipe that lists signs must pick 1–3 different ids from those ten,
 never the same id three times, never a crate standing in for a sign.
+
+**Camp props** — big campfire `(34–37, 29)` (four frames) with ash
+`(28, 29)` beside it, burning between a camp's buildings.
+
+**Rock outcrops** — a small raised top on a short face, one per tone:
+light `(9–10, 12–17)`, mid `(18–19, 12–15)`, dark `(18–19, 18–21)`, stone
+`(18–19, 24–27)`. Each takes the tone of the ground under it (all stone
+on Stone ruins). They block; one that would cut off a goal is not placed.
+
+**Vines** — flowering `(5, 18–19)`, leafy `(6, 18–19)`, and a hanging
+column `(34, 25–27)`, one to three per plateau face, clear of the cuts.
+
+**Fence with grass** — rails `(32–33, 25)`, `(32–33, 27)` and post
+`(32, 26)` are the plain pieces with grass at the foot; about a third of
+rails and posts use them.
 
 ## Pond, fences, cliffs
 
 Pond: compact blob from moisture. Fill only where water is surrounded.
+The first pond on a map is a lake 60 % of the time (always on recipe 12):
+an 8–11 × 7–9 rectangle with two or three bumps straddling its edges. Its
+center, inset two cells, is deep water from `(36–38, 6–8)` (the shallow
+part of that set is the pond fill), with two or three animated sparkles
+`(47–50, 2)`, `(47–50, 3)` on the deep cells. A second deep pool goes in
+a bump when a 3×3 or larger rectangle fits two cells from the shore and
+two from the first pool. Open water scrolls: full shallow cells use
+`(47–50, 0)` and half the deep interior `(47–50, 1)` (four frames, random
+start); the other half uses the seamless deep fills `(40–43, 5–8)`.
 Shore on every water–lawn edge. Then water plants / water rocks per
 recipe. No 1-tile canals. World size is the blob, not 5×3.
 
@@ -546,11 +604,30 @@ Cut a three-wide stair into the face: `(1–3, 24)`, `(1–3, 25)`, then
 adds a spur). The plateau top interior and the rim cells over the stairs
 are walkable; the rest of the rim and the face block.
 
+The cliff kit comes in four tones — light, mid, dark, stone — each with a
+3×3 top and a 4×4 ramp (a two-wide gap through the face with shaded
+rock sides, rim row first):
+
+| Tone | Top | Ramp |
+|---|---|---|
+| light | `(4–6, 12–14)` | `(0–3, 12–15)` |
+| mid | `(15–17, 12–14)` | `(11–14, 12–15)` |
+| dark | `(15–17, 18–20)` | `(11–14, 18–21)` |
+| stone | `(15–17, 24–26)` | `(11–14, 24–27)` |
+
+Only the light set has rock-with-grass for the ramp's bottom side cells;
+every ramp uses `(0, 15)` and `(3, 15)` there. Ramps go only on light and
+stone tops: a mid or dark ramp would carry its green straight into the
+light lawn at the foot, so those tops use stairs. A cave mouth
+`(7–9, 18–20)` can be cut into the face instead (three wide; the bottom
+middle is the walkable entrance). About a fifth of plain face columns are
+the vine-covered face `(0–1, 18–20)`.
+
 ## Forest generator
 
 ```
 seed = map_id
-recipe = seed % 20
+recipe = seed % 25                # or the scene's pinned recipe
 n_houses = recipe.houses          # 0, 1, or 2 only if table says 2
 house_ids = named id, else (seed // 20) % 4 for the first;
             second house = (first + 1 + seed) % 4
@@ -571,7 +648,7 @@ trees  = Poisson
 verify walk + reject list
 ```
 
-### Recipe table (`recipe = seed % 20`)
+### Recipe table (`recipe = seed % 25`)
 
 Houses = 0, 1, or 2 (2 only here when written). P/P2 = pond(s).
 F = fence yard. G = gate line. C = plateau. L = approx-45° lean.
@@ -601,9 +678,16 @@ rocks (WR), campfire (CF), torches (T), signs (S).
 | 17 | Gate road | 1×3 | none | G | through gate | R 2 | T on gate, S=2 |
 | 18 | Sparse wild | 0 | P if blob | none | 1 trunk | I 1–2 | LR only |
 | 19 | Switchback | 1×0 | none | none | U of two 90° | RI 2 | bushes, CF, S=1 |
+| 20 | Cave mouth | 0 | none | C (light, cave) | to the cave | I 2–3 | bushes, LR, T by the cave, S=1 |
+| 21 | Terraces | 1×3 | none | C2 (light + ramp, mid/dark + stairs) | along the terraces | RI 2 | bushes, LR, S=1 |
+| 22 | Stone ruins | 0 | none | C (stone, ramp) | to the ramp | I 1–2 | LR obstacles, stone outcrops, ruins clutter, T, S=2 |
+| 23 | Woodcutter camp | **2** (4 and 5) | none | F | trunk + spur | I 2 | big CF + ash, logs heavy, S=1 |
+| 24 | Rock garden | 0 | P + WP + WR | none | edge + L | R 2–3 | outcrops, bushes |
 
-`1×N` means one house of prefab N. Only recipe 10 places two houses.
-Recipes 5, 12, 18 place zero.
+`1×N` means one house of prefab N. Only recipes 10 and 23 place two
+houses. Recipes 5, 12, 18, 20, 22, 24 place zero. C2 is two plateaus.
+The forest and wilds scenes pin recipes 3 and 5, so adding recipes
+never changes those maps.
 
 If a flag cannot be placed without breaking autotile, drop *that extra*
 only. Do not drop patch blobs, bushes, or signs just to keep the old

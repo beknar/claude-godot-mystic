@@ -14,7 +14,7 @@ overview; when the two disagree, `AGENTS.md` wins.
 > player and walker scenes, the Mystic Woods and Painted Lands generators,
 > both art packs, the AI character sheets, and `addons/godot_mcp`. Hollow,
 > ford, and heath are not built yet. The Painted Lands generator draws all
-> 20 recipes.
+> 25 recipes.
 
 ## Running
 
@@ -56,8 +56,8 @@ generator.
 The randomizer runs the Painted Lands generator with the wilds settings.
 Press Esc for its menu: it shows the current map id, recipe, and check
 result, and **Regenerate with a new seed** builds a fresh map from a random
-id with the same rules (`recipe = id % 20`). The recipe picker can pin the
-next seed to any of the 20 recipes.
+id with the same rules (`recipe = id % 25`). The recipe picker can pin the
+next seed to any of the 25 recipes.
 
 To check every recipe headless:
 
@@ -74,7 +74,10 @@ three-wide stair up the face, and the top is walkable. Trees come in eight
 variants (two shapes, plain or flowering, with or without a grassy base).
 Logs lie on the lawn, and crates and chests sit beside each house. Every
 map has zones of darker grass in three nested tones with organic, dithered
-edges that curve away from the path.
+edges that curve away from the path. Dirt islands inside a zone use the dirt tile
+whose grass is that tone, deco follows the tone underneath, and flower
+carpets dot the open lawn. Some maps get hedgerows, and many ponds become
+lakes with a deep, sparkling center.
 
 ## Player
 
@@ -135,8 +138,10 @@ report repeated 3×3 windows. The clearing report prints that count.
 
 ## Painted Lands pipeline
 
-`recipe = seed % 20` selects one of 20 recipes (Pastoral, Crossroads,
-Pond walk, …, Switchback). The recipe sets houses (0, 1, or 2 on recipe 10
+`recipe = seed % 25` selects one of 25 recipes (Pastoral, Crossroads,
+Pond walk, …, Switchback, then Cave mouth, Terraces, Stone ruins, Woodcutter
+camp, Rock garden). The forest and wilds scenes pin recipes 3 and 5. The
+recipe sets houses (0, 1, or 2 on recipes 10 and 23
 only), water, fences, gates, plateau, path shape, dirt-patch blobs, and
 props. The full table is in `AGENTS.md`.
 

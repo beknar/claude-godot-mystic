@@ -32,19 +32,31 @@ const RECIPES := [
 	{"name": "Gate road", "houses": [3], "water": "", "height": "G", "path": "through gate", "patch": ["R", 2, 2], "props": ["T"], "signs": 2},
 	{"name": "Sparse wild", "houses": [], "water": "P if blob", "height": "", "path": "1 trunk", "patch": ["I", 1, 2], "props": ["LR"], "signs": 0},
 	{"name": "Switchback", "houses": [0], "water": "", "height": "", "path": "U of two 90", "patch": ["RI", 2, 2], "props": ["bushes", "CF"], "signs": 1},
+	# Recipes past the original twenty use the cliff kit, the extra
+	# buildings, and the camp props.
+	{"name": "Cave mouth", "houses": [], "water": "", "height": "C", "path": "to the cave", "patch": ["I", 2, 3], "props": ["bushes", "LR", "T"], "signs": 1, "top": "light", "cave": true},
+	{"name": "Terraces", "houses": [3], "water": "", "height": "C2", "path": "along the terraces", "patch": ["RI", 2, 2], "props": ["bushes", "LR"], "signs": 1},
+	{"name": "Stone ruins", "houses": [], "water": "", "height": "C", "path": "to the ramp", "patch": ["I", 1, 2], "props": ["LR obstacles", "outcrops", "ruins", "T"], "signs": 2, "top": "stone"},
+	{"name": "Woodcutter camp", "houses": [4, 5], "water": "", "height": "F", "path": "trunk + spur", "patch": ["I", 2, 2], "props": ["CF big", "logs heavy"], "signs": 1},
+	{"name": "Rock garden", "houses": [], "water": "P+WP+WR", "height": "", "path": "edge + L", "patch": ["R", 2, 3], "props": ["outcrops", "bushes"], "signs": 0},
 ]
 
 # FLAT_GRASS: one plain cell and three quiet speckles.
 const LAWN := [Vector2i(0, 0), Vector2i(1, 0), Vector2i(2, 0), Vector2i(3, 0)]
-const TUFTS := [Vector2i(5, 1), Vector2i(6, 1), Vector2i(7, 1), Vector2i(5, 2), Vector2i(6, 2), Vector2i(7, 2), Vector2i(5, 3), Vector2i(6, 3), Vector2i(7, 3)]
-const FLOWERS := [Vector2i(8, 2), Vector2i(9, 2), Vector2i(10, 2), Vector2i(8, 3), Vector2i(9, 3), Vector2i(10, 3), Vector2i(8, 5), Vector2i(9, 5), Vector2i(10, 5)]
+const TUFTS := [Vector2i(5, 1), Vector2i(6, 1), Vector2i(7, 1), Vector2i(5, 2), Vector2i(6, 2), Vector2i(7, 2), Vector2i(5, 3), Vector2i(6, 3), Vector2i(7, 3), Vector2i(6, 5), Vector2i(7, 5)]
+const FLOWERS := [Vector2i(8, 2), Vector2i(9, 2), Vector2i(10, 2), Vector2i(8, 3), Vector2i(9, 3), Vector2i(10, 3), Vector2i(8, 5), Vector2i(9, 5), Vector2i(10, 5),
+	Vector2i(8, 4), Vector2i(9, 4), Vector2i(8, 6), Vector2i(9, 6), Vector2i(10, 6), Vector2i(8, 7), Vector2i(9, 7)]
+# Deco for the dark and deep grass zones: the darkest sprouts.
+const DARK_TUFTS := [Vector2i(5, 4), Vector2i(6, 4), Vector2i(7, 4), Vector2i(5, 5)]
+# A 3x3 carpet of small white and lavender flowers, placed whole on lawn.
+const FLOWER_CARPET := Vector2i(5, 6)
 
 # Grass tone zones, lightest to darkest. Each level is a 3x3 blob set on
 # transparent with dithered, rounded edges, its transparent-hole ring for
 # inner corners, and flat fills of the same green (plain plus speckles).
 # Level 0 sits on the lawn; each deeper level sits inside the one before.
 const TONES := [
-	{"name": "mid", "blob": Vector2i(12, 6), "ring": Vector2i(12, 9), "fills": [Vector2i(4, 0), Vector2i(5, 0), Vector2i(6, 0), Vector2i(7, 0)], "cover": 0.26},
+	{"name": "mid", "blob": Vector2i(12, 6), "ring": Vector2i(12, 9), "fills": [Vector2i(4, 0), Vector2i(5, 0), Vector2i(6, 0), Vector2i(7, 0)], "cover": 0.30},
 	{"name": "dark", "blob": Vector2i(15, 6), "ring": Vector2i(15, 9), "fills": [Vector2i(8, 1), Vector2i(9, 1), Vector2i(10, 1), Vector2i(11, 1)], "cover": 0.10},
 	{"name": "deep", "blob": Vector2i(18, 6), "ring": Vector2i(18, 9), "fills": [Vector2i(8, 0), Vector2i(9, 0), Vector2i(10, 0), Vector2i(11, 0)], "cover": 0.035},
 ]
@@ -69,6 +81,26 @@ const PATCH_SET_A := Vector2i(30, 0)
 const PATCH_SET_B := Vector2i(24, 0)
 const PATCH_INNER_A := {2: Vector2i(31, 3), 4: Vector2i(32, 3), 1: Vector2i(31, 4), 8: Vector2i(32, 4)}
 const PATCH_INNER_B := {2: Vector2i(24, 3), 4: Vector2i(26, 3), 1: Vector2i(24, 5), 8: Vector2i(26, 5)}
+# The same dirt on the dark tone. Its baked grass is exactly the dark fill,
+# as set B's is exactly the mid fill, so inside a zone they need no halo.
+const PATCH_SET_D := Vector2i(27, 0)
+const PATCH_INNER_D := {2: Vector2i(27, 3), 4: Vector2i(29, 3), 1: Vector2i(27, 5), 8: Vector2i(29, 5)}
+
+# Ragged (worn, speckled) dirt, the same 3x3 layout in rows 6-8 with inner
+# corners in rows 9-10. Irregular islands use these.
+const RAGGED_SET_A := Vector2i(30, 6)
+const RAGGED_SET_B := Vector2i(24, 6)
+const RAGGED_SET_D := Vector2i(27, 6)
+const RAGGED_INNER_A := {2: Vector2i(31, 9), 4: Vector2i(32, 9), 1: Vector2i(31, 10), 8: Vector2i(32, 10)}
+const RAGGED_INNER_B := {2: Vector2i(25, 9), 4: Vector2i(26, 9), 1: Vector2i(25, 10), 8: Vector2i(26, 10)}
+const RAGGED_INNER_D := {2: Vector2i(28, 9), 4: Vector2i(29, 9), 1: Vector2i(28, 10), 8: Vector2i(29, 10)}
+
+# Hedges: dark and light 3x3 hedge blobs on transparent, with hole rings
+# for inner corners. Hedgerows are two cells thick.
+const HEDGE_SETS := [
+	{"blob": Vector2i(0, 1), "inner": {2: Vector2i(3, 1), 4: Vector2i(4, 1), 1: Vector2i(3, 2), 8: Vector2i(4, 2)}},
+	{"blob": Vector2i(0, 5), "inner": {2: Vector2i(3, 5), 4: Vector2i(4, 5), 1: Vector2i(3, 6), 8: Vector2i(4, 6)}},
+]
 const ROUND_SHAPES := [Vector2i(2, 2), Vector2i(3, 2), Vector2i(2, 3), Vector2i(4, 2), Vector2i(2, 4)]
 
 # Pond: 3x3 water set with shore on transparent, plus inner corners. The
@@ -80,11 +112,30 @@ const WATER_INNER := {8: Vector2i(35, 3), 1: Vector2i(36, 3), 4: Vector2i(35, 4)
 const WATER_FRAMES := 4
 const WATER_FRAME_STEP := 3
 const WATER_FRAME_REGION := Rect2i(35, 0, 3, 5)
+# Deep water: a 3x3 deep-on-shallow set whose shallow part is the pond fill.
+const DEEP_SET := Vector2i(36, 6)
+const LAKE_CHANCE := 0.6
+# Open-water surfaces: four scrolling frames each, one column apart.
+const SHALLOW_SURFACE := Vector2i(47, 0)
+const DEEP_SURFACE := Vector2i(47, 1)
+# Seamless deep fill (the plus-shaped block beside the deep set).
+const DEEP_FILLS := [Vector2i(41, 5), Vector2i(42, 5), Vector2i(40, 6), Vector2i(41, 6), Vector2i(42, 6), Vector2i(43, 6),
+	Vector2i(40, 7), Vector2i(41, 7), Vector2i(42, 7), Vector2i(43, 7), Vector2i(41, 8), Vector2i(42, 8)]
 
 # Plateau: 3x3 rim over the top, then a three-row south face.
 const PLATEAU_SET := Vector2i(4, 12)
 const PLATEAU_FACE_ROW := 15
 const FACE_ROWS := 3
+# The cliff kit comes in four tones. Each has a 3x3 top (rim over grass or
+# stone) and a 4x4 ramp: a two-wide gap through the face, rim row first.
+# Faces are the shared rock at (4-6, 15-17). Ramps are used only on light
+# and stone tops: a mid or dark ramp would carry its green straight into
+# the light lawn at the foot. Mid and dark tops use stairs.
+const PLATEAU_TOPS := {"light": Vector2i(4, 12), "mid": Vector2i(15, 12), "dark": Vector2i(15, 18), "stone": Vector2i(15, 24)}
+const RAMPS := {"light": Vector2i(0, 12), "mid": Vector2i(11, 12), "dark": Vector2i(11, 18), "stone": Vector2i(11, 24)}
+const RAMP_WIDTH := 4
+const CAVE := Vector2i(7, 18) # 3x3 cave mouth for the face; its bottom middle is open
+const VINE_FACES := [Vector2i(0, 18), Vector2i(1, 18)] # face columns overgrown with vines, rows 18-20
 # Stairs cut three wide into the face: steps in rows 24-25 with shaded
 # sides, then the mossy bottom step (2, 26) across all three columns.
 const STAIRS := [
@@ -97,6 +148,9 @@ const STAIRS := [
 const FENCE_RAIL := Vector2i(30, 25)
 const FENCE_END := Vector2i(31, 25)
 const FENCE_POST := Vector2i(29, 26)
+# The same rail and post with grass growing at the foot.
+const FENCE_RAILS_GRASS := [Vector2i(32, 25), Vector2i(33, 25), Vector2i(32, 27), Vector2i(33, 27)]
+const FENCE_POST_GRASS := Vector2i(32, 26)
 
 # Houses. `region` is in sheet pixels, anchored on a cell corner. The top
 # `roof_rows` are HOUSE_ROOF; the rest is HOUSE_BODY. `door` is the doorstep
@@ -107,6 +161,10 @@ const HOUSES := {
 	1: {"name": "Flower cottage", "region": Rect2i(608, 240, 115, 80), "roof_rows": 2, "door": Vector2i(2, 4), "blocks": [Rect2i(22, 32, 58, 30), Rect2i(64, 32, 50, 46)]},
 	2: {"name": "Gable cottage", "region": Rect2i(608, 400, 115, 80), "roof_rows": 2, "door": Vector2i(2, 4), "blocks": [Rect2i(22, 32, 58, 30), Rect2i(64, 32, 50, 46)]},
 	3: {"name": "Hut", "region": Rect2i(736, 160, 48, 48), "roof_rows": 1, "door": Vector2i(1, 3), "blocks": [Rect2i(0, 16, 48, 30)]},
+	# Outbuildings: the hut kit's second wall (no deck) and the doorless
+	# copy of the porch cottage.
+	4: {"name": "Shed", "region": Rect2i(736, 208, 48, 48), "roof_rows": 1, "door": Vector2i(1, 3), "blocks": [Rect2i(0, 16, 48, 32)]},
+	5: {"name": "Barn", "region": Rect2i(608, 320, 115, 80), "roof_rows": 2, "door": Vector2i(2, 5), "blocks": [Rect2i(14, 32, 100, 45)]},
 }
 
 # Props. `region` in cells, `cell` = region top-left relative to the anchor
@@ -148,6 +206,19 @@ const PROPS := {
 	"rock_wide": {"region": Rect2i(23, 27, 2, 1), "cell": Vector2i(-1, 0), "base": Vector2i(15, 15), "block": Vector2(22, 6)},
 	"torch": {"region": Rect2i(35, 26, 1, 2), "cell": Vector2i(0, -1), "base": Vector2i(8, 27), "block": Vector2.ZERO},
 	"campfire": {"region": Rect2i(29, 29, 1, 1), "cell": Vector2i.ZERO, "base": Vector2i(8, 15), "block": Vector2(12, 6), "frames": 4},
+	"sparkle": {"region": Rect2i(47, 2, 1, 1), "cell": Vector2i.ZERO, "base": Vector2i(8, 15), "block": Vector2.ZERO, "frames": 4},
+	"campfire_big": {"region": Rect2i(34, 29, 1, 1), "cell": Vector2i.ZERO, "base": Vector2i(8, 15), "block": Vector2(12, 6), "frames": 4},
+	"ash": {"region": Rect2i(28, 29, 1, 1), "cell": Vector2i.ZERO, "base": Vector2i(8, 15), "block": Vector2.ZERO},
+	# Rock outcrops: a small raised top on a short face, one per tone.
+	"outcrop_light": {"region": Rect2i(9, 12, 2, 6), "cell": Vector2i(-1, -5), "base": Vector2i(16, 94), "block": Vector2(24, 8)},
+	"outcrop_mid": {"region": Rect2i(18, 12, 2, 4), "cell": Vector2i(-1, -3), "base": Vector2i(16, 62), "block": Vector2(22, 8)},
+	"outcrop_dark": {"region": Rect2i(18, 18, 2, 4), "cell": Vector2i(-1, -3), "base": Vector2i(16, 62), "block": Vector2(22, 8)},
+	"outcrop_stone": {"region": Rect2i(18, 24, 2, 4), "cell": Vector2i(-1, -3), "base": Vector2i(16, 62), "block": Vector2(22, 8)},
+	# Vines hung on a plateau face.
+	"vine_flower": {"region": Rect2i(5, 18, 1, 2), "cell": Vector2i(0, -1), "base": Vector2i(8, 31), "block": Vector2.ZERO},
+	"vine_green": {"region": Rect2i(6, 18, 1, 2), "cell": Vector2i(0, -1), "base": Vector2i(8, 31), "block": Vector2.ZERO},
+	"vine_column": {"region": Rect2i(34, 25, 1, 3), "cell": Vector2i(0, -2), "base": Vector2i(4, 47), "block": Vector2.ZERO},
+	"sparkle_b": {"region": Rect2i(47, 3, 1, 1), "cell": Vector2i.ZERO, "base": Vector2i(8, 15), "block": Vector2.ZERO, "frames": 4},
 	"reed_tall": {"region": Rect2i(46, 4, 1, 2), "cell": Vector2i(0, -1), "base": Vector2i(8, 31), "block": Vector2.ZERO},
 	"reed": {"region": Rect2i(47, 5, 1, 1), "cell": Vector2i.ZERO, "base": Vector2i(8, 15), "block": Vector2.ZERO},
 	"water_grass": {"region": Rect2i(46, 6, 1, 1), "cell": Vector2i.ZERO, "base": Vector2i(8, 15), "block": Vector2.ZERO},
@@ -171,10 +242,14 @@ const LAND_ROCKS := BIG_ROCKS + PEBBLES
 const SHORE_PLANTS := ["reed_tall", "reed", "water_grass", "water_grass_b", "water_grass_big"]
 const OPEN_PLANTS := ["lily", "lily_pair"]
 const WATER_ROCKS := ["water_rock_big", "water_rock", "water_rock_flat"]
+const SPARKLES := ["sparkle", "sparkle_b"]
+const OUTCROPS := {"light": "outcrop_light", "mid": "outcrop_mid", "dark": "outcrop_dark", "stone": "outcrop_stone"}
+const VINES := ["vine_flower", "vine_green", "vine_column"]
 # Eight distinct sign / notice / post cells from the crate-and-fence cluster.
 const SIGN := [
 	Vector2i(27, 23), Vector2i(27, 24), Vector2i(27, 25), Vector2i(27, 26),
 	Vector2i(27, 27), Vector2i(28, 23), Vector2i(28, 24), Vector2i(28, 25),
+	Vector2i(28, 26), Vector2i(28, 27),
 ]
 
 var map_id := 0
@@ -189,10 +264,16 @@ var water := {} # cell -> true
 var plateau := {} # cell -> true (top and face)
 var ledge := {} # plateau cells that block: the rim and the face, not the stairs
 var stairs := {} # cell -> true
+var ramps := {} # walkable ramp cells -> true
+var caves: Array[Vector2i] = [] # cave entrance cells
+var plateaus: Array[Dictionary] = [] # {top, tone, stairs, ramp, cave} (x of each cut, -1 if none)
 var deco := {} # cell -> atlas
 var tones: Array[Dictionary] = [] # per level: cell -> {atlas, alt}
 var blobs: Array[Dictionary] = [] # {rect, cells, shape, mode, tiles, baked}
 var ponds: Array[Rect2i] = []
+var deep := {} # cell -> true
+var hedge := {} # cell -> atlas
+var hedgerows := 0
 var props: Array[Dictionary] = [] # {art, cell, block} or {sign, cell, block}
 var houses: Array[Dictionary] = [] # {id, origin}
 var fence := {} # cell -> {atlas, flip}
@@ -208,9 +289,11 @@ var _solid := {} # cells an object actually covers
 var _blocked := {} # cells the walker cannot enter
 
 
-func generate(p_map_id: int) -> String:
+# recipe = map_id % RECIPES.size(), unless `p_recipe` pins one (the fixed
+# forest and wilds scenes do, so their maps survive new recipes).
+func generate(p_map_id: int, p_recipe := -1) -> String:
 	map_id = p_map_id
-	recipe_id = map_id % 20
+	recipe_id = p_recipe if p_recipe >= 0 else map_id % RECIPES.size()
 	recipe = RECIPES[recipe_id]
 	var built := false
 	for a in ATTEMPTS:
@@ -221,8 +304,9 @@ func generate(p_map_id: int) -> String:
 			break
 	if not built:
 		dropped.append("no layout fit after %d attempts" % ATTEMPTS)
-	_grow_patches()
 	_grass_zones()
+	_grow_patches()
+	_grow_hedges()
 	_place_props()
 	_place_trees()
 	_scatter_deco()
@@ -235,13 +319,14 @@ func walkable(cell: Vector2i) -> bool:
 
 func _reset(seed_value: int) -> void:
 	_rng.seed = seed_value
-	for d in [lawn, features, path, water, plateau, ledge, stairs, deco, fence, _taken, _solid, _blocked]:
+	for d in [lawn, features, path, water, deep, hedge, plateau, ledge, stairs, ramps, deco, fence, _taken, _solid, _blocked]:
 		d.clear()
-	for a in [blobs, ponds, props, houses, goals, tones]:
+	for a in [blobs, ponds, props, houses, goals, tones, caves, plateaus]:
 		a.clear()
 	dropped.clear()
 	gate = Vector2i(-1, -1)
 	leans = 0
+	hedgerows = 0
 	_paint_lawn()
 
 
@@ -279,6 +364,11 @@ func _layout() -> bool:
 		17: return _lay_gate_road()
 		18: return _lay_sparse_wild()
 		19: return _lay_switchback()
+		20: return _lay_cave()
+		21: return _lay_terraces()
+		22: return _lay_ruins()
+		23: return _lay_camp()
+		24: return _lay_rock_garden()
 	return false
 
 
@@ -363,9 +453,11 @@ func _lay_garden() -> bool:
 # 4 and 16: plateau in the north half; the trunk runs along its foot
 # (`gap` lawn rows below the face) and on to a house east of it.
 func _lay_rim(gap: int) -> bool:
-	var top := _plateau(Rect2i(6, 3, WIDTH / 2 - 6, 5))
-	if top.size == Vector2i.ZERO:
+	var tone := _pick_top()
+	var info := _plateau(Rect2i(6, 3, WIDTH / 2 - 6, 5), tone, ["ramp"] if tone == "light" and _rng.randf() < 0.5 else ["stairs"])
+	if info.is_empty():
 		return false
+	var top: Rect2i = info.top
 	var foot := top.end.y + FACE_ROWS
 	var row := foot + gap
 	var h := _place_house(0 if recipe_id == 4 else 2, Rect2i(top.end.x + 4, 3, WIDTH - top.end.x - 14, row - 12))
@@ -376,19 +468,32 @@ func _lay_rim(gap: int) -> bool:
 		return false
 	if not _route([Vector2i(0, row), Vector2i(door.x, row), door]):
 		return false
-	var sx := _stairs_x()
+	var sx := _access_x(info)
 	if gap > 0 and not _route([Vector2i(sx, row), Vector2i(sx, foot)], true):
 		return false
 	spawn = Vector2i(2, row)
-	goals = [door, Vector2i(sx + 1, top.end.y - 2)] # the door and the plateau top
+	goals = [door, _top_goal(info)] # the door and the plateau top
 	return true
 
 
-func _stairs_x() -> int:
-	var sx := WIDTH
-	for c in stairs:
-		sx = mini(sx, c.x)
-	return sx
+# Column where a path should meet the plateau's way up (stairs or ramp gap).
+func _access_x(info: Dictionary) -> int:
+	if info.stairs >= 0:
+		return info.stairs
+	if info.ramp >= 0:
+		return info.ramp + 1
+	return info.cave
+
+
+func _top_goal(info: Dictionary) -> Vector2i:
+	var top: Rect2i = info.top
+	return Vector2i(_access_x(info) + 1, top.end.y - 2)
+
+
+# Plateau top tone: mostly light, sometimes mid or dark.
+func _pick_top() -> String:
+	var r := _rng.randf()
+	return "light" if r < 0.5 else ("mid" if r < 0.8 else "dark")
 
 
 # 5: a straight road from the west edge to the east edge.
@@ -630,6 +735,103 @@ func _lay_switchback() -> bool:
 	return true
 
 
+# 20: a plateau with a cave mouth in its face; the trunk leads to the cave
+# and torches flank it.
+func _lay_cave() -> bool:
+	var info := _plateau(Rect2i(12, 3, WIDTH - 30, 6), "light", ["cave"])
+	if info.is_empty():
+		return false
+	var top: Rect2i = info.top
+	var foot := top.end.y + FACE_ROWS
+	var row := mini(foot + _rng.randi_range(3, 6), HEIGHT - 5)
+	var cx: int = info.cave
+	if not _route([Vector2i(0, row), Vector2i(cx, row), Vector2i(cx, foot)]):
+		return false
+	spawn = Vector2i(2, row)
+	goals = [caves[0]]
+	return true
+
+
+# 21: two terraces side by side, one reached by a ramp, one by stairs; the
+# trunk runs along their feet to a hut in the east.
+func _lay_terraces() -> bool:
+	var a := _plateau(Rect2i(4, 3, 10, 5), "light", ["ramp"])
+	if a.is_empty():
+		return false
+	var b := _plateau(Rect2i(a.top.end.x + 4, 3, 10, 5), "mid" if _rng.randf() < 0.5 else "dark", ["stairs"])
+	if b.is_empty():
+		return false
+	var foot: int = maxi(a.top.end.y, b.top.end.y) + FACE_ROWS
+	var row := foot + _rng.randi_range(3, 5)
+	var h := _place_house(3, Rect2i(b.top.end.x + 4, 3, WIDTH - b.top.end.x - 12, row - 10))
+	if h.is_empty():
+		return false
+	var door := _door(h)
+	if door.y > row - 3 or row > HEIGHT - 4:
+		return false
+	if not _route([Vector2i(0, row), Vector2i(door.x, row), door]):
+		return false
+	for info in [a, b]:
+		var x := _access_x(info)
+		var info_foot: int = info.top.end.y + FACE_ROWS
+		if not _route([Vector2i(x, row), Vector2i(x, info_foot)], true):
+			return false
+	spawn = Vector2i(2, row)
+	goals = [door, _top_goal(a), _top_goal(b)]
+	return true
+
+
+# 22: a raised stone platform with a stone ramp, stone outcrops around it,
+# and the clutter of an old camp.
+func _lay_ruins() -> bool:
+	var info := _plateau(Rect2i(14, 5, WIDTH - 34, 6), "stone", ["ramp"])
+	if info.is_empty():
+		return false
+	var top: Rect2i = info.top
+	var foot := top.end.y + FACE_ROWS
+	var row := mini(foot + _rng.randi_range(3, 6), HEIGHT - 5)
+	var x := _access_x(info)
+	if not _route([Vector2i(0, row), Vector2i(x, row), Vector2i(x, foot)]):
+		return false
+	spawn = Vector2i(2, row)
+	goals = [_top_goal(info)]
+	return true
+
+
+# 23: a shed in a fenced yard and a barn beside it; logs, a big fire.
+func _lay_camp() -> bool:
+	var shed := _place_house(4, Rect2i(10, 4, 12, 5))
+	if shed.is_empty():
+		return false
+	var door := _door(shed)
+	_yard(shed)
+	var barn := _place_house(5, Rect2i(door.x + 12, 4, 14, 5))
+	if barn.is_empty():
+		return false
+	var door_b := _door(barn)
+	var row := mini(maxi(door.y + 4, door_b.y + 3) + _rng.randi_range(2, 5), HEIGHT - 5)
+	if not _route([Vector2i(0, row), Vector2i(door_b.x, row), door_b]):
+		return false
+	if not _route([door, Vector2i(door.x, row)], true):
+		return false
+	spawn = Vector2i(2, row)
+	goals = [door, door_b]
+	return true
+
+
+# 24: an edge-to-edge road with one lean, a lake, and rock outcrops.
+func _lay_rock_garden() -> bool:
+	var high := _rng.randi_range(12, 16)
+	var low := high + _rng.randi_range(2, 4)
+	var k := _rng.randi_range(18, WIDTH - 20)
+	if not _route([Vector2i(0, low), Vector2i(k, low), Vector2i(k, high), Vector2i(WIDTH - 2, high)]):
+		return false
+	leans = 1
+	spawn = Vector2i(2, low)
+	goals = [Vector2i(WIDTH - 2, high)]
+	return _pond(Rect2i(4, low + 5, WIDTH - 8, HEIGHT - low - 7), "WP+WR")
+
+
 # Random int in [lo, hi], or -1 when the range is empty.
 func _pick(lo: int, hi: int) -> int:
 	return -1 if hi < lo else _rng.randi_range(lo, hi)
@@ -720,6 +922,12 @@ func _gate_line(row: int, gate_x: int) -> void:
 
 
 func _put_fence(c: Vector2i, atlas: Vector2i, flip: bool) -> void:
+	# Some rails and posts have grass growing at the foot.
+	var h := _hash(c.x, c.y, 53)
+	if atlas == FENCE_RAIL and h < 0.35:
+		atlas = FENCE_RAILS_GRASS[int(h * 997.0) % FENCE_RAILS_GRASS.size()]
+	elif atlas == FENCE_POST and h < 0.35:
+		atlas = FENCE_POST_GRASS
 	fence[c] = {"atlas": atlas, "flip": flip}
 	_blocked[c] = true
 	_solid[c] = true
@@ -727,11 +935,21 @@ func _put_fence(c: Vector2i, atlas: Vector2i, flip: bool) -> void:
 
 
 # Plateau: a rectangle at least 4x4 for the top, then a three-row face.
-# Returns the top rectangle, or an empty rect when it does not fit.
-func _plateau(zone: Rect2i) -> Rect2i:
+# `tone` picks the top and ramp set. `access` lists the cuts made in the
+# face: "stairs" (three wide), "ramp" (a two-wide gap with shaded sides, four
+# wide in all), "cave" (three wide, entrance at the bottom middle). Returns
+# {top, tone, stairs, ramp, cave} with the x of each cut (-1 if absent), or
+# an empty dictionary when it does not fit.
+func _plateau(zone: Rect2i, tone: String, access: Array) -> Dictionary:
+	var top_set: Vector2i = PLATEAU_TOPS[tone]
+	var ramp_set: Vector2i = RAMPS[tone]
+	var widths := {"stairs": 3, "ramp": RAMP_WIDTH, "cave": 3}
+	var need := 2
+	for a in access:
+		need += widths[a] + 1
 	for i in 30:
-		var size := Vector2i(_rng.randi_range(6, 10), _rng.randi_range(4, 5))
-		var at := zone.position + Vector2i(_rng.randi_range(0, zone.size.x), _rng.randi_range(0, zone.size.y))
+		var size := Vector2i(_rng.randi_range(maxi(6, need), maxi(10, need + 2)), _rng.randi_range(4, 5))
+		var at := zone.position + Vector2i(_rng.randi_range(0, maxi(zone.size.x, 0)), _rng.randi_range(0, maxi(zone.size.y, 0)))
 		var whole := Rect2i(at, size + Vector2i(0, FACE_ROWS))
 		if not _rect_free(whole.grow(2)):
 			continue
@@ -741,32 +959,63 @@ func _plateau(zone: Rect2i) -> Rect2i:
 			for x in range(top.position.x, top.end.x):
 				cells[Vector2i(x, y)] = true
 		for c in cells:
-			features[c] = PLATEAU_SET + ROLES[_mask(c, cells, false)]
-		var sx := _rng.randi_range(top.position.x + 1, top.end.x - 4)
+			features[c] = top_set + ROLES[_mask(c, cells, false)]
+		# Face first, with a few vine-covered columns, then the cuts.
 		for r in FACE_ROWS:
 			for x in range(top.position.x, top.end.x):
 				var col := 0 if x == top.position.x else (2 if x == top.end.x - 1 else 1)
-				var c := Vector2i(x, top.end.y + r)
-				if x >= sx and x < sx + 3:
-					features[c] = STAIRS[r][x - sx]
-					stairs[c] = true
-				else:
-					features[c] = Vector2i(PLATEAU_SET.x + col, PLATEAU_FACE_ROW + r)
-		# The top interior and the rim cells over the stairs are walkable;
-		# the rest of the rim and the face are a ledge.
+				var face := Vector2i(PLATEAU_SET.x + col, PLATEAU_FACE_ROW + r)
+				if col == 1 and _hash(x, top.end.y, 31) < 0.22:
+					face = VINE_FACES[int(_hash(x, 0, 37) * 2.0) % 2] + Vector2i(0, r)
+				features[Vector2i(x, top.end.y + r)] = face
+		var info := {"top": top, "tone": tone, "stairs": -1, "ramp": -1, "cave": -1}
+		var open := {}
+		var x := top.position.x + 1 + _rng.randi_range(0, maxi(0, size.x - need))
+		for a in access:
+			info[a] = x
+			match a:
+				"stairs":
+					for r in FACE_ROWS:
+						for k in 3:
+							var c := Vector2i(x + k, top.end.y + r)
+							features[c] = STAIRS[r][k]
+							stairs[c] = true
+							open[c] = true
+					for k in 3:
+						open[Vector2i(x + k, top.end.y - 1)] = true
+				"ramp":
+					for r in FACE_ROWS + 1:
+						for k in RAMP_WIDTH:
+							var c := Vector2i(x + k, top.end.y - 1 + r)
+							features[c] = ramp_set + Vector2i(k, r)
+							if r == FACE_ROWS and (k == 0 or k == RAMP_WIDTH - 1):
+								# Only the light set has rock-with-grass here.
+								features[c] = RAMPS.light + Vector2i(k, r)
+							if k == 1 or k == 2:
+								ramps[c] = true
+								open[c] = true
+				"cave":
+					for r in FACE_ROWS:
+						for k in 3:
+							features[Vector2i(x + k, top.end.y + r)] = CAVE + Vector2i(k, r)
+					var door := Vector2i(x + 1, top.end.y + FACE_ROWS - 1)
+					caves.append(door)
+					open[door] = true
+			x += widths[a] + 1
+		# The top interior and the cut openings are walkable; the rest of
+		# the rim and the face are a ledge.
 		for y in range(whole.position.y, whole.end.y):
-			for x in range(whole.position.x, whole.end.x):
-				var c := Vector2i(x, y)
+			for xx in range(whole.position.x, whole.end.x):
+				var c := Vector2i(xx, y)
 				plateau[c] = true
 				_solid[c] = true
-				var open := stairs.has(c) or (cells.has(c) and _mask(c, cells, false) == 15)
-				open = open or (y == top.end.y - 1 and x >= sx and x < sx + 3)
-				if not open:
+				if not (open.has(c) or (cells.has(c) and _mask(c, cells, false) == 15)):
 					ledge[c] = true
 					_blocked[c] = true
 		_claim(whole.grow(2))
-		return top
-	return Rect2i()
+		plateaus.append(info)
+		return info
+	return {}
 
 
 # Pond: two overlapping rectangles centred on the wettest cell of `zone`,
@@ -777,13 +1026,28 @@ func _pond(zone: Rect2i, extras: String) -> bool:
 	if zone.size.x < 6 or zone.size.y < 5:
 		return false
 	var wet := _wettest(zone)
-	for i in 30:
-		var a := Rect2i(Vector2i.ZERO, Vector2i(_rng.randi_range(4, 7), _rng.randi_range(3, 5)))
+	# The first pond on a map is often a lake: big enough for a deep center.
+	var lake := ponds.is_empty() and (recipe_id == 12 or _rng.randf() < LAKE_CHANCE)
+	for i in 60:
+		if i == 30:
+			lake = false
+		var a := Rect2i(Vector2i.ZERO, Vector2i(_rng.randi_range(8, 11), _rng.randi_range(7, 9)) if lake else Vector2i(_rng.randi_range(4, 7), _rng.randi_range(3, 5)))
 		a.position = wet - a.size / 2
 		var b := Rect2i(Vector2i.ZERO, Vector2i(_rng.randi_range(3, 5), _rng.randi_range(3, 4)))
 		b.position = a.position + Vector2i(_rng.randi_range(-2, a.size.x - 1), _rng.randi_range(-2, a.size.y - 1))
+		var parts: Array[Rect2i] = [a, b]
+		if lake:
+			# Bumps straddling the lake's edges, so the outline is not a box.
+			parts = [a]
+			for k in _rng.randi_range(2, 3):
+				var bump := Rect2i(Vector2i.ZERO, Vector2i(_rng.randi_range(3, 5), _rng.randi_range(3, 4)))
+				var side := _rng.randi() % 4
+				var along := Vector2i(_rng.randi_range(a.position.x, a.end.x - bump.size.x), _rng.randi_range(a.position.y, a.end.y - bump.size.y))
+				bump.position = [Vector2i(along.x, a.position.y - bump.size.y / 2 - 1), Vector2i(a.end.x - bump.size.x / 2 + 1, along.y),
+					Vector2i(along.x, a.end.y - bump.size.y / 2 + 1), Vector2i(a.position.x - bump.size.x / 2 - 1, along.y)][side]
+				parts.append(bump)
 		var cells := {}
-		for r in [a, b]:
+		for r in parts:
 			for y in range(r.position.y, r.end.y):
 				for x in range(r.position.x, r.end.x):
 					cells[Vector2i(x, y)] = true
@@ -800,14 +1064,37 @@ func _pond(zone: Rect2i, extras: String) -> bool:
 			tiles[c] = t
 		if not ok:
 			continue
-		var wet_props := _water_props(cells, extras)
+		# Deep center: the main rectangle inset by two cells, if every cell
+		# there is at least two cells from the shore.
+		var core := a.grow(-2) if lake else Rect2i()
+		var deep_cells := {}
+		if core.size.x >= 3 and core.size.y >= 3:
+			for y in range(core.position.y, core.end.y):
+				for x in range(core.position.x, core.end.x):
+					deep_cells[Vector2i(x, y)] = true
+			for c in deep_cells:
+				if not _near_all(c, cells, 2):
+					deep_cells.clear()
+					break
+		var wet_props := _water_props(cells, extras, deep_cells)
 		if wet_props.is_empty() and extras != "":
 			continue # this shape cannot hold the plants or rocks the recipe asks for
+		if lake and not deep_cells.is_empty():
+			_second_pool(cells, deep_cells)
 		for c in cells:
-			features[c] = tiles[c]
+			# Open water (a full fill cell) scrolls; the shore keeps its frames.
+			features[c] = SHALLOW_SURFACE if tiles[c] == WATER_SET + Vector2i(1, 1) else tiles[c]
 			water[c] = true
 			_solid[c] = true
 			_blocked[c] = true
+		for c in deep_cells:
+			var mask := _mask(c, deep_cells, false)
+			var tile: Vector2i = DEEP_SET + ROLES[mask]
+			if mask == 15 and _open_diagonals(c, deep_cells, false) == 0:
+				var h := _hash(c.x, c.y, 41)
+				tile = DEEP_SURFACE if h < 0.5 else DEEP_FILLS[int(h * 997.0) % DEEP_FILLS.size()]
+			features[c] = tile
+			deep[c] = true
 		ponds.append(box)
 		props.append_array(wet_props)
 		_claim(box.grow(2))
@@ -815,9 +1102,44 @@ func _pond(zone: Rect2i, extras: String) -> bool:
 	return false
 
 
+# A second deep pool in one of the lake's bumps: the largest rectangle of at
+# least 3x3 whose cells are all two cells from the shore and one clear cell
+# from the first pool (so the two never meet at a corner the set cannot draw).
+func _second_pool(cells: Dictionary, deep_cells: Dictionary) -> void:
+	var box := _bounds(cells)
+	var best := Rect2i()
+	for y in range(box.position.y, box.end.y):
+		for x in range(box.position.x, box.end.x):
+			for w in range(5, 2, -1):
+				for h in range(4, 2, -1):
+					var r := Rect2i(x, y, w, h)
+					if r.get_area() <= best.get_area():
+						continue
+					var ok := true
+					for yy in range(r.position.y, r.end.y):
+						for xx in range(r.position.x, r.end.x):
+							var c := Vector2i(xx, yy)
+							if not _near_all(c, cells, 2) or _near(c, deep_cells, 2):
+								ok = false
+					if ok:
+						best = r
+	for y in range(best.position.y, best.end.y):
+		for x in range(best.position.x, best.end.x):
+			deep_cells[Vector2i(x, y)] = true
+
+
+# True when every cell within `dist` (Chebyshev) of c is in `cells`.
+func _near_all(c: Vector2i, cells: Dictionary, dist: int) -> bool:
+	for y in range(c.y - dist, c.y + dist + 1):
+		for x in range(c.x - dist, c.x + dist + 1):
+			if not cells.has(Vector2i(x, y)):
+				return false
+	return true
+
+
 # Water plants and rocks for a pond shape. Returns an empty list when a
 # requested kind does not fit.
-func _water_props(cells: Dictionary, extras: String) -> Array[Dictionary]:
+func _water_props(cells: Dictionary, extras: String, deep_cells := {}) -> Array[Dictionary]:
 	var shore: Array[Vector2i] = []
 	var open: Array[Vector2i] = []
 	for c in cells:
@@ -836,6 +1158,10 @@ func _water_props(cells: Dictionary, extras: String) -> Array[Dictionary]:
 		plants += _place_wet(OPEN_PLANTS, open if not open.is_empty() else anywhere, cells, used, 2, out)
 		if plants == 0:
 			return []
+	if not deep_cells.is_empty():
+		var sparkle_spots: Array[Vector2i] = []
+		sparkle_spots.assign(deep_cells.keys())
+		_place_wet(SPARKLES, sparkle_spots, cells, used, 3, out)
 	return out
 
 
@@ -926,6 +1252,17 @@ func _first_water_below(col: int, from_row: int) -> int:
 	return -1
 
 
+# Tile animation for an atlas cell, or {} for a still tile. Pond shore
+# frames repeat three columns apart; open-water surfaces scroll through four
+# neighbouring cells and start at random times.
+static func animation_for(atlas: Vector2i) -> Dictionary:
+	if WATER_FRAME_REGION.has_point(atlas):
+		return {"frames": WATER_FRAMES, "step": WATER_FRAME_STEP, "duration": 0.35, "random": false}
+	if atlas == SHALLOW_SURFACE or atlas == DEEP_SURFACE:
+		return {"frames": 4, "step": 1, "duration": 0.3, "random": true}
+	return {}
+
+
 # ---------------------------------------------------------------- tones
 
 # Darker grass zones. A smooth tone value lives on every cell corner and is
@@ -944,8 +1281,10 @@ const TONE_ANGLE := 0.61 # the field is sampled rotated, off the tile grid
 const TONE_CLEAR := 1.0 # corners this close (cells) to path or plateau stay at 0
 const TONE_FADE := 4.5 # ...and the field fades back in by this distance
 const TONE_MIN_CELLS := [6, 3, 2]
+const TONE_GAP := [0.0, 0.12, 0.11] # minimum cut step above the lighter level
 
 var tone_cut: Array[float] = []
+var _masks: Array[PackedByteArray] = []
 var tone_edges: Array[Dictionary] = [] # per level: cell -> fill atlas
 var _corner := PackedFloat32Array()
 
@@ -967,6 +1306,10 @@ func _grass_zones() -> void:
 	var kept_below := {}
 	for level in TONES.size():
 		var cut: float = values[int(values.size() * (1.0 - TONES[level].cover))] if not values.is_empty() else 2.0
+		if level > 0:
+			# Keep a band of each lighter tone wide enough to stand on its own
+			# (and to hold a dirt island in that tone) around the darker one.
+			cut = maxf(cut, tone_cut[level - 1] + TONE_GAP[level])
 		tone_cut.append(cut)
 		# Cells this level reaches at all, grouped into components; small
 		# specks and anything outside the kept lighter level are dropped.
@@ -988,6 +1331,7 @@ func _grass_zones() -> void:
 		tones.append(full)
 		tone_edges.append(edge)
 		kept_below = kept
+	_masks = _build_masks()
 
 
 # Per-level pixel masks (1 = zone) for the edge cells, full map size. The
@@ -995,6 +1339,10 @@ func _grass_zones() -> void:
 # level uses the same noisy value against a higher cut, so each level's
 # pixels always sit inside the lighter level's.
 func tone_masks() -> Array[PackedByteArray]:
+	return _masks
+
+
+func _build_masks() -> Array[PackedByteArray]:
 	var w := WIDTH * 16
 	var h := HEIGHT * 16
 	var wobble := _noise_bytes(w, h, 1.0 / 22.0, 2, map_id)
@@ -1141,22 +1489,40 @@ func _drop_small_cells(on: Dictionary, minimum: int) -> Dictionary:
 func _grow_patches() -> void:
 	var shape: String = recipe.patch[0]
 	var count := _rng.randi_range(recipe.patch[1], recipe.patch[2])
+	var zone_cells: Array[Vector2i] = []
+	zone_cells.assign(tones[0].keys() if not tones.is_empty() else [])
+	var dark_cells: Array[Vector2i] = []
+	dark_cells.assign(tones[1].keys() if tones.size() > 1 else [])
 	var tries := 0
 	while blobs.size() < count and tries < 500:
 		tries += 1
 		var irregular := shape == "I" or (shape == "RI" and blobs.size() % 2 == 1)
 		var at := Vector2i(_rng.randi_range(2, WIDTH - 6), _rng.randi_range(2, HEIGHT - 6))
+		# Every other try starts inside a grass zone, alternating mid and dark.
+		var pool: Array[Vector2i] = dark_cells if tries % 4 == 0 and not dark_cells.is_empty() else zone_cells
+		if tries % 2 == 0 and not pool.is_empty():
+			at = pool[_rng.randi() % pool.size()]
 		var placed := {}
 		for c in _blob_shape(irregular):
 			placed[at + c] = true
 		if not _patch_fits(placed):
 			continue
-		var mode := "A" if (map_id + blobs.size()) % 2 == 0 else "B"
+		# Inside a single grass tone the dirt set whose baked grass is that
+		# tone draws as plain tiles (M on mid, D on dark). On the lawn, Mode A
+		# or Mode B as before.
+		var inside := _tone_around(placed)
+		var mode := "M" if inside == 0 else ("D" if inside == 1 else ("A" if (map_id + blobs.size()) % 2 == 0 else "B"))
 		var blob := {"cells": placed, "rect": _bounds(placed), "shape": "I" if irregular else "R", "mode": mode, "tiles": {}, "baked": {}}
+		# Round islands use the smooth dirt sets; irregular ones the ragged
+		# (worn, speckled) sets of the same tones.
+		var sets := {"A": [PATCH_SET_A, PATCH_INNER_A], "M": [PATCH_SET_B, PATCH_INNER_B], "D": [PATCH_SET_D, PATCH_INNER_D], "baked": [PATCH_SET_B, PATCH_INNER_B]}
+		if irregular:
+			sets = {"A": [RAGGED_SET_A, RAGGED_INNER_A], "M": [RAGGED_SET_B, RAGGED_INNER_B], "D": [RAGGED_SET_D, RAGGED_INNER_D], "baked": [RAGGED_SET_B, RAGGED_INNER_B]}
+		var chosen: Array = sets.get(mode, sets.A)
 		var ok := true
 		for c in placed:
-			var a := _pool_tile(c, placed, PATCH_SET_A, PATCH_INNER_A)
-			var b := _pool_tile(c, placed, PATCH_SET_B, PATCH_INNER_B)
+			var a := _pool_tile(c, placed, chosen[0], chosen[1])
+			var b := _pool_tile(c, placed, sets.baked[0], sets.baked[1])
 			if a == NONE:
 				ok = false
 				break
@@ -1171,6 +1537,51 @@ func _grow_patches() -> void:
 		_claim(blob.rect.grow(1))
 	if blobs.size() < recipe.patch[1]:
 		dropped.append("patches (%d of %d fit)" % [blobs.size(), recipe.patch[1]])
+
+
+# The tone level a blob sits in, or -1. The blob's own cells must be at
+# least 95% that level and at most 5% the level above; its one-cell ring at
+# least 85% and at most 15%. The baked grass in a dirt tile only shows at
+# the blob's rim, so this keeps the tile's grass and the ground the same
+# green there.
+func _tone_around(cells: Dictionary) -> int:
+	var ring := {}
+	for c in cells:
+		for dy in range(-1, 2):
+			for dx in range(-1, 2):
+				var n: Vector2i = c + Vector2i(dx, dy)
+				if not cells.has(n):
+					ring[n] = true
+	for level in [1, 0]:
+		if _tone_share(level, cells) >= 0.95 and _tone_share(level + 1, cells) <= 0.05 \
+				and _tone_share(level, ring) >= 0.85 and _tone_share(level + 1, ring) <= 0.15:
+			return level
+	return -1
+
+
+func _tone_share(level: int, cells: Dictionary) -> float:
+	if level >= tones.size():
+		return 0.0
+	var n := 0
+	for c in cells:
+		n += _tone_pixels(level, c)
+	return n / (256.0 * cells.size())
+
+
+# How many of a cell's 256 pixels belong to a tone level.
+func _tone_pixels(level: int, c: Vector2i) -> int:
+	if tones[level].has(c):
+		return 256
+	if not tone_edges[level].has(c):
+		return 0
+	var w := WIDTH * 16
+	var n := 0
+	var mask: PackedByteArray = _masks[level]
+	for y in 16:
+		var row := (c.y * 16 + y) * w + c.x * 16
+		for x in 16:
+			n += mask[row + x]
+	return n
 
 
 func _blob_shape(irregular: bool) -> Array[Vector2i]:
@@ -1212,6 +1623,90 @@ func _patch_fits(cells: Dictionary) -> bool:
 	return true
 
 
+# ---------------------------------------------------------------- hedges
+
+# Hedgerows: two cells thick, straight (2 x 4-9) or an L of two such runs,
+# autotiled with a hedge blob set so every end and corner is rounded. They
+# block. A hedgerow that would cut the spawn off from any goal is removed.
+func _grow_hedges() -> void:
+	var flags: Array = recipe.props
+	if not ("bushes" in flags or "bushes heavy" in flags or "F" in recipe.height):
+		return
+	var want := _rng.randi_range(1, 3 if "bushes heavy" in flags else 2)
+	for i in 300:
+		if hedgerows >= want:
+			break
+		var cells := _hedge_shape()
+		var at := Vector2i(_rng.randi_range(1, WIDTH - 10), _rng.randi_range(1, HEIGHT - 10))
+		var placed := {}
+		for c in cells:
+			placed[at + c] = true
+		var ok := true
+		for c in placed:
+			if not _inside(c) or _taken.has(c) or _near(c, path, 2) or _near(c, fence, 1) or c.distance_to(spawn) < 5:
+				ok = false
+				break
+		if not ok:
+			continue
+		# Contrast with the ground: the dark hedge on plain lawn, the light
+		# (pale sage) hedge only deep inside a dark zone. Anywhere between,
+		# neither reads as a hedge, so the row is not placed.
+		var ring := _bounds(placed).grow(1)
+		var around := {}
+		for y in range(ring.position.y, ring.end.y):
+			for x in range(ring.position.x, ring.end.x):
+				around[Vector2i(x, y)] = true
+		var set_i := -1
+		if _tone_share(0, around) == 0.0:
+			set_i = 0
+		elif _tone_share(1, around) >= 0.9:
+			set_i = 1
+		if set_i < 0:
+			continue
+		var tiles := {}
+		for c in placed:
+			var t := _pool_tile(c, placed, HEDGE_SETS[set_i].blob, HEDGE_SETS[set_i].inner)
+			if t == NONE:
+				ok = false
+				break
+			tiles[c] = t
+		if not ok:
+			continue
+		for c in placed:
+			_blocked[c] = true
+		var reachable := true
+		for g in goals:
+			if not _reaches(spawn, g):
+				reachable = false
+		if not reachable:
+			for c in placed:
+				_blocked.erase(c)
+			continue
+		for c in placed:
+			hedge[c] = tiles[c]
+			_solid[c] = true
+		_claim(_bounds(placed).grow(1))
+		hedgerows += 1
+
+
+func _hedge_shape() -> Array[Vector2i]:
+	var out: Array[Vector2i] = []
+	var length := _rng.randi_range(5, 10)
+	var horizontal := _rng.randf() < 0.5
+	for i in length:
+		for t in 2:
+			out.append(Vector2i(i, t) if horizontal else Vector2i(t, i))
+	if _rng.randf() < 0.35:
+		# An L: a second run from one end, turning 90 degrees.
+		var arm := _rng.randi_range(3, 6)
+		for i in range(2, arm + 2):
+			for t in 2:
+				var c := Vector2i(length - 2 + t, i) if horizontal else Vector2i(i, length - 2 + t)
+				if not c in out:
+					out.append(c)
+	return out
+
+
 # ---------------------------------------------------------------- props
 
 func _place_props() -> void:
@@ -1229,6 +1724,25 @@ func _place_props() -> void:
 		_scatter_props(BIG_ROCKS, 5, 5.0, true)
 	if "CF" in flags:
 		_scatter_props(["campfire"], 1, 1.0)
+	if "CF big" in flags:
+		# The camp fire burns between the buildings, with ash beside it.
+		var center := spawn
+		if houses.size() >= 2:
+			center = (_door(houses[0]) + _door(houses[1])) / 2 + Vector2i(0, 3)
+		elif not houses.is_empty():
+			center = _door(houses[0]) + Vector2i(0, 4)
+		_prop_near(["campfire_big"], center, 5, 1)
+		for p in props:
+			if p.has("art") and p.art == "campfire_big":
+				_prop_near(["ash"], p.cell, 2, 2)
+	if "logs heavy" in flags:
+		_scatter_props(LOGS, 6, 5.0)
+	if "ruins" in flags:
+		for info in plateaus:
+			_prop_near(YARD_CLUTTER, info.top.get_center(), 9, 4)
+	if "outcrops" in flags:
+		_place_outcrops(_rng.randi_range(5, 8), "stone" if "ruins" in flags else "")
+	_hang_vines()
 	if "T" in flags:
 		_place_torches()
 	_place_signs(recipe.signs)
@@ -1308,14 +1822,24 @@ func _collider_cells(prop: Dictionary) -> Array[Vector2i]:
 	return out
 
 
-# Torches stand on the two gate posts, or flank the path at the doorstep.
+# Torches stand on the two gate posts, flank a cave mouth, flank the path
+# at the doorstep, or flank the foot of a plateau's ramp or stairs.
 func _place_torches() -> void:
 	var spots: Array[Vector2i] = []
-	if gate.x >= 0:
+	if not caves.is_empty():
+		spots = [caves[0] + Vector2i(-2, 1), caves[0] + Vector2i(2, 1)]
+	elif gate.x >= 0:
 		spots = [gate + Vector2i(-1, 0), gate + Vector2i(2, 0)]
 	elif not houses.is_empty():
 		var door := _door(houses[0])
 		spots = [door + Vector2i(-1, 1), door + Vector2i(2, 1)]
+	elif not plateaus.is_empty():
+		# Either side of the foot of the first plateau's way up.
+		var info: Dictionary = plateaus[0]
+		var foot: int = info.top.end.y + FACE_ROWS
+		var x0: int = info.ramp if info.ramp >= 0 else info.stairs
+		var w := RAMP_WIDTH if info.ramp >= 0 else 3
+		spots = [Vector2i(x0 - 1, foot), Vector2i(x0 + w, foot)]
 	for c in spots:
 		if not _inside(c) or (not fence.has(c) and _solid.has(c)):
 			continue
@@ -1324,6 +1848,84 @@ func _place_torches() -> void:
 		_solid[c] = true
 	if spots.is_empty():
 		dropped.append("torches (no gate or house)")
+
+
+# Props of `arts` on free lawn within `radius` of `center`.
+func _prop_near(arts: Array, center: Vector2i, radius: int, count: int) -> void:
+	var placed := 0
+	for i in 200:
+		if placed >= count:
+			return
+		var art: String = arts[_rng.randi() % arts.size()]
+		var c := center + Vector2i(_rng.randi_range(-radius, radius), _rng.randi_range(-radius, radius))
+		var foot := _footprint(art, c)
+		if not _rect_free(foot) or _near_rect(foot, path, 1):
+			continue
+		var prop := {"art": art, "cell": c, "block": PROPS[art].block != Vector2.ZERO}
+		props.append(prop)
+		_claim(foot.grow(1))
+		_solidify(foot)
+		if prop.block:
+			_block_collider(prop)
+		placed += 1
+
+
+# Rock outcrops on free lawn, each in the tone of the ground under it (or
+# all stone). They block; one that would cut off a goal is not placed.
+func _place_outcrops(count: int, only: String) -> void:
+	var placed := 0
+	for i in 400:
+		if placed >= count:
+			return
+		var c := Vector2i(_rng.randi_range(2, WIDTH - 3), _rng.randi_range(6, HEIGHT - 2))
+		var tone := only
+		if tone == "":
+			var level := _tone_level(c)
+			tone = "light" if level < 0 else ("mid" if level == 0 else "dark")
+		var art: String = OUTCROPS[tone]
+		var foot := _footprint(art, c)
+		if not _rect_free(foot) or _near_rect(foot, path, 1) or c.distance_to(spawn) < 5:
+			continue
+		var prop := {"art": art, "cell": c, "block": true}
+		_block_collider(prop)
+		var reachable := true
+		for g in goals:
+			if not _reaches(spawn, g):
+				reachable = false
+		if not reachable:
+			for cell in _collider_cells(prop):
+				_blocked.erase(cell)
+			continue
+		props.append(prop)
+		_claim(foot.grow(1))
+		_solidify(foot)
+		placed += 1
+
+
+# One to three vines hung on each plateau face, away from the cuts.
+func _hang_vines() -> void:
+	for info in plateaus:
+		var top: Rect2i = info.top
+		var bottom := top.end.y + FACE_ROWS - 1
+		var hung := 0
+		for i in 30:
+			if hung >= 3:
+				break
+			var x := _rng.randi_range(top.position.x + 1, top.end.x - 2)
+			var c := Vector2i(x, bottom)
+			var clear := ledge.has(c)
+			for k in ["stairs", "ramp", "cave"]:
+				var w: int = {"stairs": 3, "ramp": RAMP_WIDTH, "cave": 3}[k]
+				if info[k] >= 0 and x >= info[k] - 1 and x <= info[k] + w:
+					clear = false # keep clear of the cuts
+			for p in props:
+				if p.has("art") and p.art in VINES and abs(p.cell.x - x) < 2 and p.cell.y == bottom:
+					clear = false
+			if not clear:
+				continue
+			var art: String = VINES[_rng.randi() % VINES.size()]
+			props.append({"art": art, "cell": c, "block": false})
+			hung += 1
 
 
 func _place_signs(count: int) -> void:
@@ -1390,20 +1992,66 @@ func _place_trees() -> void:
 		_block_collider(tree)
 
 
+# Grass deco picked by the ground under it: flowers and sprouts on the lawn
+# and mid zones, the darkest sprouts on dark and deep zones. A few 3x3
+# flower carpets go on open lawn.
 func _scatter_deco() -> void:
+	# Flower carpets: the whole 3x3, or just its four corner cells as a
+	# compact 2x2 cluster. At least five cells apart, on plain lawn.
+	var carpets := _rng.randi_range(1, 3)
+	var placed_carpets: Array[Vector2i] = []
+	for i in 400:
+		if carpets <= 0:
+			break
+		var small := _rng.randf() < 0.5
+		var cells: Array[Vector2i] = []
+		var roles: Array[Vector2i] = []
+		for y in 3:
+			for x in 3:
+				if small and (x == 1 or y == 1):
+					continue
+				roles.append(Vector2i(x, y))
+				cells.append(Vector2i(mini(x, 1), mini(y, 1)) if small else Vector2i(x, y))
+		var at := Vector2i(_rng.randi_range(1, WIDTH - 4), _rng.randi_range(1, HEIGHT - 4))
+		var ok := true
+		for p in placed_carpets:
+			if Vector2(at - p).length() < 6.0:
+				ok = false
+		for c in cells:
+			var n := at + c
+			if _solid.has(n) or deco.has(n) or _tone_level(n) >= 0 or _near(n, path, 1):
+				ok = false
+		if not ok:
+			continue
+		for k in cells.size():
+			deco[at + cells[k]] = FLOWER_CARPET + roles[k]
+		placed_carpets.append(at)
+		carpets -= 1
 	for i in 1400:
 		var c := Vector2i(_rng.randi_range(0, WIDTH - 1), _rng.randi_range(0, HEIGHT - 1))
-		if _solid.has(c) or deco.has(c) or _taken.has(c) and (water.has(c) or plateau.has(c)):
+		if _solid.has(c) or deco.has(c):
 			continue
 		var crowded := false
-		for d in deco:
-			if Vector2(c - d).length() < 2.6:
-				crowded = true
-				break
+		for d in range(-2, 3):
+			for e in range(-2, 3):
+				if (d != 0 or e != 0) and deco.has(c + Vector2i(d, e)) and Vector2(d, e).length() < 2.6:
+					crowded = true
 		if crowded:
 			continue
-		var pool := FLOWERS if _rng.randf() < 0.4 else TUFTS
+		var pool: Array
+		if _tone_level(c) >= 1:
+			pool = DARK_TUFTS if _rng.randf() < 0.85 else FLOWERS
+		else:
+			pool = FLOWERS if _rng.randf() < 0.4 else TUFTS
 		deco[c] = pool[_rng.randi() % pool.size()]
+
+
+# Darkest tone level with a tile or edge at c, or -1 for plain lawn.
+func _tone_level(c: Vector2i) -> int:
+	for level in range(tones.size() - 1, -1, -1):
+		if tones[level].has(c) or tone_edges[level].has(c):
+			return level
+	return -1
 
 
 # ---------------------------------------------------------------- verify
@@ -1430,12 +2078,32 @@ func _verify() -> String:
 		fails.append("ponds %d, recipe wants %d" % [ponds.size(), want_ponds])
 	if "C" in recipe.height and plateau.is_empty():
 		fails.append("no plateau")
-	if "C" in recipe.height and not _stairs_ok():
-		fails.append("plateau stairs missing or blocked")
+	if "C" in recipe.height:
+		for info in plateaus:
+			if info.stairs < 0 and info.ramp < 0 and info.cave < 0:
+				fails.append("plateau with no way up")
+		if recipe.height == "C2" and plateaus.size() < 2:
+			fails.append("terraces need two plateaus")
+		if recipe.get("cave", false) and caves.is_empty():
+			fails.append("no cave mouth")
+	for c in stairs.keys() + ramps.keys() + caves:
+		if _blocked.has(c):
+			fails.append("plateau opening %s is blocked" % c)
 	if "F" in recipe.height and fence.is_empty():
 		fails.append("no fence")
 	if "G" in recipe.height and gate.x < 0:
 		fails.append("no gate")
+	for c in hedge:
+		if hedge[c] == NONE:
+			fails.append("hedge cell %s has no tile" % c)
+		if not _blocked.has(c):
+			fails.append("hedge cell %s is walkable" % c)
+	for c in deep:
+		if not _near_all(c, water, 1):
+			fails.append("deep water at %s touches the shore" % c)
+	for b in blobs:
+		if b.mode in ["M", "D"] and _tone_around(b.cells) != (0 if b.mode == "M" else 1):
+			fails.append("patch in mode %s is not inside its tone" % b.mode)
 	var tone_notes := PackedStringArray()
 	for level in tones.size():
 		for c in tones[level]:
@@ -1474,7 +2142,8 @@ func _verify() -> String:
 					fails.append("%s collider cell %s is walkable in the grid" % [p.art, c])
 		elif kind in ["water plant", "water rock"] and not _wet(_footprint(p.art, p.cell)):
 			fails.append("%s off the water at %s" % [kind, p.cell])
-	var needs := {"bushes": "bush", "bushes heavy": "bush", "LR": "land rock", "LR obstacles": "land rock", "CF": "campfire", "T": "torch"}
+	var needs := {"bushes": "bush", "bushes heavy": "bush", "LR": "land rock", "LR obstacles": "land rock", "CF": "campfire", "T": "torch",
+		"CF big": "campfire_big", "logs heavy": "clutter", "ruins": "clutter", "outcrops": "outcrop"}
 	for flag in recipe.props:
 		if counts.get(needs[flag], 0) == 0:
 			fails.append("recipe asks for %s, none placed" % needs[flag])
@@ -1495,6 +2164,7 @@ func _verify() -> String:
 		house_names.append(HOUSES[h.id].name)
 	var lines := PackedStringArray([
 		"Painted Lands map %d: recipe %d %s, %dx%d (layout attempt %d)" % [map_id, recipe_id, recipe.name, WIDTH, HEIGHT, attempt],
+		"  hedgerows %d; deep water %d cells; plateaus %s" % [hedgerows, deep.size(), ", ".join(plateaus.map(func(i): return "%s %s" % [i.tone, "+".join(["stairs", "ramp", "cave"].filter(func(k): return i[k] >= 0))]))],
 		"  houses: %s; ponds %d; plateau %s; fence %d; leans %d" % [", ".join(house_names) if not houses.is_empty() else "none", ponds.size(), "with stairs" if not stairs.is_empty() else ("yes" if not plateau.is_empty() else "no"), fence.size(), leans],
 		"  path %d cells (%s), patches %s" % [path.size(), recipe.path, " ".join(patch_notes)],
 		"  grass tones: %s" % ", ".join(tone_notes),
@@ -1533,6 +2203,12 @@ func _kind(art: String) -> String:
 		return "water plant"
 	if art in WATER_ROCKS:
 		return "water rock"
+	if art in SPARKLES:
+		return "sparkle"
+	if art in OUTCROPS.values():
+		return "outcrop"
+	if art in VINES:
+		return "vine"
 	if art in LOGS or art in YARD_CLUTTER:
 		return "clutter"
 	return art
@@ -1545,10 +2221,6 @@ func _land(r: Rect2i) -> bool:
 				return false
 	return true
 
-
-# Stairs must be a full 3 x FACE_ROWS block, and every stair cell walkable.
-func _stairs_ok() -> bool:
-	return stairs.size() == 3 * FACE_ROWS and stairs.keys().all(func(c): return not _blocked.has(c))
 
 
 func _wet(r: Rect2i) -> bool:
