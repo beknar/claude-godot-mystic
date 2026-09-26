@@ -70,6 +70,22 @@ func _process(delta: float) -> void:
 	queue_redraw()
 
 
+## Fallen leaves within a few pixels of `at` get pushed along `motion`
+## (the walker's step), sliding a little way and turning over.
+func kick(at: Vector2, motion: Vector2) -> void:
+	if motion.length() < 0.1:
+		return
+	for leaf in _leaves:
+		if leaf.h > 0.0:
+			continue
+		var off: Vector2 = leaf.ground - at
+		if off.length() < 7.0:
+			var push := motion.normalized() * 1.4 + off.normalized() * 1.0
+			leaf.ground += push
+			leaf.shape = _rng.randi() % SHAPES.size()
+			leaf.rest = maxf(leaf.rest, 0.6)
+
+
 func _spawn() -> void:
 	if _sources.is_empty() or _leaves.size() >= MAX_LEAVES:
 		return

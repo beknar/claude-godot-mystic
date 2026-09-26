@@ -36,6 +36,8 @@ var streaks: WindStreaks
 var clouds: CloudShadows
 var fire: FireAmbience
 var water_life: WaterLife
+var critters: Critters
+var footsteps: Footsteps
 var _plant_tops: Array[Sprite2D] = [] # top parts of reeds and water grass, which nod
 var _leaf_colors := {} # art name -> {light, dark}
 var tone_layers: Array[TileMapLayer] = []
@@ -106,6 +108,15 @@ func _add_ambience() -> void:
 	water_life.wind = wind
 	add_child(water_life)
 	move_child(water_life, actors.get_index()) # ripples under the y-sorted actors
+	footsteps = Footsteps.new()
+	footsteps.name = "Footsteps"
+	footsteps.wind = wind
+	footsteps.water_life = water_life
+	add_child(footsteps)
+	critters = Critters.new()
+	critters.name = "Critters"
+	critters.wind = wind
+	add_child(critters)
 	fire = FireAmbience.new()
 	fire.name = "FireAmbience"
 	fire.wind = wind
@@ -159,6 +170,27 @@ func _reset_ambience() -> void:
 		if terrain._near_all(cell, terrain.water, 1):
 			open.append(cell)
 	water_life.setup(open, _plant_tops)
+	var walker := actors.get_node_or_null("Walker")
+	footsteps.leaves = leaves
+	footsteps.setup(terrain, walker)
+	critters.walker = walker
+	var flowers: Array[Vector2] = []
+	var dark: Array[Vector2] = []
+	for cell in terrain.deco:
+		if terrain._is_flower(terrain.deco[cell]):
+			flowers.append(Vector2(cell) * TILE + Vector2(8, 8))
+	for y in PaintedTerrain.HEIGHT:
+		for x in PaintedTerrain.WIDTH:
+			var cell := Vector2i(x, y)
+			if terrain._tone_level(cell) >= 1 and not terrain._solid.has(cell):
+				dark.append(Vector2(cell) * TILE + Vector2(8, 8))
+	for cell in terrain.canopy:
+		if cell.y == 3 and not terrain._solid.has(cell + Vector2i(0, 2)):
+			dark.append(Vector2(cell) * TILE + Vector2(8, 40))
+	var ponds: Array[Rect2] = []
+	for r in terrain.ponds:
+		ponds.append(Rect2(Vector2(r.position) * TILE + Vector2(8, 8), Vector2(r.size) * TILE - Vector2(16, 16)))
+	critters.setup(flowers, ponds, dark)
 
 
 # Leaf colors for a tree, from its sprite: `light` are the brightest common
@@ -508,7 +540,8 @@ func _place_props() -> void:
 			frames = art.get("frames", 1)
 			body.position = Vector2((prop.cell + art.cell) * TILE) + base
 		if frames > 1:
-			body.add_child(_flipbook(region, frames, -base))
+			var fps: float = PaintedTerrain.PROPS[prop.art].get("fps", 8.0) if prop.has("art") else 8.0
+			body.add_child(_flipbook(region, frames, -base, fps))
 		elif prop.has("art") and prop.art in PaintedTerrain.SHORE_PLANTS:
 			# Reeds and water grass: a planted lower part and a top that nods
 			# in the wind (see WaterLife).
@@ -545,9 +578,9 @@ func _region_sprite(region: Rect2, offset: Vector2) -> Sprite2D:
 	return sprite
 
 
-func _flipbook(first: Rect2, count: int, offset: Vector2) -> AnimatedSprite2D:
+func _flipbook(first: Rect2, count: int, offset: Vector2, fps := 8.0) -> AnimatedSprite2D:
 	var frames := SpriteFrames.new()
-	frames.set_animation_speed("default", 8.0)
+	frames.set_animation_speed("default", fps)
 	for i in count:
 		var tex := AtlasTexture.new()
 		tex.atlas = SHEET
@@ -558,6 +591,10 @@ func _flipbook(first: Rect2, count: int, offset: Vector2) -> AnimatedSprite2D:
 	sprite.centered = false
 	sprite.offset = offset
 	sprite.play("default")
+	# Each fire starts on its own frame and runs at its own pace, so no two
+	# flicker in step.
+	sprite.frame = randi() % count
+	sprite.speed_scale = randf_range(0.85, 1.15)
 	return sprite
 
 

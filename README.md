@@ -80,7 +80,9 @@ carpets dot the open lawn. Some maps get hedgerows, and many ponds become
 lakes with a deep, sparkling center. A shifting wind carries falling leaves and
 petals, pale wind streaks, and drifting cloud shadows across every map. Campfires and torches
 flicker with warm light and smoke, ponds ripple, fish jump, and reeds nod
-in the wind.
+in the wind. Butterflies drift between flowers, dragonflies dart over
+ponds, fireflies glow in the dark grass, and the ground reacts to the
+walker: dust on paths, grass flicks, shore ripples, and kicked leaves.
 
 ## Player
 

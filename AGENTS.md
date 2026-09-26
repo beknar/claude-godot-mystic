@@ -726,6 +726,23 @@ Motion lives outside the tile art, in four scripts that `forest.gd` adds:
   up and fall back with rings. Reeds and water grass are split into a
   planted base and a top that leans one pixel downwind in strong wind,
   each plant at its own moment.
+- `scripts/critters.gd` — butterflies (3–8 per map, four wing colors)
+  flutter from flower to flower, rest with wings open, get pushed about in
+  gusts but always arrive, and scatter when the walker comes within 26 px;
+  dragonflies (one or two per pond) dart over open water in quick eased
+  bursts and hover, and dart off from the walker; fireflies (up to 14)
+  drift over dark and deep grass and under the canopy wall, pulsing with a
+  faint cross of glow at the peak.
+- `scripts/footsteps.gd` — the ground answers the walker every 9 px of
+  travel: puffs of dust behind it on cobble and dirt, grass blades flicking
+  up from tufts and flowers, a ripple ring at the shore when it walks
+  beside water, and fallen leaves near its feet kicked aside. Bits start a
+  few pixels behind the walker so its sprite never hides them.
+
+Torches: the three torch cells `(35–37, 26–27)` are one torch in three
+flame frames, played at about 7 fps like the campfires; every fire
+flipbook starts on a random frame at a slightly different speed, so no
+two fires flicker in step.
 
 Everything moves on whole world pixels and uses the sheet's colors; no
 new art. Map generation is unchanged.

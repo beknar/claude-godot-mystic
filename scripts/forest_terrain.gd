@@ -261,9 +261,9 @@ const PROPS := {
 	"rock_s3": {"region": Rect2i(23, 26, 1, 1), "cell": Vector2i.ZERO, "base": Vector2i(8, 15), "block": Vector2(10, 5)},
 	"rock_s4": {"region": Rect2i(24, 26, 1, 1), "cell": Vector2i.ZERO, "base": Vector2i(7, 15), "block": Vector2(10, 5)},
 	"rock_wide": {"region": Rect2i(23, 27, 2, 1), "cell": Vector2i(-1, 0), "base": Vector2i(15, 15), "block": Vector2(22, 6)},
-	"torch": {"region": Rect2i(35, 26, 1, 2), "cell": Vector2i(0, -1), "base": Vector2i(8, 27), "block": Vector2(4, 5)},
-	"torch_b": {"region": Rect2i(36, 26, 1, 2), "cell": Vector2i(0, -1), "base": Vector2i(8, 27), "block": Vector2(4, 5)},
-	"torch_c": {"region": Rect2i(37, 26, 1, 2), "cell": Vector2i(0, -1), "base": Vector2i(8, 27), "block": Vector2(4, 5)},
+	"torch": {"region": Rect2i(35, 26, 1, 2), "cell": Vector2i(0, -1), "base": Vector2i(8, 27), "block": Vector2(4, 5), "frames": 3, "fps": 7.0},
+	"torch_b": {"region": Rect2i(35, 26, 1, 2), "cell": Vector2i(0, -1), "base": Vector2i(8, 27), "block": Vector2(4, 5), "frames": 3, "fps": 7.0},
+	"torch_c": {"region": Rect2i(35, 26, 1, 2), "cell": Vector2i(0, -1), "base": Vector2i(8, 27), "block": Vector2(4, 5), "frames": 3, "fps": 7.0},
 	"campfire": {"region": Rect2i(29, 28, 1, 2), "cell": Vector2i(0, -1), "base": Vector2i(8, 31), "block": Vector2(12, 6), "frames": 4},
 	"sparkle": {"region": Rect2i(47, 2, 1, 1), "cell": Vector2i.ZERO, "base": Vector2i(8, 15), "block": Vector2.ZERO, "frames": 4},
 	"campfire_big": {"region": Rect2i(34, 28, 1, 2), "cell": Vector2i(0, -1), "base": Vector2i(8, 31), "block": Vector2(12, 6), "frames": 4},
@@ -301,6 +301,7 @@ const PROPS := {
 const TREES := ["tree_a", "tree_b", "tree_a_base", "tree_b_base", "bloom_a", "bloom_b", "bloom_a_base", "bloom_b_base"]
 const LOGS := ["log", "log_b"]
 const YARD_CLUTTER := ["crate", "crate_b", "crate_stack", "crate_stack_b", "crate_stack_c", "chest", "chest_b", "chest_c", "chest_d"]
+# The three torch cells (35-37, 26-27) are one torch in three flame frames.
 const TORCHES := ["torch", "torch_b", "torch_c"]
 const SHADE_TREES := ["shade_tree", "shade_bloom"]
 const HEDGES := ["bush_round", "bush_berry"]
@@ -2468,6 +2469,11 @@ func _scatter_deco() -> void:
 		else:
 			pool = FLOWERS if _rng.randf() < 0.4 else TUFTS
 		deco[c] = pool[_rng.randi() % pool.size()]
+
+
+# True for a flower deco tile: a single flower or part of a flower carpet.
+func _is_flower(atlas: Vector2i) -> bool:
+	return atlas in FLOWERS or Rect2i(FLOWER_CARPET, Vector2i(3, 3)).has_point(atlas)
 
 
 # Darkest tone level with a tile or edge at c, or -1 for plain lawn.
