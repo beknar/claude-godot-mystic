@@ -1075,7 +1075,9 @@ func _lay_walled_mesa() -> bool:
 		return false
 	var top: Rect2i = info.top
 	# Walls on the top's interior: rims on interior rows, rock between.
-	var wy := _rng.randi_range(top.position.y + 2, top.end.y - 3)
+	# The wall's rim sits one row above its rock; leave a full walkable row
+	# between that rim and the plateau's own north rim.
+	var wy := _rng.randi_range(top.position.y + 3, top.end.y - 3)
 	var gap := _rng.randi_range(top.position.x + 3, top.end.x - 6)
 	if not _ridge(top.position.x + 1, gap - 1, wy, tone, true):
 		return false
@@ -1087,7 +1089,7 @@ func _lay_walled_mesa() -> bool:
 	if not _route([Vector2i(0, row), Vector2i(ax, row), Vector2i(ax, foot)]):
 		return false
 	spawn = Vector2i(2, row)
-	goals = [_top_goal(info), Vector2i(gap, top.position.y + 1)] # the top, and behind the wall
+	goals = [_top_goal(info), Vector2i(gap, wy - 2)] # the top, and behind the wall
 	return true
 
 

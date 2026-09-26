@@ -678,13 +678,13 @@ cells tall (rim, rock, rim):
 
 The rims bake their tone's ground, so a ridge stands only on that ground:
 light on plain lawn, mid, dark, and stone on a plateau top of the same
-tone. Only the rock row blocks, and only its lower 8 px, trimmed to the
-rock's width in each piece (the rounded caps are narrower), so a gap is
-as wide as it looks and a character can stand tucked behind the wall.
-The rock row is also drawn as a y-sorted overlay (the tile minus its
-baked ground), sorted at the bottom of the rock, so a character north of
-the wall is covered by it instead of seeming to stand on top. The rims are
-walkable. Grass zones fade away from ridges as they do from the path. Ridgeline (28) and Walled mesa
+tone. A ridge is an upright wall whose base is the bottom of the rock.
+Its collider is a thin strip along the base (the lowest 13 px of the
+rock, less 2), trimmed to the rock's width in each piece (the rounded caps
+are narrower), so a gap is as wide as it looks. The rim and rock are also
+drawn as a y-sorted overlay (the two cells minus their baked ground),
+sorted at the base: a character standing right behind the wall shows only
+its head over the rim, and one in front is drawn over the face. Grass zones fade away from ridges as they do from the path. Ridgeline (28) and Walled mesa
 (29) use them.
 
 Not used: the thin diagonal hedge pieces `(0–1, 4)`, `(0–1, 8)`, which
