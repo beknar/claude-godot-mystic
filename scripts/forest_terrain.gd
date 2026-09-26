@@ -183,6 +183,7 @@ const RIDGES := {
 	"stone": {"W": Vector2i(16, 27), "B": [Vector2i(14, 27), Vector2i(17, 27)], "E": Vector2i(15, 27)},
 }
 # Overhead forest canopy, seamless 4x4 blocks (plain and blossom).
+const WALL_INSET := 2 # walkable columns between a mesa wall's end and the outer rim
 const CANOPY_BLOCKS := [Vector2i(21, 11), Vector2i(21, 18)]
 # Stairs cut three wide into the face: steps in rows 24-25 with shaded
 # sides, then the mossy bottom step (2, 26) across all three columns.
@@ -1071,18 +1072,24 @@ func _lay_walled_mesa() -> bool:
 	var r := _rng.randf()
 	var tone := "stone" if r < 0.5 else ("mid" if r < 0.75 else "dark")
 	var access := ["ramp"] if tone == "stone" else ["stairs"]
-	var info := _plateau(Rect2i(8, 3, WIDTH - 30, 4), tone, access, Vector2i(12, 7), Vector2i(16, 8))
+	var info := _plateau(Rect2i(8, 3, WIDTH - 32, 4), tone, access, Vector2i(14, 7), Vector2i(18, 8))
 	if info.is_empty():
 		return false
 	var top: Rect2i = info.top
 	# Walls on the top's interior: rims on interior rows, rock between.
 	# The wall's rim sits one row above its rock; leave a full walkable row
-	# between that rim and the plateau's own north rim.
+	# between that rim and the plateau's own north rim. Each end stops
+	# WALL_INSET columns short of the outer rim, so there is a passage around
+	# both ends as well as the gap in the middle.
 	var wy := _rng.randi_range(top.position.y + 3, top.end.y - 3)
-	var gap := _rng.randi_range(top.position.x + 3, top.end.x - 6)
-	if not _ridge(top.position.x + 1, gap - 1, wy, tone, true):
+	var x0 := top.position.x + 1 + WALL_INSET # first wall column
+	var x1 := top.end.x - 2 - WALL_INSET # last wall column
+	var gap := _pick(x0 + 3, x1 - 4)
+	if gap < 0:
 		return false
-	if not _ridge(gap + 2, top.end.x - 2, wy, tone, true):
+	if not _ridge(x0, gap - 1, wy, tone, true):
+		return false
+	if not _ridge(gap + 2, x1, wy, tone, true):
 		return false
 	var foot := top.end.y + FACE_ROWS
 	var row := mini(foot + _rng.randi_range(3, 6), HEIGHT - 5)
@@ -1090,7 +1097,9 @@ func _lay_walled_mesa() -> bool:
 	if not _route([Vector2i(0, row), Vector2i(ax, row), Vector2i(ax, foot)]):
 		return false
 	spawn = Vector2i(2, row)
-	goals = [_top_goal(info), Vector2i(gap, wy - 2)] # the top, and behind the wall
+	# The top, behind the wall through the gap, and both end passages on the
+	# wall's row (proves a character can walk around each end).
+	goals = [_top_goal(info), Vector2i(gap, wy - 2), Vector2i(x0 - 1, wy), Vector2i(x1 + 1, wy)]
 	return true
 
 

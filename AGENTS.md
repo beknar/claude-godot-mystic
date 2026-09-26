@@ -811,7 +811,7 @@ rocks (WR), campfire (CF), torches (T), signs (S).
 | 26 | Village square | **3** (0, 1, 2) | none | none | plaza + 2 trunks | R 1–2 | T at plaza corners, S=3 |
 | 27 | Hedge garden | 1×2 | none | F+G | through gate | R 2 | hedges heavy, carpets heavy, T, S=1 |
 | 28 | Ridgeline | 1×1 | none | R (light ridge across the map, two passes) | through the pass | I 2–3 | bushes, LR, T at the pass, S=1 |
-| 29 | Walled mesa | 0 | none | C+R (12–16 × 7–8 top in stone, mid, or dark; ridge walls on it) | to the mesa | R 1–2 | LR, outcrops, T, S=1 |
+| 29 | Walled mesa | 0 | none | C+R (14–18 × 7–8 top in stone, mid, or dark; ridge walls on it, each end two walkable columns short of the outer rim) | to the mesa | R 1–2 | LR, outcrops, T, S=1 |
 
 `1×N` means one house of prefab N. Only recipes 10 and 23 place two
 houses and 26 three. Recipes 5, 12, 18, 20, 22, 24, 25, 29 place zero. C2 is two plateaus.
