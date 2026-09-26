@@ -9,9 +9,12 @@ const SHEET := preload("res://assets/pack/TILESET_brighter.png")
 const WALKER_SCENE := preload("res://scenes/forest/walker.tscn")
 const SOURCE := 0
 const FLIP := 1 # alternative tile id for horizontally flipped cells
-# Ridge base collider, measured up from the bottom of the rock cell.
+# Ridge collider around the wall's base (the bottom of the rock cell): it
+# reaches 13 px up into the rock, so a character behind the wall shows only
+# its head, and 8 px down into the lower rim, so one in front stops with
+# about half its body over the wall face.
 const RIDGE_BASE_TOP := 13
-const RIDGE_BASE_BOTTOM := 2
+const RIDGE_FRONT := 8
 
 @export var map_id := 91003
 ## Pins the recipe (-1: map_id % recipe count). The fixed scenes pin theirs
@@ -305,7 +308,7 @@ func _place_houses() -> void:
 # overlay (the two cells with their baked ground cut away) sorted at the
 # base, so a character standing right behind the wall is covered up to the
 # rim and only its head shows, and one in front is drawn over it. The
-# collider is a thin strip along the base, only as wide as the rock in
+# collider is a strip straddling the base, only as wide as the rock in
 # that piece (the rounded caps are narrower), so gaps are as wide as they
 # look.
 func _place_ridges() -> void:
@@ -325,7 +328,7 @@ func _place_ridges() -> void:
 		body.add_child(sprite)
 		var span: Vector2i = piece.span
 		if span.y > span.x:
-			_add_box(body, Rect2(span.x, -RIDGE_BASE_TOP, span.y - span.x, RIDGE_BASE_TOP - RIDGE_BASE_BOTTOM))
+			_add_box(body, Rect2(span.x, -RIDGE_BASE_TOP, span.y - span.x, RIDGE_BASE_TOP + RIDGE_FRONT))
 		actors.add_child(body)
 
 
