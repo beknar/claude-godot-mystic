@@ -110,7 +110,7 @@ Painted Lands only:
 ## 6. Painted Lands forest generator
 
 Atlas numbers, house counts, PATCH blob autotile, and the 20-row
-table: `AGENTS.md` § Painted Lands. `recipe = seed % 28` (the forest and
+table: `AGENTS.md` § Painted Lands. `recipe = seed % 30` (the forest and
 wilds scenes pin theirs). Houses default to 0 or 1. Two houses only on
 recipes 10 and 23, three on 26.
 
@@ -146,7 +146,7 @@ torches, house parts, characters).
 
 ### Generator order
 
-1. `recipe = seed % 28` (or the scene's pinned recipe); house count from the table.
+1. `recipe = seed % 30` (or the scene's pinned recipe); house count from the table.
 2. fBm height + moisture (4 octaves).
 3. Pond / plateau candidates; drop specks; keep only if the recipe wants them.
 4. Flatten spawn + each house disk.

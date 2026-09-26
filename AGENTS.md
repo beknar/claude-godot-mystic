@@ -99,14 +99,14 @@ Painted Lands map (pipeline: § Painted Lands):
   idle is column 3, walk is 3, 4, 3, 5. No attack row. Movement is
   still eight-direction.
   The scene pins recipe 3 (`recipe = 3`). New seeds use
-  `recipe = seed % 28` from the table below.
+  `recipe = seed % 30` from the table below.
 - `scenes/wilds/wilds.tscn` — map id `75125`, recipe 5 Open meadow
   (pinned: `recipe = 5`).
   No house. A straight cobble road runs from edge to edge. Round dirt
   blobs, bushes, and land rocks. No pond and no signs.
 - `scenes/randomizer/randomizer.tscn` — the wilds settings (starts at map
   id `75125`) plus an Esc menu that regenerates from a random new id with
-  the same generator. Any of the 28 recipes can come up, or be pinned. Its first map is pinned to recipe 5.
+  the same generator. Any of the 30 recipes can come up, or be pinned. Its first map is pinned to recipe 5.
 
 There is no health, enemy, or save. The editor addon
 `addons/godot_mcp` is how this repo is driven from the Godot MCP server.
@@ -551,7 +551,9 @@ Only on water or shore. Never on lawn.
 already supports it). Y-sorted actor. Collision. At most one.
 
 **Torches** — the standing torches `(35, 26–27)`, `(36, 26–27)`,
-`(37, 26–27)`, each one cell wide and two tall. Place
+`(37, 26–27)`, each one cell wide and two tall. Each has a thin post collider
+(4 × 5 px) at its foot and sorts at its foot, so a character north of it
+walks behind the flame. Place
 on fence posts, gate sides, or the house approach. No collision
 required.
 
@@ -661,16 +663,38 @@ south rim of light, mid, and dark tops uses the six rim variants in rows
 `(2, 26)` serves some mid and dark tops; stone tops sprinkle in
 `(11, 27)`.
 
-Not used: the pit and plateau inner-corner pieces `(7–8, 12–17)`,
-`(14–17, 15–17)`, `(14–17, 21–23)`, `(14–17, 27–29)` (their layout could
-not be confirmed), and the thin diagonal hedge pieces `(0–1, 4)`,
-`(0–1, 8)`, which draw as scattered leaf bits.
+**Rock ridges.** `(7–8, 12–17)`, `(14–17, 15–17)`, `(14–17, 21–23)`,
+`(14–17, 27–29)` are one set in four tones: a low rock wall one cell of
+rock thick, with a rim above and below and rounded caps where it stops,
+so a gap between two segments is a pass. Each piece is a column three
+cells tall (rim, rock, rim):
+
+| Tone | West cap | Body | East cap |
+|---|---|---|---|
+| light | `(7, 12–14)` | `(8, 12–14)`, `(7, 15–17)` | `(8, 15–17)` |
+| mid | `(16, 15–17)` | `(14, 15–17)`, `(17, 15–17)` | `(15, 15–17)` |
+| dark | `(16, 21–23)` | `(14, 21–23)`, `(17, 21–23)` | `(15, 21–23)` |
+| stone | `(16, 27–29)` | `(14, 27–29)`, `(17, 27–29)` | `(15, 27–29)` |
+
+The rims bake their tone's ground, so a ridge stands only on that ground:
+light on plain lawn, mid, dark, and stone on a plateau top of the same
+tone. Only the rock row blocks, and only its lower 8 px, trimmed to the
+rock's width in each piece (the rounded caps are narrower), so a gap is
+as wide as it looks and a character can stand tucked behind the wall.
+The rock row is also drawn as a y-sorted overlay (the tile minus its
+baked ground), sorted at the bottom of the rock, so a character north of
+the wall is covered by it instead of seeming to stand on top. The rims are
+walkable. Grass zones fade away from ridges as they do from the path. Ridgeline (28) and Walled mesa
+(29) use them.
+
+Not used: the thin diagonal hedge pieces `(0–1, 4)`, `(0–1, 8)`, which
+draw as scattered leaf bits.
 
 ## Forest generator
 
 ```
 seed = map_id
-recipe = seed % 28                # or the scene's pinned recipe
+recipe = seed % 30                # or the scene's pinned recipe
 n_houses = recipe.houses          # 0, 1, or 2 only if table says 2
 house_ids = named id, else (seed // 20) % 4 for the first;
             second house = (first + 1 + seed) % 4
@@ -691,7 +715,7 @@ trees  = Poisson
 verify walk + reject list
 ```
 
-### Recipe table (`recipe = seed % 28`)
+### Recipe table (`recipe = seed % 30`)
 
 Houses = 0, 1, or 2 (2 only here when written). P/P2 = pond(s).
 F = fence yard. G = gate line. C = plateau. L = approx-45° lean.
@@ -729,9 +753,11 @@ rocks (WR), campfire (CF), torches (T), signs (S).
 | 25 | Deep forest | 0 | none | none | 1 trunk | I 1–2 | canopy wall, logs heavy, bushes, S=1; darker tone cover |
 | 26 | Village square | **3** (0, 1, 2) | none | none | plaza + 2 trunks | R 1–2 | T at plaza corners, S=3 |
 | 27 | Hedge garden | 1×2 | none | F+G | through gate | R 2 | hedges heavy, carpets heavy, T, S=1 |
+| 28 | Ridgeline | 1×1 | none | R (light ridge across the map, two passes) | through the pass | I 2–3 | bushes, LR, T at the pass, S=1 |
+| 29 | Walled mesa | 0 | none | C+R (12–16 × 7–8 top in stone, mid, or dark; ridge walls on it) | to the mesa | R 1–2 | LR, outcrops, T, S=1 |
 
 `1×N` means one house of prefab N. Only recipes 10 and 23 place two
-houses and 26 three. Recipes 5, 12, 18, 20, 22, 24, 25 place zero. C2 is two plateaus.
+houses and 26 three. Recipes 5, 12, 18, 20, 22, 24, 25, 29 place zero. C2 is two plateaus.
 The forest and wilds scenes pin recipes 3 and 5, so adding recipes
 never changes those maps.
 

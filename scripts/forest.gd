@@ -9,6 +9,10 @@ const SHEET := preload("res://assets/pack/TILESET_brighter.png")
 const WALKER_SCENE := preload("res://scenes/forest/walker.tscn")
 const SOURCE := 0
 const FLIP := 1 # alternative tile id for horizontally flipped cells
+# Ridge rock collider, measured up from the bottom of the rock cell: the
+# lower part of the rock only, so a character can tuck in behind the wall.
+const RIDGE_BLOCK_TOP := 10
+const RIDGE_BLOCK_BOTTOM := 2
 
 @export var map_id := 91003
 ## Pins the recipe (-1: map_id % recipe count). The fixed scenes pin theirs
@@ -69,6 +73,7 @@ func build(id: int, pinned := -1) -> void:
 	_paint_patches()
 	_build_collision()
 	_place_houses()
+	_place_ridges()
 	_place_props()
 	_spawn_walker()
 	print(report)
@@ -294,6 +299,79 @@ func _place_houses() -> void:
 			var sprite := _region_sprite(Rect2(overlay.src), Vector2(overlay.at) - Vector2(0, region.size.y))
 			body.add_child(sprite)
 		actors.add_child(body)
+
+
+# Ridge rock cells stay in the tilemap and get a y-sorted overlay of just
+# their rock pixels, sorted at the bottom of the rock: a character behind
+# (north of) a wall is covered by the stone, one in front is drawn over it,
+# and the baked grass around the rock never paints over anyone. The
+# collider covers only the lower part of the rock and only as wide as the
+# rock in that piece (the rounded caps are narrower), so gaps are as wide
+# as they look.
+func _place_ridges() -> void:
+	var cache := {}
+	for cell in terrain.ridge_rock:
+		var atlas: Vector2i = terrain.features[cell]
+		if not cache.has(atlas):
+			cache[atlas] = _rock_texture(atlas)
+		var body := StaticBody2D.new()
+		body.collision_mask = 0
+		body.position = Vector2(cell.x * TILE, cell.y * TILE + TILE)
+		var sprite := Sprite2D.new()
+		sprite.texture = cache[atlas]
+		sprite.centered = false
+		sprite.offset = Vector2(0, -TILE)
+		body.add_child(sprite)
+		var span := _rock_span(atlas)
+		if span.y > span.x:
+			_add_box(body, Rect2(span.x, -RIDGE_BLOCK_TOP, span.y - span.x, RIDGE_BLOCK_TOP - RIDGE_BLOCK_BOTTOM))
+		actors.add_child(body)
+
+
+func _is_rock(p: Color) -> bool:
+	return p.a > 0.5 and p.r >= p.g and p.get_luminance() < 0.62
+
+
+# The wall part of a ridge rock cell: every pixel except the plain ground of
+# its tone (the colors of that tone's fill tile), so stone highlights and
+# rim stay solid and only the baked ground is cut away.
+func _rock_texture(atlas: Vector2i) -> ImageTexture:
+	var ground := {}
+	var fill: Vector2i = _ridge_ground(atlas)
+	for y in TILE:
+		for x in TILE:
+			ground[_pixels.get_pixel(fill.x * TILE + x, fill.y * TILE + y).to_rgba32()] = true
+	var img := Image.create(TILE, TILE, false, Image.FORMAT_RGBA8)
+	for y in TILE:
+		for x in TILE:
+			var p := _pixels.get_pixel(atlas.x * TILE + x, atlas.y * TILE + y)
+			if p.a > 0.5 and not ground.has(p.to_rgba32()):
+				img.set_pixel(x, y, p)
+	return ImageTexture.create_from_image(img)
+
+
+# The plain ground tile a ridge piece is baked on.
+func _ridge_ground(atlas: Vector2i) -> Vector2i:
+	if atlas.x <= 8:
+		return Vector2i(0, 0) # light: the lawn
+	if atlas.y >= 27:
+		return Vector2i(16, 25) # stone top
+	if atlas.y >= 21:
+		return Vector2i(16, 19) # dark top
+	return Vector2i(16, 13) # mid top
+
+
+# Leftmost and rightmost rock pixel (brown, not rim or grass) in a cell.
+func _rock_span(atlas: Vector2i) -> Vector2i:
+	var lo := TILE
+	var hi := -1
+	for y in range(4, 13):
+		for x in TILE:
+			var p := _pixels.get_pixel(atlas.x * TILE + x, atlas.y * TILE + y)
+			if _is_rock(p):
+				lo = mini(lo, x)
+				hi = maxi(hi, x)
+	return Vector2i(lo, hi + 1)
 
 
 func _place_props() -> void:
