@@ -1,0 +1,17 @@
+{
+  "mcpServers": {
+    "godot-mcp": {
+      "type": "stdio",
+      "command": "/home/storm/.local/bin/npx",
+      "args": [
+        "-y",
+        "@satelliteoflove/godot-mcp"
+      ],
+      "env": {
+        "GODOT_HOST": "172.31.112.1",
+        "GODOT_PORT": "6550",
+        "PATH": "/home/storm/.local/bin:/usr/bin:/bin"
+      }
+    }
+  }
+}
