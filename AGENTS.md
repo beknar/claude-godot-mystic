@@ -102,6 +102,9 @@ Painted Lands map (pipeline: § Painted Lands):
 - `scenes/wilds/wilds.tscn` — map id `75125`, recipe 5 Open meadow.
   No house. A straight cobble road runs from edge to edge. Round dirt
   blobs, bushes, and land rocks. No pond and no signs.
+- `scenes/randomizer/randomizer.tscn` — the wilds settings (starts at map
+  id `75125`) plus an Esc menu that regenerates from a random new id with
+  the same generator. Any of the 20 recipes can come up, or be pinned.
 
 There is no health, enemy, or save. The editor addon
 `addons/godot_mcp` is how this repo is driven from the Godot MCP server.
@@ -213,8 +216,11 @@ Two jobs, one sheet:
 A screenshot that only has cobble roads + one porch cottage + flowers
 has failed the variety rules, even if the road autotile is perfect.
 
-The 3×3 block at atlas columns 44–46, rows 0–2 is the **water autotile
-source on the sheet**, not the size of the lake in the world.
+The 3×3 block at atlas columns 35–37, rows 0–2 (inner corners
+`(35–36, 3–4)`) is the **water autotile source on the sheet**, not the
+size of the lake in the world. The sheet repeats it at columns 38, 41, and
+44 with the shore a little wider each time; those are four animation
+frames (tile animation, separation 2 columns, 0.35 s each).
 
 Quadrant labels describe how to *pick* a 16×16 atlas cell. Never slice
 that cell into four world tiles. Never split a cell to fake a 45° road.
@@ -452,7 +458,11 @@ dark-green lawn rectangle; do not place it.
 
 **Land rocks** — stones whose *bottom pixels are grass*, in the crate /
 rock pile cluster: `(25–26, 23–24)`, `(25–26, 25)`, `(25–26, 26–27)`,
-`(23, 25)`, `(24, 25)`, `(23, 26)`, `(24, 26)`, `(23–24, 27)`. Lawn only. Blocking when the recipe says obstacle.
+`(23, 25)`, `(24, 25)`, `(23, 26)`, `(24, 26)`, `(23–24, 27)`. Lawn only.
+The big rocks — `(25–26, 23–24)`, `(25–26, 25)`, `(25–26, 26–27)`,
+`(23–24, 27)` — always block (`world`). The four 1-cell pebbles never
+block. "LR obstacles" adds extra big rocks two to four cells off the path,
+so they stand in the way without closing it.
 
 **Water plants** — reeds / cattails / water grass beside the water
 autotile block. Only on WATER_SHORE or the first water ring.
@@ -469,6 +479,17 @@ already supports it). Y-sorted actor. Collision. At most one.
 `(37, 26–27)`, each one cell wide and two tall. Place
 on fence posts, gate sides, or the house approach. No collision
 required.
+
+**Trees** — `(29–32, 11–15)` and `(33–37, 11–16)`, and their flowering
+versions seven rows down. Each can take the grass tuft the sheet draws in
+the row under its trunk (region one row taller). Never `(25–28, 11–15)`
+or `(25–28, 18–22)`: both carry a stray foliage band in the base row.
+
+**Clutter** — every map: one to three fallen logs `(21–22, 25)`,
+`(21–22, 26)` on the lawn. Every house: two crates or chests just outside
+its buffer — crates `(21, 27)`, `(22, 27)`, stacks `(22–23, 28–29)`,
+`(24–25, 28–29)`, chests `(26–27, 28–29)`. All clutter blocks. A crate is
+never a sign.
 
 **Signs** — eight distinct sign / notice / post tiles in the crate and
 fence cluster: `(27, 23–27)` and `(28, 23–25)`; `(28, 26)` and
@@ -488,8 +509,12 @@ east end with post `(31, 25)`, post `(29, 26)`; west ends and west posts
 are the same cells flipped horizontally. Torches may sit
 on posts. Signs may sit next to a gate, not on the rail tile.
 
-Cliffs: only recipes 4 and 16. Blob ≥4 tiles both axes. Cap + south
-face + corners. Else omit.
+Cliffs: only recipes 4 and 16. Blob ≥4 tiles both axes. Cap
+`(4–6, 12–14)` + three-row south face `(4–6, 15–17)` + corners. Else omit.
+Cut a three-wide stair into the face: `(1–3, 24)`, `(1–3, 25)`, then
+`(2, 26)` across all three. The path reaches the stair foot (recipe 16
+adds a spur). The plateau top interior and the rim cells over the stairs
+are walkable; the rest of the rim and the face block.
 
 ## Forest generator
 

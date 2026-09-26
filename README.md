@@ -10,12 +10,11 @@ overview; when the two disagree, `AGENTS.md` wins.
 
 > **Status:** built so far: `scenes/clearing/clearing.tscn` (the main scene),
 > `scenes/grove/grove.tscn`, `scenes/forest/forest.tscn`,
-> `scenes/wilds/wilds.tscn`, the player and walker scenes, the Mystic Woods
-> and Painted Lands generators, both art packs, the AI character sheets, and
-> `addons/godot_mcp`. Hollow, ford, and heath are not built yet. The Painted
-> Lands generator draws recipes 3 (Garden) and 5 (Open meadow) fully; for
-> other recipes it lists the unbuilt pieces (water, plateau, lean paths) in
-> its report.
+> `scenes/wilds/wilds.tscn`, `scenes/randomizer/randomizer.tscn`, the
+> player and walker scenes, the Mystic Woods and Painted Lands generators,
+> both art packs, the AI character sheets, and `addons/godot_mcp`. Hollow,
+> ford, and heath are not built yet. The Painted Lands generator draws all
+> 20 recipes.
 
 ## Running
 
@@ -51,7 +50,29 @@ generator.
 | `scenes/ford/ford.tscn` | 12809 | `assets/ai/characters/warrior-16x16-sheet.png` (16px frames) |
 | `scenes/heath/heath.tscn` | 91003, no water | Lineup of all five Mystic Woods sheets, no control |
 | `scenes/forest/forest.tscn` | 91003 | `character_sprite_sheet.png` (3×4 of 32px) |
-| `scenes/wilds/wilds.tscn` | 75125 (recipe 5, Open meadow) | none |
+| `scenes/wilds/wilds.tscn` | 75125 (recipe 5, Open meadow) | `character_sprite_sheet.png` |
+| `scenes/randomizer/randomizer.tscn` | starts at 75125, then any | `character_sprite_sheet.png` |
+
+The randomizer runs the Painted Lands generator with the wilds settings.
+Press Esc for its menu: it shows the current map id, recipe, and check
+result, and **Regenerate with a new seed** builds a fresh map from a random
+id with the same rules (`recipe = id % 20`). The recipe picker can pin the
+next seed to any of the 20 recipes.
+
+To check every recipe headless:
+
+```
+Godot_v4.6.1-stable_win64.exe --headless --path E:\code\claude-godot-mystic -s res://tools/check_recipes.gd -- 100000 1000
+```
+
+It prints one line per map with its checks, then a summary of how many
+maps passed, how many plateaus got stairs, and how often each prop art was
+placed.
+
+Ponds animate through the sheet's four shore frames. Plateaus have a
+three-wide stair up the face, and the top is walkable. Trees come in eight
+variants (two shapes, plain or flowering, with or without a grassy base).
+Logs lie on the lawn, and crates and chests sit beside each house.
 
 ## Player
 

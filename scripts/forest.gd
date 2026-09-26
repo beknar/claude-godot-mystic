@@ -19,20 +19,34 @@ const FLIP := 1 # alternative tile id for horizontally flipped cells
 @onready var actors: Node2D = $Actors
 @onready var collision: StaticBody2D = $Collision
 
-var terrain := PaintedTerrain.new()
+var terrain: PaintedTerrain
+var report := ""
 var _atlas: TileSetAtlasSource
 var _pixels: Image
 
 
 func _ready() -> void:
-	var report := terrain.generate(map_id)
 	_pixels = SHEET.get_image()
 	if _pixels.is_compressed():
 		_pixels.decompress()
 	var tiles := _build_tileset()
 	for layer in [ground, features_layer, deco_layer]:
 		layer.tile_set = tiles
+	build(map_id)
+
+
+# Generates `id` and repaints every layer. Safe to call again to replace
+# the current map.
+func build(id: int) -> void:
+	map_id = id
+	terrain = PaintedTerrain.new()
+	report = terrain.generate(map_id)
+	for layer in [ground, features_layer, deco_layer]:
 		layer.clear()
+	for node in [patches, actors, collision]:
+		for child in node.get_children():
+			node.remove_child(child)
+			child.queue_free()
 	_paint()
 	_paint_patches()
 	_build_collision()
@@ -55,6 +69,12 @@ func _build_tileset() -> TileSet:
 func _put(layer: TileMapLayer, cell: Vector2i, atlas: Vector2i, flip := false) -> void:
 	if not _atlas.has_tile(atlas):
 		_atlas.create_tile(atlas)
+		if PaintedTerrain.WATER_FRAME_REGION.has_point(atlas):
+			# Pond cells cycle through the four shore frames on the sheet.
+			_atlas.set_tile_animation_separation(atlas, Vector2i(PaintedTerrain.WATER_FRAME_STEP - 1, 0))
+			_atlas.set_tile_animation_frames_count(atlas, PaintedTerrain.WATER_FRAMES)
+			for i in PaintedTerrain.WATER_FRAMES:
+				_atlas.set_tile_animation_frame_duration(atlas, i, 0.35)
 	var alt := 0
 	if flip:
 		if not _atlas.has_alternative_tile(atlas, FLIP):
@@ -68,7 +88,7 @@ func _paint() -> void:
 	for cell in terrain.lawn:
 		_put(ground, cell, terrain.lawn[cell])
 	for cell in terrain.features:
-		_put(features_layer, cell, terrain.features[cell].atlas)
+		_put(features_layer, cell, terrain.features[cell])
 	for cell in terrain.fence:
 		_put(features_layer, cell, terrain.fence[cell].atlas, terrain.fence[cell].flip)
 	for blob in terrain.blobs:
@@ -86,8 +106,6 @@ func _paint() -> void:
 # with a one-octave noise wobble, limited to the blob cells plus one ring,
 # with part of its rim left open so the lawn speckle mixes in.
 func _paint_patches() -> void:
-	for child in patches.get_children():
-		child.queue_free()
 	var index := 0
 	for blob in terrain.blobs:
 		index += 1
@@ -165,8 +183,17 @@ func _chamfer(mask: PackedByteArray, size: Vector2i) -> PackedInt32Array:
 
 
 func _build_collision() -> void:
-	for child in collision.get_children():
-		child.queue_free()
+	# Water and plateau: one rectangle per horizontal run.
+	for y in PaintedTerrain.HEIGHT:
+		var x := 0
+		while x < PaintedTerrain.WIDTH:
+			if not _solid_ground(Vector2i(x, y)):
+				x += 1
+				continue
+			var start := x
+			while x < PaintedTerrain.WIDTH and _solid_ground(Vector2i(x, y)):
+				x += 1
+			_add_box(collision, Rect2(start * TILE, y * TILE, (x - start) * TILE, TILE))
 	for cell in terrain.fence:
 		_add_box(collision, Rect2(Vector2(cell * TILE) + Vector2(0, 8), Vector2(TILE, 8)))
 	var w := PaintedTerrain.WIDTH * TILE
@@ -297,3 +324,7 @@ func _hash(x: int, y: int, salt: int) -> float:
 	h = ((h ^ (h >> 13)) * 1274126177) & 0xFFFFFFFF
 	h = h ^ (h >> 16)
 	return float(h & 0xFFFFFF) / float(0xFFFFFF)
+
+
+func _solid_ground(cell: Vector2i) -> bool:
+	return terrain.water.has(cell) or terrain.ledge.has(cell)

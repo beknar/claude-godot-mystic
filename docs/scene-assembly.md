@@ -42,7 +42,7 @@ Use the Godot TileMap, not a collage:
 2. **Transitions** — only official autotile / blob tiles from *this* sheet.
 3. **Solid structure** — Mystic Woods: cliffs and water. Painted Lands:
    fences, optional plateau (recipes 4 and 16), water blob, house body,
-   blocking bushes / land rocks when the recipe says obstacle.
+   blocking bushes, big land rocks (always; pebbles never).
 4. **Deco** — trees, PATCH dirt islands, bushes, signs, torches, campfire
    as **props** (y-sorted), not ground fill.
 5. **Playable hole** — spawn, lanes, cover. Do not fill every cell with deco.
@@ -126,7 +126,7 @@ Mystic Woods default cliff threshold `0.64` here.
   grass: Mode A recolor baked green to FLAT_GRASS, or Mode B keep
   darker green only inside a noise-wobbled halo. Never show the tile
   AABB as a dark-green box. Ragged row-3 tiles only as interiors.
-- WATER_* — autotile source columns 44–46, rows 0–2. Then water plants
+- WATER_* — autotile source columns 35–37, rows 0–2 (animated through 38, 41, 44). Then water plants
   and water rocks from the same cluster.
 - FENCE / GATE — recipe.
 - CLIFF_* — recipes 4 and 16 only.
