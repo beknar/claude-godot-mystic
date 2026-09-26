@@ -19,10 +19,10 @@ func _init() -> void:
 		var lines := report.split("\n")
 		var tail := PackedStringArray()
 		for line in lines:
-			if line.begins_with("  checks:") or line.begins_with("  dropped:"):
+			if line.begins_with("  checks:") or line.begins_with("  dropped:") or line.begins_with("  grass tones:"):
 				tail.append(line.strip_edges())
 		print("%d r%d %s: %dms, attempt %d | %s" % [id, id % 20, t.recipe.name, Time.get_ticks_msec() - t0, t.attempt, " | ".join(tail)])
-		if tail.size() > 0 and tail[0] == "checks: ok":
+		if "checks: ok" in tail:
 			passed += 1
 		for p in t.props:
 			var key: String = "sign" if p.has("sign") else p.art

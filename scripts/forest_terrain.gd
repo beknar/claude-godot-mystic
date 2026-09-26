@@ -39,6 +39,18 @@ const LAWN := [Vector2i(0, 0), Vector2i(1, 0), Vector2i(2, 0), Vector2i(3, 0)]
 const TUFTS := [Vector2i(5, 1), Vector2i(6, 1), Vector2i(7, 1), Vector2i(5, 2), Vector2i(6, 2), Vector2i(7, 2), Vector2i(5, 3), Vector2i(6, 3), Vector2i(7, 3)]
 const FLOWERS := [Vector2i(8, 2), Vector2i(9, 2), Vector2i(10, 2), Vector2i(8, 3), Vector2i(9, 3), Vector2i(10, 3), Vector2i(8, 5), Vector2i(9, 5), Vector2i(10, 5)]
 
+# Grass tone zones, lightest to darkest. Each level is a 3x3 blob set on
+# transparent with dithered, rounded edges, its transparent-hole ring for
+# inner corners, and flat fills of the same green (plain plus speckles).
+# Level 0 sits on the lawn; each deeper level sits inside the one before.
+const TONES := [
+	{"name": "mid", "blob": Vector2i(12, 6), "ring": Vector2i(12, 9), "fills": [Vector2i(4, 0), Vector2i(5, 0), Vector2i(6, 0), Vector2i(7, 0)], "cover": 0.26},
+	{"name": "dark", "blob": Vector2i(15, 6), "ring": Vector2i(15, 9), "fills": [Vector2i(8, 1), Vector2i(9, 1), Vector2i(10, 1), Vector2i(11, 1)], "cover": 0.10},
+	{"name": "deep", "blob": Vector2i(18, 6), "ring": Vector2i(18, 9), "fills": [Vector2i(8, 0), Vector2i(9, 0), Vector2i(10, 0), Vector2i(11, 0)], "cover": 0.035},
+]
+const FLIP_H := 1
+const FLIP_V := 2
+
 # Neighbor bits N=1 E=2 S=4 W=8 -> role in a 3x3 set (offset from its NW).
 const ROLES := {
 	15: Vector2i(1, 1), 14: Vector2i(1, 0), 11: Vector2i(1, 2), 7: Vector2i(0, 1), 13: Vector2i(2, 1),
@@ -178,6 +190,7 @@ var plateau := {} # cell -> true (top and face)
 var ledge := {} # plateau cells that block: the rim and the face, not the stairs
 var stairs := {} # cell -> true
 var deco := {} # cell -> atlas
+var tones: Array[Dictionary] = [] # per level: cell -> {atlas, alt}
 var blobs: Array[Dictionary] = [] # {rect, cells, shape, mode, tiles, baked}
 var ponds: Array[Rect2i] = []
 var props: Array[Dictionary] = [] # {art, cell, block} or {sign, cell, block}
@@ -209,6 +222,7 @@ func generate(p_map_id: int) -> String:
 	if not built:
 		dropped.append("no layout fit after %d attempts" % ATTEMPTS)
 	_grow_patches()
+	_grass_zones()
 	_place_props()
 	_place_trees()
 	_scatter_deco()
@@ -223,7 +237,7 @@ func _reset(seed_value: int) -> void:
 	_rng.seed = seed_value
 	for d in [lawn, features, path, water, plateau, ledge, stairs, deco, fence, _taken, _solid, _blocked]:
 		d.clear()
-	for a in [blobs, ponds, props, houses, goals]:
+	for a in [blobs, ponds, props, houses, goals, tones]:
 		a.clear()
 	dropped.clear()
 	gate = Vector2i(-1, -1)
@@ -912,6 +926,213 @@ func _first_water_below(col: int, from_row: int) -> int:
 	return -1
 
 
+# ---------------------------------------------------------------- tones
+
+# Darker grass zones. A smooth tone value lives on every cell corner and is
+# interpolated per pixel, so a zone's outline follows a curved noise contour
+# instead of the tile grid. Corners on or next to the path or the plateau
+# (their tiles bake light lawn) are pinned low, so contours bend away from
+# them. Each level covers a fixed share of the map; deeper levels use higher
+# cuts on the same field, so they always sit inside the lighter one.
+#   Full cells (every corner above the cut) are tiles from the level's fill.
+#   Edge cells (the contour crosses them) are drawn per pixel from that same
+#   fill, with a dithered rim where the tone is within TONE_BAND of the cut.
+const TONE_FREQ := 0.07
+const TONE_BAND := 0.03 # width of the dithered rim, in tone units
+const TONE_WOBBLE := 0.035 # pixel-scale noise on the cut, so no edge runs straight
+const TONE_ANGLE := 0.61 # the field is sampled rotated, off the tile grid
+const TONE_CLEAR := 1.0 # corners this close (cells) to path or plateau stay at 0
+const TONE_FADE := 4.5 # ...and the field fades back in by this distance
+const TONE_MIN_CELLS := [6, 3, 2]
+
+var tone_cut: Array[float] = []
+var tone_edges: Array[Dictionary] = [] # per level: cell -> fill atlas
+var _corner := PackedFloat32Array()
+
+
+func _grass_zones() -> void:
+	tone_edges.clear()
+	tone_cut.clear()
+	_corner.resize((WIDTH + 1) * (HEIGHT + 1))
+	var clear := _corner_distance()
+	var values: Array[float] = []
+	for y in HEIGHT + 1:
+		for x in WIDTH + 1:
+			var i := y * (WIDTH + 1) + x
+			var v := _tone(Vector2i(x, y)) * smoothstep(TONE_CLEAR, TONE_FADE, clear[i])
+			_corner[i] = v
+			if v > 0.0:
+				values.append(v)
+	values.sort()
+	var kept_below := {}
+	for level in TONES.size():
+		var cut: float = values[int(values.size() * (1.0 - TONES[level].cover))] if not values.is_empty() else 2.0
+		tone_cut.append(cut)
+		# Cells this level reaches at all, grouped into components; small
+		# specks and anything outside the kept lighter level are dropped.
+		var touched := {}
+		for y in HEIGHT:
+			for x in WIDTH:
+				var c := Vector2i(x, y)
+				if _cell_max(c) + TONE_BAND * 0.5 + TONE_WOBBLE > cut and (level == 0 or kept_below.has(c)):
+					touched[c] = true
+		var kept := _drop_small_cells(touched, TONE_MIN_CELLS[level])
+		var full := {}
+		var edge := {}
+		for c in kept:
+			var atlas := _tone_fill(level, c)
+			if _cell_min(c) - TONE_BAND * 0.5 - TONE_WOBBLE > cut and (level == 0 or tones[level - 1].has(c)):
+				full[c] = {"atlas": atlas, "alt": [0, FLIP_H, FLIP_V][int(_hash(c.x, c.y, 23 + level) * 37.0) % 3]}
+			else:
+				edge[c] = atlas
+		tones.append(full)
+		tone_edges.append(edge)
+		kept_below = kept
+
+
+# Per-level pixel masks (1 = zone) for the edge cells, full map size. The
+# wobble and the dither come from noise images built once per map; every
+# level uses the same noisy value against a higher cut, so each level's
+# pixels always sit inside the lighter level's.
+func tone_masks() -> Array[PackedByteArray]:
+	var w := WIDTH * 16
+	var h := HEIGHT * 16
+	var wobble := _noise_bytes(w, h, 1.0 / 22.0, 2, map_id)
+	var dither := _noise_bytes(w, h, 1.0, 1, map_id + 1)
+	var masks: Array[PackedByteArray] = []
+	var cw := WIDTH + 1
+	for level in TONES.size():
+		var mask := PackedByteArray()
+		mask.resize(w * h)
+		var cut := tone_cut[level]
+		for c: Vector2i in tone_edges[level]:
+			var a := _corner[c.y * cw + c.x]
+			var b := _corner[c.y * cw + c.x + 1]
+			var d := _corner[(c.y + 1) * cw + c.x]
+			var e := _corner[(c.y + 1) * cw + c.x + 1]
+			for y in 16:
+				var fy := (y + 0.5) / 16.0
+				var left := lerpf(a, d, fy)
+				var right := lerpf(b, e, fy)
+				var row := (c.y * 16 + y) * w + c.x * 16
+				for x in 16:
+					var i := row + x
+					var f := lerpf(left, right, (x + 0.5) / 16.0)
+					f += (wobble[i] / 255.0 - 0.5) * 2.0 * TONE_WOBBLE
+					f += (dither[i] / 255.0 - 0.5) * TONE_BAND
+					if f > cut:
+						mask[i] = 1
+		masks.append(mask)
+	return masks
+
+
+func _noise_bytes(w: int, h: int, freq: float, octaves: int, seed_value: int) -> PackedByteArray:
+	var noise := FastNoiseLite.new()
+	noise.noise_type = FastNoiseLite.TYPE_VALUE
+	noise.seed = seed_value
+	noise.frequency = freq
+	noise.fractal_octaves = octaves
+	return noise.get_image(w, h).get_data()
+
+
+func _tone_fill(level: int, c: Vector2i) -> Vector2i:
+	var fills: Array = TONES[level].fills
+	var h := _hash(c.x, c.y, 11 + level)
+	return fills[0] if h < 0.55 else fills[1 + int(h * 101.0) % 3]
+
+
+func _tone(c: Vector2i) -> float:
+	var total := 0.0
+	var amp := 1.0
+	var freq := TONE_FREQ
+	var norm := 0.0
+	var rx := c.x * cos(TONE_ANGLE) - c.y * sin(TONE_ANGLE)
+	var ry := c.x * sin(TONE_ANGLE) + c.y * cos(TONE_ANGLE)
+	for octave in 3:
+		total += _value_noise(rx * freq + 70.0, ry * freq + 30.0, 300 + octave) * amp
+		norm += amp
+		amp *= 0.5
+		freq *= 2.0
+	return total / norm
+
+
+# Bilinear tone at a point in cell units.
+func _tone_at(x: float, y: float) -> float:
+	var x0 := clampi(floori(x), 0, WIDTH - 1)
+	var y0 := clampi(floori(y), 0, HEIGHT - 1)
+	var fx := clampf(x - x0, 0.0, 1.0)
+	var fy := clampf(y - y0, 0.0, 1.0)
+	var w := WIDTH + 1
+	var top := lerpf(_corner[y0 * w + x0], _corner[y0 * w + x0 + 1], fx)
+	var bottom := lerpf(_corner[(y0 + 1) * w + x0], _corner[(y0 + 1) * w + x0 + 1], fx)
+	return lerpf(top, bottom, fy)
+
+
+func _cell_min(c: Vector2i) -> float:
+	var w := WIDTH + 1
+	return minf(minf(_corner[c.y * w + c.x], _corner[c.y * w + c.x + 1]), minf(_corner[(c.y + 1) * w + c.x], _corner[(c.y + 1) * w + c.x + 1]))
+
+
+func _cell_max(c: Vector2i) -> float:
+	var w := WIDTH + 1
+	return maxf(maxf(_corner[c.y * w + c.x], _corner[c.y * w + c.x + 1]), maxf(_corner[(c.y + 1) * w + c.x], _corner[(c.y + 1) * w + c.x + 1]))
+
+
+# Distance, in cells, from each corner to the nearest corner of a path or
+# plateau cell (3-4 chamfer over the corner grid).
+func _corner_distance() -> PackedFloat32Array:
+	var w := WIDTH + 1
+	var h := HEIGHT + 1
+	var d := PackedFloat32Array()
+	d.resize(w * h)
+	d.fill(9999.0)
+	for c in path.keys() + plateau.keys():
+		for o in [Vector2i(0, 0), Vector2i(1, 0), Vector2i(0, 1), Vector2i(1, 1)]:
+			var q: Vector2i = c + o
+			d[q.y * w + q.x] = 0.0
+	for y in h:
+		for x in w:
+			var i := y * w + x
+			if x > 0: d[i] = minf(d[i], d[i - 1] + 1.0)
+			if y > 0:
+				d[i] = minf(d[i], d[i - w] + 1.0)
+				if x > 0: d[i] = minf(d[i], d[i - w - 1] + 1.414)
+				if x < w - 1: d[i] = minf(d[i], d[i - w + 1] + 1.414)
+	for y in range(h - 1, -1, -1):
+		for x in range(w - 1, -1, -1):
+			var i := y * w + x
+			if x < w - 1: d[i] = minf(d[i], d[i + 1] + 1.0)
+			if y < h - 1:
+				d[i] = minf(d[i], d[i + w] + 1.0)
+				if x < w - 1: d[i] = minf(d[i], d[i + w + 1] + 1.414)
+				if x > 0: d[i] = minf(d[i], d[i + w - 1] + 1.414)
+	return d
+
+
+func _drop_small_cells(on: Dictionary, minimum: int) -> Dictionary:
+	var seen := {}
+	var out := {}
+	for start in on:
+		if seen.has(start):
+			continue
+		var comp: Array[Vector2i] = [start]
+		seen[start] = true
+		var head := 0
+		while head < comp.size():
+			var c: Vector2i = comp[head]
+			head += 1
+			for dy in range(-1, 2):
+				for dx in range(-1, 2):
+					var n: Vector2i = c + Vector2i(dx, dy)
+					if on.has(n) and not seen.has(n):
+						seen[n] = true
+						comp.append(n)
+		if comp.size() >= minimum:
+			for c in comp:
+				out[c] = true
+	return out
+
+
 # ---------------------------------------------------------------- patches
 
 # Round recipes use a rounded rectangle of 4-8 cells; irregular ones join a
@@ -1215,6 +1436,19 @@ func _verify() -> String:
 		fails.append("no fence")
 	if "G" in recipe.height and gate.x < 0:
 		fails.append("no gate")
+	var tone_notes := PackedStringArray()
+	for level in tones.size():
+		for c in tones[level]:
+			if _cell_min(c) <= tone_cut[level]:
+				fails.append("%s tone tile at %s is not fully inside its zone" % [TONES[level].name, c])
+			if level > 0 and not (tones[level - 1].has(c) or tone_edges[level - 1].has(c)):
+				fails.append("%s tone cell %s is outside %s" % [TONES[level].name, c, TONES[level - 1].name])
+		var area := tones[level].size() + tone_edges[level].size() / 2
+		tone_notes.append("%s %d%%" % [TONES[level].name, roundi(100.0 * area / (WIDTH * HEIGHT))])
+	for c in path.keys() + plateau.keys():
+		if tone_cut.size() > 0 and _cell_max(c) + TONE_BAND * 0.5 + TONE_WOBBLE > tone_cut[0]:
+			fails.append("grass tone can reach %s cell %s" % ["path" if path.has(c) else "plateau", c])
+			break
 	var patch_notes := PackedStringArray()
 	for b in blobs:
 		if b.cells.size() < 3 or b.cells.size() > 8:
@@ -1263,6 +1497,7 @@ func _verify() -> String:
 		"Painted Lands map %d: recipe %d %s, %dx%d (layout attempt %d)" % [map_id, recipe_id, recipe.name, WIDTH, HEIGHT, attempt],
 		"  houses: %s; ponds %d; plateau %s; fence %d; leans %d" % [", ".join(house_names) if not houses.is_empty() else "none", ponds.size(), "with stairs" if not stairs.is_empty() else ("yes" if not plateau.is_empty() else "no"), fence.size(), leans],
 		"  path %d cells (%s), patches %s" % [path.size(), recipe.path, " ".join(patch_notes)],
+		"  grass tones: %s" % ", ".join(tone_notes),
 		"  props: %s; signs %s" % [str(counts), str(sign_ids.keys())],
 		"  walk from %s to %d goals: %s" % [spawn, goals.size(), "ok" if not "spawn does not reach" in "; ".join(fails) else "FAIL"],
 		"  checks: %s" % ("ok" if fails.is_empty() else "; ".join(fails)),

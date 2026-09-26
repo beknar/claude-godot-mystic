@@ -72,7 +72,9 @@ placed.
 Ponds animate through the sheet's four shore frames. Plateaus have a
 three-wide stair up the face, and the top is walkable. Trees come in eight
 variants (two shapes, plain or flowering, with or without a grassy base).
-Logs lie on the lawn, and crates and chests sit beside each house.
+Logs lie on the lawn, and crates and chests sit beside each house. Every
+map has zones of darker grass in three nested tones with organic, dithered
+edges that curve away from the path.
 
 ## Player
 

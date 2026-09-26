@@ -20,6 +20,7 @@ const FLIP := 1 # alternative tile id for horizontally flipped cells
 @onready var collision: StaticBody2D = $Collision
 
 var terrain: PaintedTerrain
+var tone_layers: Array[TileMapLayer] = []
 var report := ""
 var _atlas: TileSetAtlasSource
 var _pixels: Image
@@ -30,7 +31,14 @@ func _ready() -> void:
 	if _pixels.is_compressed():
 		_pixels.decompress()
 	var tiles := _build_tileset()
-	for layer in [ground, features_layer, deco_layer]:
+	# One layer per grass tone, stacked between the lawn and the features.
+	for i in PaintedTerrain.TONES.size():
+		var layer := TileMapLayer.new()
+		layer.name = "Tone_%s" % PaintedTerrain.TONES[i].name
+		add_child(layer)
+		move_child(layer, ground.get_index() + 1 + i)
+		tone_layers.append(layer)
+	for layer in [ground, features_layer, deco_layer] + tone_layers:
 		layer.tile_set = tiles
 	build(map_id)
 
@@ -41,7 +49,7 @@ func build(id: int) -> void:
 	map_id = id
 	terrain = PaintedTerrain.new()
 	report = terrain.generate(map_id)
-	for layer in [ground, features_layer, deco_layer]:
+	for layer in [ground, features_layer, deco_layer] + tone_layers:
 		layer.clear()
 	for node in [patches, actors, collision]:
 		for child in node.get_children():
@@ -66,7 +74,7 @@ func _build_tileset() -> TileSet:
 	return tiles
 
 
-func _put(layer: TileMapLayer, cell: Vector2i, atlas: Vector2i, flip := false) -> void:
+func _put(layer: TileMapLayer, cell: Vector2i, atlas: Vector2i, flip := false, alt_id := -1) -> void:
 	if not _atlas.has_tile(atlas):
 		_atlas.create_tile(atlas)
 		if PaintedTerrain.WATER_FRAME_REGION.has_point(atlas):
@@ -75,18 +83,23 @@ func _put(layer: TileMapLayer, cell: Vector2i, atlas: Vector2i, flip := false) -
 			_atlas.set_tile_animation_frames_count(atlas, PaintedTerrain.WATER_FRAMES)
 			for i in PaintedTerrain.WATER_FRAMES:
 				_atlas.set_tile_animation_frame_duration(atlas, i, 0.35)
-	var alt := 0
-	if flip:
-		if not _atlas.has_alternative_tile(atlas, FLIP):
-			_atlas.create_alternative_tile(atlas, FLIP)
-			_atlas.get_tile_data(atlas, FLIP).flip_h = true
-		alt = FLIP
+	var alt := FLIP if flip else maxi(alt_id, 0)
+	if alt != 0 and not _atlas.has_alternative_tile(atlas, alt):
+		_atlas.create_alternative_tile(atlas, alt)
+		var data := _atlas.get_tile_data(atlas, alt)
+		data.flip_h = alt == PaintedTerrain.FLIP_H
+		data.flip_v = alt == PaintedTerrain.FLIP_V
 	layer.set_cell(cell, SOURCE, atlas, alt)
 
 
 func _paint() -> void:
 	for cell in terrain.lawn:
 		_put(ground, cell, terrain.lawn[cell])
+	for level in terrain.tones.size():
+		var cells: Dictionary = terrain.tones[level]
+		for cell in cells:
+			_put(tone_layers[level], cell, cells[cell].atlas, false, cells[cell].alt)
+	_paint_tone_edges()
 	for cell in terrain.features:
 		_put(features_layer, cell, terrain.features[cell])
 	for cell in terrain.fence:
@@ -99,6 +112,35 @@ func _paint() -> void:
 				_put(features_layer, cell, blob.tiles[cell])
 	for cell in terrain.deco:
 		_put(deco_layer, cell, terrain.deco[cell])
+
+
+# Edge cells of a grass tone zone, drawn per pixel from the zone's own fill
+# tile wherever the terrain's tone mask is set. One overlay per level sits
+# right above that level's tile layer.
+func _paint_tone_edges() -> void:
+	var masks := terrain.tone_masks()
+	var width := PaintedTerrain.WIDTH * TILE
+	for level in masks.size():
+		var layer := tone_layers[level]
+		for child in layer.get_children():
+			layer.remove_child(child)
+			child.queue_free()
+		var edges: Dictionary = terrain.tone_edges[level]
+		if edges.is_empty():
+			continue
+		var mask: PackedByteArray = masks[level]
+		var out := Image.create(width, PaintedTerrain.HEIGHT * TILE, false, Image.FORMAT_RGBA8)
+		for cell in edges:
+			var src: Vector2i = edges[cell] * TILE
+			for y in TILE:
+				var row: int = (cell.y * TILE + y) * width + cell.x * TILE
+				for x in TILE:
+					if mask[row + x]:
+						out.set_pixel(cell.x * TILE + x, cell.y * TILE + y, _pixels.get_pixel(src.x + x, src.y + y))
+		var sprite := Sprite2D.new()
+		sprite.texture = ImageTexture.create_from_image(out)
+		sprite.centered = false
+		layer.add_child(sprite)
 
 
 # Mode B: keep the baked darker green only inside a lumpy halo around the

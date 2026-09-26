@@ -365,6 +365,36 @@ A 1×1 dark-green square with a hard edge is always a reject, whether
 or not dirt sits on it. Prefer Mode A unless the recipe explicitly
 wants accent grass.
 
+### Grass tone zones (every map)
+
+Large zones of darker grass, three nested levels, painted between the
+lawn and the features:
+
+| Level | Blob on transparent | Hole ring (inner corners) | Fill (plain, speckles) |
+|---|---|---|---|
+| mid | `(12–14, 6–8)` | `(12–14, 9–11)` | `(4, 0)`, `(5–7, 0)` |
+| dark | `(15–17, 6–8)` | `(15–17, 9–11)` | `(8, 1)`, `(9–11, 1)` |
+| deep | `(18–20, 6–8)` | `(18–20, 9–11)` | `(8, 0)`, `(9–11, 0)` |
+
+The rows 0–5 versions of these blobs bake the lighter tone into the cell;
+use the transparent ones.
+
+1. A smooth tone field (3-octave value noise, sampled rotated so its
+   lattice is off the tile grid) lives on every cell corner.
+2. Corners within one cell of the path or the plateau are 0 and the field
+   fades back in over about four cells, so zones bend away from the path
+   and never touch its baked lawn.
+3. Each level covers a fixed share of the map (about 25 %, 11 %, 6 %),
+   using a quantile cut on the same field, so deeper levels always sit
+   inside lighter ones. Specks smaller than a few cells are dropped.
+4. Cells fully inside a level are fill tiles (random plain/speckle, random
+   mirror). Cells the contour crosses are drawn per pixel from that same
+   fill wherever field + pixel-scale wobble + dither is above the cut. The
+   rim is organic and dithered; no edge follows a 16 px line.
+
+Reject a tone zone with a straight edge, a stair-step outline, a darker
+level touching the lawn directly, or any tone pixel on a path cell.
+
 ## Dirt path atlas (cobble PATH only)
 
 ## Dirt path atlas (cobble PATH only)
