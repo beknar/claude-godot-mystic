@@ -59,6 +59,7 @@ func _ready() -> void:
 	sway_layer.name = "DecoSway"
 	var sway_material := ShaderMaterial.new()
 	sway_material.shader = SWAY_SHADER
+	sway_material.set_shader_parameter("art_rows", _art_rows())
 	sway_layer.material = sway_material
 	add_child(sway_layer)
 	move_child(sway_layer, deco_layer.get_index() + 1)
@@ -88,6 +89,26 @@ func build(id: int, pinned := -1) -> void:
 	_place_props()
 	_spawn_walker()
 	print(report)
+
+
+# One texel per atlas cell: R = first row with art, G = last row with art.
+# The sway shader leans each flower from its own base to its own top.
+func _art_rows() -> ImageTexture:
+	var cols := _pixels.get_width() / TILE
+	var rows := _pixels.get_height() / TILE
+	var img := Image.create(cols, rows, false, Image.FORMAT_RGBA8)
+	for cy in rows:
+		for cx in cols:
+			var first := TILE - 1
+			var last := 0
+			for y in TILE:
+				for x in TILE:
+					if _pixels.get_pixel(cx * TILE + x, cy * TILE + y).a > 0.0:
+						first = mini(first, y)
+						last = maxi(last, y)
+						break
+			img.set_pixel(cx, cy, Color8(first, last, 0, 255))
+	return ImageTexture.create_from_image(img)
 
 
 func _build_tileset() -> TileSet:

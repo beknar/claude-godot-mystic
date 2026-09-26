@@ -423,10 +423,15 @@ use `(0, 17)` (lawn with a tuft), and mid and dark fills sometimes
 
 **Swaying flowers.** Flowers and flower carpets in breezy patches sit on
 a separate `DecoSway` layer with `shaders/flower_sway.gdshader`: each cell
-leans by whole pixels on a slow wave (heads move one pixel, the bottom five
-rows stay planted), the phase ripples across the map, and a slow gust
+leans by whole pixels on a slow wave, measured from each flower's own
+drawn rows (its top row moves most, its bottom three rows stay planted;
+per-cell heights come from an `art_rows` lookup texture built from the
+sheet, so short flowers lean as much as tall ones), the phase ripples
+across the map, and a slow gust
 varies the strength. A shifted pixel from outside the cell is left
-transparent, so no neighbouring atlas cell bleeds in. Which flowers sway
+transparent, so no neighbouring atlas cell bleeds in. The tile atlas pads
+each cell with a 1 px border in the texture it draws from, so the shader
+finds a cell with an 18 px stride when padding is on. Which flowers sway
 comes from a smooth wind field plus a small per-flower chance (a position
 hash, so the layout is unchanged); a carpet sways as a whole. A balancing
 pass keeps 40–70 % of a map's flowers swaying: on a calm map the windiest
