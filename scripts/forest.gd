@@ -34,6 +34,9 @@ var wind: Wind
 var leaves: AmbientLeaves
 var streaks: WindStreaks
 var clouds: CloudShadows
+var fire: FireAmbience
+var water_life: WaterLife
+var _plant_tops: Array[Sprite2D] = [] # top parts of reeds and water grass, which nod
 var _leaf_colors := {} # art name -> {light, dark}
 var tone_layers: Array[TileMapLayer] = []
 var accent_layer: TileMapLayer
@@ -98,6 +101,15 @@ func _add_ambience() -> void:
 	streaks.wind = wind
 	add_child(streaks)
 	move_child(streaks, actors.get_index()) # under the y-sorted actors
+	water_life = WaterLife.new()
+	water_life.name = "WaterLife"
+	water_life.wind = wind
+	add_child(water_life)
+	move_child(water_life, actors.get_index()) # ripples under the y-sorted actors
+	fire = FireAmbience.new()
+	fire.name = "FireAmbience"
+	fire.wind = wind
+	add_child(fire)
 	leaves = AmbientLeaves.new()
 	leaves.name = "Leaves"
 	leaves.wind = wind
@@ -134,6 +146,19 @@ func _reset_ambience() -> void:
 			"base_y": 4 * TILE + 8.0,
 		}.merged(_colors_of("canopy_%s" % atlas, Rect2i(atlas * TILE, Vector2i(4 * TILE, 4 * TILE)))))
 	leaves.set_sources(sources)
+	var fires: Array[Dictionary] = []
+	for body in actors.get_children():
+		var n := String(body.name)
+		for kind in ["campfire_big", "campfire", "torch"]:
+			if n.begins_with(kind + "_") or n.begins_with(kind + "_b_") or n.begins_with(kind + "_c_"):
+				fires.append({"pos": body.position, "kind": kind})
+				break
+	fire.set_fires(fires)
+	var open: Array[Vector2i] = []
+	for cell in terrain.water:
+		if terrain._near_all(cell, terrain.water, 1):
+			open.append(cell)
+	water_life.setup(open, _plant_tops)
 
 
 # Leaf colors for a tree, from its sprite: `light` are the brightest common
@@ -461,6 +486,7 @@ func _ridge_ground(atlas: Vector2i) -> Vector2i:
 
 
 func _place_props() -> void:
+	_plant_tops.clear()
 	for prop in terrain.props:
 		var body := StaticBody2D.new()
 		body.collision_mask = 0
@@ -483,6 +509,14 @@ func _place_props() -> void:
 			body.position = Vector2((prop.cell + art.cell) * TILE) + base
 		if frames > 1:
 			body.add_child(_flipbook(region, frames, -base))
+		elif prop.has("art") and prop.art in PaintedTerrain.SHORE_PLANTS:
+			# Reeds and water grass: a planted lower part and a top that nods
+			# in the wind (see WaterLife).
+			var cut := floorf(region.size.y * 0.55)
+			body.add_child(_region_sprite(Rect2(region.position + Vector2(0, cut), Vector2(region.size.x, region.size.y - cut)), Vector2(0, cut) - base))
+			var top := _region_sprite(Rect2(region.position, Vector2(region.size.x, cut)), -base)
+			body.add_child(top)
+			_plant_tops.append(top)
 		else:
 			body.add_child(_region_sprite(region, -base))
 		if prop.block and block != Vector2.ZERO:

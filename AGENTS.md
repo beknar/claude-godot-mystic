@@ -713,6 +713,19 @@ Motion lives outside the tile art, in four scripts that `forest.gd` adds:
 - `scripts/cloud_shadows.gd` — three lumpy cloud shadows in translucent
   deep-grass green with a narrow ordered-dither rim, drifting with the wind
   and wrapping in on the upwind side.
+- `scripts/fire_ambience.gd` — every campfire and torch gets a warm pixel
+  glow (a round light in solid steps joined by ordered dither, drawn
+  additively over the scene) that flickers out of step with the others;
+  big fires glow widest, torches smallest. Campfires send up a thin column
+  of smoke puffs (2×2 knots loosening into 3×3) that rise, bend with the
+  wind, and fade.
+- `scripts/water_life.gd` — ripple rings spread now and then on open water
+  (water cells whose eight neighbors are water), drawn as flattened pixel
+  circles in the deep-water teal with a pale inner highlight while young,
+  since the pond surface is pale. Every 8–18 s a fish jumps: droplets arc
+  up and fall back with rings. Reeds and water grass are split into a
+  planted base and a top that leans one pixel downwind in strong wind,
+  each plant at its own moment.
 
 Everything moves on whole world pixels and uses the sheet's colors; no
 new art. Map generation is unchanged.

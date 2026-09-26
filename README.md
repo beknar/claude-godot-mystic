@@ -78,7 +78,9 @@ edges that curve away from the path. Dirt islands inside a zone use the dirt til
 whose grass is that tone, deco follows the tone underneath, and flower
 carpets dot the open lawn. Some maps get hedgerows, and many ponds become
 lakes with a deep, sparkling center. A shifting wind carries falling leaves and
-petals, pale wind streaks, and drifting cloud shadows across every map.
+petals, pale wind streaks, and drifting cloud shadows across every map. Campfires and torches
+flicker with warm light and smoke, ponds ripple, fish jump, and reeds nod
+in the wind.
 
 ## Player
 
