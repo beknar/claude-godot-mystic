@@ -6,6 +6,7 @@ extends Node2D
 
 const TILE := 16
 const SHEET := preload("res://assets/pack/TILESET_brighter.png")
+const SWAY_SHADER := preload("res://shaders/flower_sway.gdshader")
 const WALKER_SCENE := preload("res://scenes/forest/walker.tscn")
 const SOURCE := 0
 const FLIP := 1 # alternative tile id for horizontally flipped cells
@@ -31,6 +32,7 @@ const RIDGE_FRONT := 8
 var terrain: PaintedTerrain
 var tone_layers: Array[TileMapLayer] = []
 var accent_layer: TileMapLayer
+var sway_layer: TileMapLayer # flowers that move in the wind
 var report := ""
 var _atlas: TileSetAtlasSource
 var _pixels: Image
@@ -53,7 +55,14 @@ func _ready() -> void:
 	accent_layer.name = "Accents"
 	add_child(accent_layer)
 	move_child(accent_layer, tone_layers[-1].get_index() + 1)
-	for layer in [ground, features_layer, deco_layer, accent_layer] + tone_layers:
+	sway_layer = TileMapLayer.new()
+	sway_layer.name = "DecoSway"
+	var sway_material := ShaderMaterial.new()
+	sway_material.shader = SWAY_SHADER
+	sway_layer.material = sway_material
+	add_child(sway_layer)
+	move_child(sway_layer, deco_layer.get_index() + 1)
+	for layer in [ground, features_layer, deco_layer, accent_layer, sway_layer] + tone_layers:
 		layer.tile_set = tiles
 	build(map_id, recipe)
 
@@ -65,7 +74,7 @@ func build(id: int, pinned := -1) -> void:
 	recipe = pinned
 	terrain = PaintedTerrain.new()
 	report = terrain.generate(map_id, recipe)
-	for layer in [ground, features_layer, deco_layer, accent_layer] + tone_layers:
+	for layer in [ground, features_layer, deco_layer, accent_layer, sway_layer] + tone_layers:
 		layer.clear()
 	for node in [patches, actors, collision]:
 		for child in node.get_children():
@@ -137,7 +146,7 @@ func _paint() -> void:
 			for cell in blob.tiles:
 				_put(features_layer, cell, blob.tiles[cell])
 	for cell in terrain.deco:
-		_put(deco_layer, cell, terrain.deco[cell])
+		_put(sway_layer if terrain.sway.has(cell) else deco_layer, cell, terrain.deco[cell])
 
 
 # Edge cells of a grass tone zone, drawn per pixel from the zone's own fill

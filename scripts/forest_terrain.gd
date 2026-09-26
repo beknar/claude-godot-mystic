@@ -338,6 +338,7 @@ var ramps := {} # walkable ramp cells -> true
 var caves: Array[Vector2i] = [] # cave entrance cells
 var plateaus: Array[Dictionary] = [] # {top, tone, stairs, ramp, cave} (x of each cut, -1 if none)
 var deco := {} # cell -> atlas
+var sway := {} # deco cells drawn on the animated (wind) layer -> true
 var tones: Array[Dictionary] = [] # per level: cell -> {atlas, alt}
 var blobs: Array[Dictionary] = [] # {rect, cells, shape, mode, tiles, baked}
 var ponds: Array[Rect2i] = []
@@ -398,7 +399,7 @@ func walkable(cell: Vector2i) -> bool:
 
 func _reset(seed_value: int) -> void:
 	_rng.seed = seed_value
-	for d in [lawn, features, path, water, deep, hedge, accents, canopy, ridge, ridge_rock, plateau, ledge, stairs, ramps, deco, fence, _taken, _solid, _blocked]:
+	for d in [lawn, features, path, water, deep, hedge, accents, canopy, ridge, ridge_rock, plateau, ledge, stairs, ramps, deco, sway, fence, _taken, _solid, _blocked]:
 		d.clear()
 	for a in [blobs, ponds, props, houses, goals, tones, caves, plateaus]:
 		a.clear()
@@ -2447,8 +2448,11 @@ func _scatter_deco() -> void:
 				ok = false
 		if not ok:
 			continue
+		var windy := _windy(at, 0.0)
 		for k in cells.size():
 			deco[at + cells[k]] = FLOWER_CARPET + roles[k]
+			if windy:
+				sway[at + cells[k]] = true # a carpet sways as one
 		placed_carpets.append(at)
 		carpets += 1
 	for i in 1400:
@@ -2468,6 +2472,54 @@ func _scatter_deco() -> void:
 		else:
 			pool = FLOWERS if _rng.randf() < 0.4 else TUFTS
 		deco[c] = pool[_rng.randi() % pool.size()]
+		if deco[c] in FLOWERS and _windy(c, 0.12):
+			sway[c] = true
+	_balance_sway()
+
+
+# Keeps the swaying share between 20 % and 70 %: on a calm map, the
+# windiest still flowers join in until a quarter sway; on a gusty map the
+# calmest stop until two thirds do. Ranking by the wind field keeps the
+# swaying flowers in patches.
+func _balance_sway() -> void:
+	var still: Array[Vector2i] = []
+	var moving: Array[Vector2i] = []
+	for c in deco:
+		if _is_flower(deco[c]):
+			(moving if sway.has(c) else still).append(c)
+	var total := still.size() + moving.size()
+	if total == 0:
+		return
+	var by_wind := func(a: Vector2i, b: Vector2i) -> bool: return _wind(a) > _wind(b)
+	if moving.size() < total * 0.2:
+		still.sort_custom(by_wind)
+		for c in still:
+			if sway.size() >= ceili(total * 0.25):
+				break
+			sway[c] = true
+	elif moving.size() > total * 0.7:
+		moving.sort_custom(by_wind)
+		moving.reverse()
+		for c in moving:
+			if sway.size() <= floori(total * 0.66):
+				break
+			sway.erase(c)
+
+
+func _wind(c: Vector2i) -> float:
+	return _value_noise(c.x * 0.13 + 11.0, c.y * 0.13 + 5.0, 800) * 0.7 + _value_noise(c.x * 0.3, c.y * 0.3, 801) * 0.3
+
+
+func _is_flower(atlas: Vector2i) -> bool:
+	return atlas in FLOWERS or Rect2i(FLOWER_CARPET, Vector2i(3, 3)).has_point(atlas)
+
+
+# Which flowers sway: a smooth wind field makes breezy patches where most
+# flowers move and calm patches where few do, plus a little per-flower
+# chance (`jitter`) so a patch has no hard edge.
+func _windy(c: Vector2i, jitter: float) -> bool:
+	var chance := smoothstep(0.42, 0.66, _wind(c))
+	return _hash(c.x, c.y, 802) < lerpf(jitter, 1.0 - jitter, chance) # a hash, not the rng, so the layout stays the same
 
 
 # Darkest tone level with a tile or edge at c, or -1 for plain lawn.
@@ -2584,6 +2636,16 @@ func _verify() -> String:
 		fails.append("carpets heavy but %d carpets" % carpets)
 	if recipe.path.begins_with("plaza") and plaza.size == Vector2i.ZERO:
 		fails.append("no plaza")
+	var flowers := 0
+	for c in deco:
+		if _is_flower(deco[c]):
+			flowers += 1
+	for c in sway:
+		if not deco.has(c):
+			fails.append("sway cell %s has no deco" % c)
+	var sway_share := float(sway.size()) / maxf(1.0, flowers)
+	if flowers >= 10 and (sway_share < 0.2 or sway_share > 0.7):
+		fails.append("%d of %d flowers sway" % [sway.size(), flowers])
 	for c in accents:
 		if accents[c] == NONE:
 			fails.append("accent cell %s has no tile" % c)
@@ -2607,7 +2669,7 @@ func _verify() -> String:
 		house_names.append(HOUSES[h.id].name)
 	var lines := PackedStringArray([
 		"Painted Lands map %d: recipe %d %s, %dx%d (layout attempt %d)" % [map_id, recipe_id, recipe.name, WIDTH, HEIGHT, attempt],
-		"  hedgerows %d; ridges %d; accents %d; carpets %d; canopy %d cells; deep water %d cells; plateaus %s" % [hedgerows, ridges, accent_count, carpets, canopy.size(), deep.size(), ", ".join(plateaus.map(func(i): return "%s %s" % [i.tone, "+".join(["stairs", "ramp", "cave", "narrow"].filter(func(k): return i[k] >= 0))]))],
+		"  swaying flowers %d of %d; hedgerows %d; ridges %d; accents %d; carpets %d; canopy %d cells; deep water %d cells; plateaus %s" % [sway.size(), flowers, hedgerows, ridges, accent_count, carpets, canopy.size(), deep.size(), ", ".join(plateaus.map(func(i): return "%s %s" % [i.tone, "+".join(["stairs", "ramp", "cave", "narrow"].filter(func(k): return i[k] >= 0))]))],
 		"  houses: %s; ponds %d; plateau %s; fence %d; leans %d" % [", ".join(house_names) if not houses.is_empty() else "none", ponds.size(), "with stairs" if not stairs.is_empty() else ("yes" if not plateau.is_empty() else "no"), fence.size(), leans],
 		"  path %d cells (%s), patches %s" % [path.size(), recipe.path, " ".join(patch_notes)],
 		"  grass tones: %s" % ", ".join(tone_notes),

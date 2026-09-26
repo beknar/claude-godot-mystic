@@ -421,6 +421,18 @@ dark. Two to four per map (more on Hedge garden). Lawn cells sometimes
 use `(0, 17)` (lawn with a tuft), and mid and dark fills sometimes
 `(11, 15)` and `(11, 21)`.
 
+**Swaying flowers.** Flowers and flower carpets in breezy patches sit on
+a separate `DecoSway` layer with `shaders/flower_sway.gdshader`: each cell
+leans by whole pixels on a slow wave (heads move one pixel, the bottom five
+rows stay planted), the phase ripples across the map, and a slow gust
+varies the strength. A shifted pixel from outside the cell is left
+transparent, so no neighbouring atlas cell bleeds in. Which flowers sway
+comes from a smooth wind field plus a small per-flower chance (a position
+hash, so the layout is unchanged); a carpet sways as a whole. A balancing
+pass keeps 20–70 % of a map's flowers swaying (about 44 % on average): on
+a calm map the windiest still flowers join in until a quarter sway, on a
+gusty map the calmest stop. The walk check fails outside that band.
+
 **Deco by tone.** On lawn and mid: sprouts `(5–7, 1–3)`, `(6–7, 5)` and
 flowers `(8–10, 2–7)`. On dark and deep: mostly the darkest sprouts
 `(5–7, 4)`, `(5, 5)`. Flower carpets `(5–7, 6–8)`: one to three per map on
