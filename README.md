@@ -9,10 +9,13 @@ shared inventory, composition steps, and QC checklist. This README gives an
 overview; when the two disagree, `AGENTS.md` wins.
 
 > **Status:** built so far: `scenes/clearing/clearing.tscn` (the main scene),
-> `scenes/grove/grove.tscn`, `scenes/player/player.tscn`,
-> `scripts/terrain.gd`, `scripts/clearing.gd`, `scripts/player.gd`, both art
-> packs, the AI character sheets, and `addons/godot_mcp`. Hollow, ford,
-> heath, forest, and wilds are not built yet.
+> `scenes/grove/grove.tscn`, `scenes/forest/forest.tscn`,
+> `scenes/wilds/wilds.tscn`, the player and walker scenes, the Mystic Woods
+> and Painted Lands generators, both art packs, the AI character sheets, and
+> `addons/godot_mcp`. Hollow, ford, and heath are not built yet. The Painted
+> Lands generator draws recipes 3 (Garden) and 5 (Open meadow) fully; for
+> other recipes it lists the unbuilt pieces (water, plateau, lean paths) in
+> its report.
 
 ## Running
 
@@ -118,7 +121,7 @@ Systems:
 
 - **PATH**: cobble tubes from atlas `(21–23, *)`. Runs of 4 or more widen
   to 2. Caps and knuckles are forced, and there are no 1-tile 45° stairs.
-- **PATCH**: dirt islands of 3–8 cells, autotiled with `(18–20, 0–2)` or
+- **PATCH**: dirt islands of 3–8 cells, autotiled with `(30–32, 0–2)` or
   `(24–26, 0–2)`. Each blob's grass uses Mode A (recolor to the lawn) or
   Mode B (a noisy halo). A dark-green tile rectangle is never acceptable.
 - **WATER**: an autotile source at columns 44–46, rows 0–2, with water
@@ -128,7 +131,23 @@ Systems:
 - **Props**: bushes, land rocks, water plants and rocks, campfire, torches,
   and eight `SIGN` tiles, placed per recipe flags.
 
-Layers: Ground → Features → Deco → Actors.
+Layers: Ground → Features → Patches (Mode B halo sprites) → Deco → Actors.
+
+Where the sheet differs from the `AGENTS.md` atlas notes, the code follows
+the sheet:
+
+- `(18–20, 0–2)` is darker grass on mid green, not dirt. Dirt islands use
+  `(30–32, 0–2)` for Mode A (its grass is transparent, so the lawn shows
+  through) and `(24–26, 0–2)` for Mode B (baked mid green kept only inside
+  a noisy halo).
+- Prefabs: porch cottage `(38–45, 10–14)`, flower cottage `(38–45, 15–19)`,
+  gable cottage `(38–45, 25–29)`, hut `(46–48, 10–12)`.
+- `assets/pack/character_sprite_sheet.png` is 6×4 frames of 16×32. Rows
+  face right, left (a mirror of right), down, and up. Columns 3–5 repeat
+  0–2 with a ground shadow, and the walker uses those.
+- The square hedge at `(0–2, 1–3)` reads as a dark-green lawn rectangle,
+  and the tree at `(25–28, 11–15)` carries a stray foliage band in its
+  base row. Neither is placed.
 
 ## Art directories
 

@@ -95,7 +95,7 @@ Painted Lands only:
 - [ ] House count is 0 or 1, or 2 only on recipe 10
 - [ ] House prefab matches the recipe (not always the porch cottage)
 - [ ] Each PATCH is a 3–8 cell blob (no 2-cell L, no 1×N strip)
-      autotiled with `(18–20, 0–2)` or `(24–26, 0–2)` corners/edges —
+      autotiled with `(30–32, 0–2)` or `(24–26, 0–2)` corners/edges —
       no lone square fill, no lone 8×8 quadrant
 - [ ] PATCH grass is Mode A (baked grass recolored to FLAT_GRASS) or
       Mode B (darker grass only inside a noisy halo). No dark-green
@@ -122,7 +122,7 @@ Mystic Woods default cliff threshold `0.64` here.
 - GRASS_DECO — flowers/tufts. Not a substitute for bushes or rocks.
 - PATH_* — cobble `(21–23, *)` only. Fill `(22, 1)` is interior only.
 - PATCH_* — multi-cell dirt *islands*. Grow 3–8 cells, then autotile
-  with dirt-on-grass `(18–20, 0–2)` or `(24–26, 0–2)`. Then paint
+  with dirt-on-grass `(30–32, 0–2)` or `(24–26, 0–2)`. Then paint
   grass: Mode A recolor baked green to FLAT_GRASS, or Mode B keep
   darker green only inside a noise-wobbled halo. Never show the tile
   AABB as a dark-green box. Ragged row-3 tiles only as interiors.
@@ -134,7 +134,9 @@ Mystic Woods default cliff threshold `0.64` here.
   2 gable, 3 hut. Body collides (sort at doorstep). Roof does not
   (sort at eave).
 - BUSH, LAND_ROCK, WATER_PLANT, WATER_ROCK, CAMPFIRE, TORCH, SIGN[0..7].
-- TREES — Poisson; count and gap from the recipe.
+- TREES — Poisson; count and gap from the recipe. Use `(29–32, 11–15)`
+  and `(33–37, 11–16)`. `(25–28, 11–15)` has a stray foliage band in its
+  base row; do not place it.
 
 Layers: Ground (grass) → Features (path, patches, water, fence, cliff) →
 Deco (flowers, bushes, plants) → Actors (trees, rocks, signs, fire,

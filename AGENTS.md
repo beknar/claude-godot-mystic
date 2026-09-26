@@ -93,8 +93,11 @@ Painted Lands map (pipeline: § Painted Lands):
 
 - `scenes/forest/forest.tscn` — current seed `91003` (not the heath
   generator), `assets/pack/TILESET_brighter.png`.
-  `character_sprite_sheet.png` is 3×4 of 32px (two tiles tall). Row 0
-  idles, row 1 walks. No attack row. Movement is still eight-direction.
+  `assets/pack/character_sprite_sheet.png` is 6×4 frames of 16×32 (two
+  tiles tall, feet on frame row 31). Rows face right, left (row 0
+  mirrored), down, up. Columns 3–5 repeat 0–2 with a ground shadow;
+  idle is column 3, walk is 3, 4, 3, 5. No attack row. Movement is
+  still eight-direction.
   New forest seeds use `recipe = seed % 20` from the table below.
 - `scenes/wilds/wilds.tscn` — map id `75125`, recipe 5 Open meadow.
   No house. A straight cobble road runs from edge to edge. Round dirt
@@ -210,7 +213,7 @@ Two jobs, one sheet:
 A screenshot that only has cobble roads + one porch cottage + flowers
 has failed the variety rules, even if the road autotile is perfect.
 
-The 5×3 block at atlas columns 44–46, rows 0–2 is the **water autotile
+The 3×3 block at atlas columns 44–46, rows 0–2 is the **water autotile
 source on the sheet**, not the size of the lake in the world.
 
 Quadrant labels describe how to *pick* a 16×16 atlas cell. Never slice
@@ -249,23 +252,42 @@ quarter sitting alone:
 
 ```
 PATCH atlas (same roles as PATH, different cells)
-NW (18,0)  N (19,0)  NE (20,0)
- W (18,1)  F (19,1)   E (20,1)
-SW (18,2)  S (19,2)  SE (20,2)
+Set A, transparent grass        Set B, baked mid-green grass
+NW (30,0) N (31,0) NE (32,0)    NW (24,0) N (25,0) NE (26,0)
+ W (30,1) F (31,1)  E (32,1)     W (24,1) F (25,1)  E (26,1)
+SW (30,2) S (31,2) SE (32,2)    SW (24,2) S (25,2) SE (26,2)
 ```
 
-Second style set, same layout: `(24–26, 0–2)`. Pick one set per blob.
-Irregular recipes may swap in a ragged whole tile from row 3,
-columns 24–27 (or `(20,3)`, `(24,3)`, `(25,3)`) only as the **interior**
-of a blob that already has ROUND edge/corner neighbors — never as the
-only cell.
+Set A has no baked grass: the lawn under the cell shows through, which
+is Mode A below. Set B keeps its mid green (`(83, 131, 79)`, the same
+as lawn cell `(4, 0)`) and is only used with the Mode B halo. Pick one
+set per blob. `(27–29, 0–2)` is the same dirt on dark green.
+
+`(18–20, 0–2)` is **not dirt**. It is darker grass on mid green, the
+accent-grass family below. Never use it as a PATCH.
+
+Inner corners (fully surrounded cell, one open diagonal):
+
+| Open diagonal | Set A | Set B |
+|---|---|---|
+| SE | `(31,3)` | `(24,3)` |
+| SW | `(32,3)` | `(26,3)` |
+| NE | `(31,4)` | `(24,5)` |
+| NW | `(32,4)` | `(26,5)` |
+
+Rows 6–8 of each set (`(21–32, 6–8)`) are ragged sparse-dirt versions of
+the same 3×3 layout. The dirt sets have no standalone one-cell island
+and no three-sided cap, so a round blob is a rounded rectangle (2×2,
+3×2, 2×3, 4×2, 2×4) and an irregular blob is two rectangles joined with
+arms at least two cells thick.
 
 Neighbor bits N=1 E=2 S=4 W=8 on the blob mask:
 
-- 15 → F `(19,1)` or `(25,1)`
+- 15 → F `(31,1)` or `(25,1)`, or an inner corner when a diagonal is open
 - one grass side → matching EDGE
 - two adjacent grass sides → OUTER corner (NW/NE/SW/SE)
-- three grass sides → standalone rounded island from that set
+- three grass sides, or two opposite sides → no tile exists; reshape
+  the blob
 - a cell with no painted blob neighbor is illegal; delete it
 
 Do not place F on the outline. Do not place an EDGE without its
@@ -393,15 +415,20 @@ Default is **zero or one** house per map. Two or more only when the
 recipe `Houses` cell is an integer ≥ 2.
 
 The sheet has four complete buildings. Never mix tiles from two
-prefabs. When the recipe has exactly one house,
+prefabs. Regions are in sheet cells; the doorstep is the cell the path
+ends on, relative to the region's top-left. When the recipe has exactly one house,
 `house_id = (seed // 20) % 4` unless the recipe names an id.
 
-| id | Name | What it is |
-|---|---|---|
-| 0 | Porch cottage | Large purple-roof house with wooden deck |
-| 1 | Flower cottage | Mid size, flowers on the wall / window box |
-| 2 | Gable cottage | Tall pointed roof, compact footprint |
-| 3 | Hut | Small hut / L-wing cottage |
+| id | Name | What it is | Region | Roof rows | Doorstep |
+|---|---|---|---|---|---|
+| 0 | Porch cottage | Large purple-roof house with wooden deck | `(38–45, 10–14)` | 2 | `(3, 5)` |
+| 1 | Flower cottage | White walls, flowering vine on the wall | `(38–45, 15–19)` | 2 | `(2, 4)` |
+| 2 | Gable cottage | Tall pointed roof, large windows | `(38–45, 25–29)` | 2 | `(2, 4)` |
+| 3 | Hut | Small 3×3 wood hut with door and deck | `(46–48, 10–12)` | 1 | `(1, 3)` |
+
+Houses 0–2 end two pixels into column 45; the hut-kit deck starts at
+x 728 in row 19, so clip region widths to 115 px. `(38–45, 20–24)` is
+a doorless copy of the porch cottage and is not a prefab.
 
 Split every placed prefab:
 
@@ -417,12 +444,15 @@ All of these exist on `TILESET_brighter.png`. If a recipe flag is set
 and none are placed, the seed has failed. Do not substitute flowers
 for these.
 
-**Bushes** — hedge squares, holey shrubs, and the small bush clusters
-near the tree strip (top-left of the sheet + under the trees). Place
-on lawn. Dense hedges may block (`world`). Loose shrubs are deco.
+**Bushes** — round bushes `(21–22, 22–23)` and `(23–24, 22–23)` (dense,
+may block `world`); small bushes `(21–22, 24)` and `(23–24, 24)`,
+holey shrub `(47–48, 20–21)`, flowering shrub `(46–48, 22–23)` (loose,
+deco). Place on lawn. The square hedge `(0–2, 1–3)` reads as a
+dark-green lawn rectangle; do not place it.
 
 **Land rocks** — stones whose *bottom pixels are grass*, in the crate /
-rock pile cluster. Lawn only. Blocking when the recipe says obstacle.
+rock pile cluster: `(25–26, 23–24)`, `(25–26, 25)`, `(25–26, 26–27)`,
+`(23, 25)`, `(24, 25)`, `(23, 26)`, `(24, 26)`, `(23–24, 27)`. Lawn only. Blocking when the recipe says obstacle.
 
 **Water plants** — reeds / cattails / water grass beside the water
 autotile block. Only on WATER_SHORE or the first water ring.
@@ -431,16 +461,19 @@ autotile block. Only on WATER_SHORE or the first water ring.
 water-prop cluster (including the rock/creature sitting in water).
 Only on water or shore. Never on lawn.
 
-**Campfire** — the fire strip at the bottom of the prop cluster
-(several frames; use frame 0 as the tile, animate if the scene
+**Campfire** — the fire strip at the bottom of the prop cluster,
+`(29–32, 29)` (four frames; use frame 0 as the tile, animate if the scene
 already supports it). Y-sorted actor. Collision. At most one.
 
-**Torches** — the two standing torch tiles next to that strip. Place
+**Torches** — the standing torches `(35, 26–27)`, `(36, 26–27)`,
+`(37, 26–27)`, each one cell wide and two tall. Place
 on fence posts, gate sides, or the house approach. No collision
 required.
 
 **Signs** — eight distinct sign / notice / post tiles in the crate and
-fence cluster. Enumerate them in `forest_terrain.gd` as `SIGN[0..7]`.
+fence cluster: `(27, 23–27)` and `(28, 23–25)`; `(28, 26)` and
+`(28, 27)` are spares. Enumerate them in `forest_terrain.gd` as
+`SIGN[0..7]`.
 A recipe that lists signs must pick 1–3 different ids from that eight,
 never the same id three times, never a crate standing in for a sign.
 
@@ -450,7 +483,9 @@ Pond: compact blob from moisture. Fill only where water is surrounded.
 Shore on every water–lawn edge. Then water plants / water rocks per
 recipe. No 1-tile canals. World size is the blob, not 5×3.
 
-Fences: 4-connected rails, real corners, min run 3. Torches may sit
+Fences: 4-connected rails, real corners, min run 3. Rail `(30, 25)`,
+east end with post `(31, 25)`, post `(29, 26)`; west ends and west posts
+are the same cells flipped horizontally. Torches may sit
 on posts. Signs may sit next to a gate, not on the rail tile.
 
 Cliffs: only recipes 4 and 16. Blob ≥4 tiles both axes. Cap + south
