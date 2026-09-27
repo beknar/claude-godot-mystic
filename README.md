@@ -80,8 +80,8 @@ It prints the predicted share of pixels moving per frame (cloud shadows
 aside, which add about the same everywhere) for the scene, for the weakest
 and strongest 43×18-cell window, and how much of the weakest window is
 quiet; `heat` adds a per-cell map. The weights come from a rendered
-calibration: `tools/liveliness_capture.tscn` films 13 maps (10 for fitting,
-3 held back) at 8 fps without the walker (about 38 minutes), then
+calibration: `tools/liveliness_capture.tscn` films 18 maps (10 for fitting, 8
+held back, including one of each recipe given ponds, torches, or fires) at 8 fps without the walker (about 52 minutes), then
 `python3 tools/liveliness_analyze.py watch .liveliness` measures the frames
 as they arrive and `... fit .liveliness` writes `tools/liveliness_coef.json`
 and `docs/liveliness-calibration.md`. Run the capture again after changing

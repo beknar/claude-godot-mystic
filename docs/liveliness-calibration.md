@@ -9,48 +9,53 @@ this is the scene moving on its own. Pixels a cloud shadow's rim crosses
 wherever the wind takes them, so they are a map-wide background, not
 something the terrain decides. Motion below means local motion.
 
-Stage 1 (motion from the effects actually on screen): R² 0.99.
+Stage 1 (motion from the effects actually on screen): R² 0.98.
 
 | Set | Size | Block Spearman | Block R² | Block MAE (pts) | View Spearman | View error, median | Quiet blocks found |
 |---|---|---|---|---|---|---|---|
-| Calibration | 1260 blocks / 60 views | 0.76 | 0.99 | 0.05 | 0.98 | 7 % (max 64 %) | 70 % (17 % false) |
-| Held back | 378 blocks / 18 views | 0.76 | 0.88 | 0.06 | 0.97 | 11 % (max 48 %) | 78 % (26 % false) |
+| Calibration | 1260 blocks / 60 views | 0.71 | 0.98 | 0.05 | 0.98 | 6 % (max 33 %) | 72 % (20 % false) |
+| Held back | 1008 blocks / 48 views | 0.74 | 0.95 | 0.06 | 0.98 | 8 % (max 65 %) | 76 % (20 % false) |
 
 ## Weights
 
 | Feature | Weight | Share of motion (calibration maps) |
 |---|---|---|
-| leaves | 2.31 | 11.7 % |
-| water_anim | 9.759 | 41.3 % |
+| leaves | 2.084 | 10.5 % |
+| water_anim | 9.745 | 40.6 % |
 | rings | 0 | 0.0 % |
 | reeds | 0 | 0.0 % |
-| sparkles | 25.54 | 2.4 % |
+| sparkles | 25.09 | 2.3 % |
 | flames | 0 | 0.0 % |
-| glow | 19.66 | 13.6 % |
-| smoke | 178.2 | 7.4 % |
-| butterflies | 1.327 | 1.6 % |
+| glow | 22.86 | 17.4 % |
+| smoke | 132 | 6.6 % |
+| butterflies | 1.173 | 1.4 % |
 | dragonflies | 0 | 0.0 % |
-| fireflies | 1.155 | 2.0 % |
-| streak | 0.002316 | 1.1 % |
-| animals | 0.2305 | 18.9 % |
+| fireflies | 0.983 | 1.7 % |
+| streak | 0.004519 | 2.1 % |
+| animals | 0.2429 | 17.4 % |
 
 Quiet: local motion under 0.05 % of a block's pixels per frame.
-Cloud shadow background: 0.38 % on average (on top of local motion).
+Cloud shadow background: 0.37 % on average (on top of local motion).
 
 ## Maps
 
 | Map | Recipe | Set | Measured | Predicted | Quiet blocks | Cloud | Reach | Longest still |
 |---|---|---|---|---|---|---|---|---|
-| 120000 | 0 Pastoral | held back | 0.40 % | 0.37 % | 55 % | 0.59 % | 5.5 % | 25.0 s |
-| 120005 | 5 Open meadow | calibration | 0.07 % | 0.09 % | 58 % | 0.41 % | 4.2 % | 25.0 s |
-| 120006 | 6 Twin water | calibration | 0.40 % | 0.39 % | 45 % | 0.72 % | 7.0 % | 25.0 s |
-| 120010 | 10 West hamlet | held back | 0.26 % | 0.31 % | 55 % | 0.39 % | 4.7 % | 25.0 s |
-| 120012 | 12 Wild lane | calibration | 0.51 % | 0.48 % | 45 % | 0.53 % | 7.0 % | 25.0 s |
-| 120020 | 20 Cave mouth | held back | 0.11 % | 0.10 % | 47 % | 0.45 % | 5.1 % | 25.0 s |
-| 120021 | 21 Terraces | calibration | 0.07 % | 0.06 % | 63 % | 0.00 % | 4.3 % | 25.0 s |
-| 120023 | 23 Woodcutter camp | calibration | 0.38 % | 0.37 % | 60 % | 0.28 % | 6.1 % | 25.0 s |
-| 120024 | 24 Rock garden | calibration | 0.28 % | 0.29 % | 63 % | 0.19 % | 5.4 % | 25.0 s |
-| 120025 | 25 Deep forest | calibration | 0.09 % | 0.09 % | 53 % | 0.38 % | 5.0 % | 25.0 s |
-| 120026 | 26 Village square | calibration | 0.10 % | 0.09 % | 63 % | 0.44 % | 3.5 % | 25.0 s |
-| 120027 | 27 Hedge garden | calibration | 0.13 % | 0.13 % | 52 % | 0.39 % | 5.0 % | 25.0 s |
-| 120028 | 28 Ridgeline | calibration | 0.12 % | 0.11 % | 63 % | 0.42 % | 4.1 % | 25.0 s |
+| 120000 | 0 Pastoral | held back | 0.39 % | 0.38 % | 54 % | 0.59 % | 5.4 % | 25.0 s |
+| 120001 | 1 Crossroads | held back | 0.17 % | 0.17 % | 62 % | 0.61 % | 4.0 % | 25.0 s |
+| 120004 | 4 Lookout | held back | 0.11 % | 0.13 % | 62 % | 0.41 % | 3.6 % | 25.0 s |
+| 120005 | 5 Open meadow | calibration | 0.06 % | 0.07 % | 63 % | 0.40 % | 3.8 % | 25.0 s |
+| 120006 | 6 Twin water | calibration | 0.38 % | 0.38 % | 46 % | 0.71 % | 6.6 % | 25.0 s |
+| 120009 | 9 Three-way | held back | 0.34 % | 0.34 % | 49 % | 0.09 % | 5.7 % | 25.0 s |
+| 120010 | 10 West hamlet | held back | 0.27 % | 0.31 % | 56 % | 0.39 % | 4.7 % | 25.0 s |
+| 120012 | 12 Wild lane | calibration | 0.49 % | 0.46 % | 55 % | 0.52 % | 6.2 % | 25.0 s |
+| 120013 | 13 Orchard | held back | 0.24 % | 0.26 % | 62 % | 0.66 % | 5.6 % | 25.0 s |
+| 120015 | 15 Double lean | held back | 0.27 % | 0.28 % | 60 % | 0.51 % | 5.1 % | 25.0 s |
+| 120020 | 20 Cave mouth | held back | 0.12 % | 0.11 % | 44 % | 0.46 % | 5.6 % | 25.0 s |
+| 120021 | 21 Terraces | calibration | 0.11 % | 0.13 % | 60 % | 0.00 % | 4.2 % | 25.0 s |
+| 120023 | 23 Woodcutter camp | calibration | 0.39 % | 0.36 % | 52 % | 0.28 % | 6.1 % | 25.0 s |
+| 120024 | 24 Rock garden | calibration | 0.28 % | 0.29 % | 62 % | 0.19 % | 5.5 % | 25.0 s |
+| 120025 | 25 Deep forest | calibration | 0.09 % | 0.10 % | 49 % | 0.38 % | 4.8 % | 25.0 s |
+| 120026 | 26 Village square | calibration | 0.13 % | 0.13 % | 53 % | 0.43 % | 4.7 % | 25.0 s |
+| 120027 | 27 Hedge garden | calibration | 0.13 % | 0.13 % | 53 % | 0.39 % | 4.9 % | 25.0 s |
+| 120028 | 28 Ridgeline | calibration | 0.11 % | 0.11 % | 61 % | 0.42 % | 4.0 % | 25.0 s |

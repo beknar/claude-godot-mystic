@@ -25,9 +25,10 @@ const WARMUP := 12.0 # s after a build: leaves take ~10 s to fill the air and th
 const SETTLE := 2.0 # s after a camera move: streaks spawn only in view
 const RECORD := 25.0 # s per view
 # Maps chosen for coverage (lawn, forest, water, fire, village, plateaus,
-# hedges, rocks, lake, ridge), then three held back to test the fit.
+# hedges, rocks, lake, ridge), then eight held back to test the fit (three
+# originals, and one each of the recipes given ponds, torches, or fires).
 const CALIBRATE := [120005, 120025, 120006, 120023, 120026, 120021, 120027, 120024, 120012, 120028]
-const HOLDOUT := [120000, 120010, 120020]
+const HOLDOUT := [120000, 120010, 120020, 120001, 120004, 120009, 120013, 120015]
 const VIEWS := [Vector2i(0, 0), Vector2i(17, 0), Vector2i(0, 11), Vector2i(17, 11), Vector2i(0, 22), Vector2i(17, 22)]
 
 var _forest: Node2D
