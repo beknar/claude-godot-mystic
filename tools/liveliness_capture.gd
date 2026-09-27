@@ -13,7 +13,7 @@ extends Node2D
 ## cloud edges, and the wind. tools/liveliness_analyze.py measures the frames and fits the proxy.
 ##   godot --path . res://tools/liveliness_capture.tscn [-- <map_id> ... [quick]]
 
-const Features := preload("res://tools/liveliness_features.gd")
+const Features := preload("res://scripts/liveliness_features.gd")
 const MAP_SCENE := preload("res://scenes/wilds/wilds.tscn")
 const TILE := 16
 const ZOOM := 5

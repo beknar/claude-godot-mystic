@@ -20,7 +20,7 @@ func _init() -> void:
 		var lines := report.split("\n")
 		var tail := PackedStringArray()
 		for line in lines:
-			if line.begins_with("  checks:") or line.begins_with("  dropped:") or line.begins_with("  grass tones:") or line.begins_with("  hedgerows") or line.begins_with("  path "):
+			if line.begins_with("  checks:") or line.begins_with("  dropped:") or line.begins_with("  grass tones:") or line.begins_with("  hedgerows") or line.begins_with("  path ") or line.begins_with("  floor:"):
 				tail.append(line.strip_edges())
 		print("%d r%d %s: %dms, attempt %d | %s" % [id, t.recipe_id, t.recipe.name, Time.get_ticks_msec() - t0, t.attempt, " | ".join(tail)])
 		if "checks: ok" in tail:

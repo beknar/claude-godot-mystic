@@ -548,13 +548,15 @@ Only on water or shore. Never on lawn.
 
 **Campfire** — the fire strip at the bottom of the prop cluster,
 `(29–32, 29)` (four frames; use frame 0 as the tile, animate if the scene
-already supports it). Y-sorted actor. Collision. At most one.
+already supports it). Y-sorted actor. Collision. At most one from the
+recipe; the liveliness floor may add more (below).
 
 **Torches** — the standing torches `(35, 26–27)`, `(36, 26–27)`,
 `(37, 26–27)`, each one cell wide and two tall. Each has a thin post collider
 (4 × 5 px) at its foot and sorts at its foot, so a character north of it
 walks behind the flame. Place
-on fence posts, gate sides, or the house approach. No collision
+on fence posts, gate sides, or the house approach, or (liveliness floor)
+as a pair of wayside lanterns facing each other across the path. No collision
 required.
 
 **Trees** — `(29–32, 11–15)` and `(33–37, 11–16)`, and their flowering
@@ -775,6 +777,36 @@ new sheet art (the animals are drawn in code, their colors snapped to the
 sheet). Map generation is unchanged; the animal population is chosen from
 the finished map.
 
+## Streams
+
+A recipe whose water is `S if room` (every land-only recipe but Open meadow,
+which the wilds scene pins dry) gets a brook three cells wide after the
+layout. It enters from a map edge and meanders in a staircase of straight
+runs, at least four cells between turns, turning sideways and back to its
+flow but never doubling back, 22–46 steps long. It runs off another edge, or
+rises from a spring: a 5 × 5 pool at the end inside the map. Three to six
+2 × 2 bulges on its banks keep the edges from running straight. Cells past
+the map edge count as water, so it flows off the map with no shore there.
+It keeps two cells from the path and off everything already claimed, so it
+never needs a bridge, and it is dropped if it would cut the spawn off from a
+goal. Tiles, the scrolling surface on open cells, and water plants are the
+pond's. Its middle row is open water, so it ripples and fish jump there, and
+frogs and ducks can live on it. Streams do not count as ponds.
+
+## Liveliness floor
+
+Every camera-sized window (43 × 18 cells) should have something moving in
+it. After the props, trees, and deco are placed, the generator works out the
+liveliness estimate (`scripts/liveliness_features.gd` with weights frozen in
+`forest_terrain.gd` from the 2026-09-27 calibration, so recalibrating never
+rearranges a map) for every window. While the weakest window is under 0.09 %
+of pixels moving per frame, it gets a motion anchor near its middle: a pair
+of wayside lanterns (torches) facing each other across the path if the path
+crosses it, otherwise a campfire in a clearing clear of the path; a window
+under half the floor gets the campfire first. At most three anchors per map;
+an anchor that would cut the spawn off from a goal is not placed. The report
+line `floor:` gives the weakest window before and after and what was added.
+
 ## Forest generator
 
 ```
@@ -805,7 +837,8 @@ verify walk + reject list
 Houses = 0, 1, or 2 (2 only here when written). P/P2 = pond(s).
 P if room = a pond in whichever quarter of the map has room for one after
 the layout (dropped, not failed, when none fits), so a road-and-lawn recipe
-still has water moving somewhere.
+still has water moving somewhere. S if room = a stream (below), dropped if
+none fits.
 F = fence yard. G = gate line. C = plateau. L = approx-45° lean.
 Patch = count of *blobs* after autotile (R round shape, I irregular
 shape). Props: bushes, land rocks (LR), water plants (WP), water
@@ -816,11 +849,11 @@ rocks (WR), campfire (CF), torches (T), signs (S).
 | 0 | Pastoral | 1×0 | P + WP + WR | F | trunk + L | R 2–3 | bushes, LR, T, S=1 |
 | 1 | Crossroads | 1×1 | P if room + WP | none | 2 trunks 90° | I 2–3 | bushes, LR, T, S=2 |
 | 2 | Pond walk | 1×2 | P + WP + WR | none | skirts shore | R 2 | bushes, S=1 |
-| 3 | Garden | 1×3 | none | F+G | through gate | R 2 | bushes, LR, T, S=2 |
-| 4 | Lookout | 1×0 | none | C | to plateau foot | I 2 | LR obstacles, CF, T, S=1 |
+| 3 | Garden | 1×3 | S if room | F+G | through gate | R 2 | bushes, LR, T, S=2 |
+| 4 | Lookout | 1×0 | S if room | C | to plateau foot | I 2 | LR obstacles, CF, T, S=1 |
 | 5 | Open meadow | 0 | none | none | edge-to-edge | R 3–4 | bushes, LR, no signs |
 | 6 | Twin water | 1×1 | P2 + WP + WR | none | between blobs | R 1–2 | S=1 |
-| 7 | South road | 1×2 | none | none | south third | I 2–3 | bushes, CF, T |
+| 7 | South road | 1×2 | S if room | none | south third | I 2–3 | bushes, CF, T |
 | 8 | Shore spur | 1×3 | P + WP + WR | none | trunk + spur | R 2 | S=2, T |
 | 9 | Three-way | 1×0 | P if room + WP | none | +2 branches 90° | I 2–3 | bushes, LR, T, S=3 |
 | 10 | West hamlet | **2** (1 and 3) | P + WP | F | from east, L | RI 2 | CF, T, S=2 |
@@ -829,20 +862,20 @@ rocks (WR), campfire (CF), torches (T), signs (S).
 | 13 | Orchard | 1×3 | P if room + WP | none | short trunk | R 2 | bushes heavy, T, S=1 |
 | 14 | Shore hamlet | 1×0 | P + WP + WR | F between | short trunk | R 1–2 | CF, T, S=2 |
 | 15 | Double lean | 1×1 | P if room + WP | none | two L | I 2–3 | LR, T, S=1 |
-| 16 | Below the rim | 1×2 | none | C | lawn south of plateau | I 2 | LR, S=1, T |
-| 17 | Gate road | 1×3 | none | G | through gate | R 2 | T on gate, S=2 |
+| 16 | Below the rim | 1×2 | S if room | C | lawn south of plateau | I 2 | LR, S=1, T |
+| 17 | Gate road | 1×3 | S if room | G | through gate | R 2 | T on gate, S=2 |
 | 18 | Sparse wild | 0 | P if blob | none | 1 trunk | I 1–2 | LR only |
-| 19 | Switchback | 1×0 | none | none | U of two 90° | RI 2 | bushes, CF, S=1 |
-| 20 | Cave mouth | 0 | none | C (light, cave) | to the cave | I 2–3 | bushes, LR, T by the cave, S=1 |
-| 21 | Terraces | 1×3 | none | C2 (light + ramp, mid/dark + stairs) | along the terraces | RI 2 | bushes, LR, CF, T, S=1 |
-| 22 | Stone ruins | 0 | none | C (stone, ramp) | to the ramp | I 1–2 | LR obstacles, stone outcrops, ruins clutter, T, S=2 |
-| 23 | Woodcutter camp | **2** (4 and 5) | none | F | trunk + spur | I 2 | big CF + ash, logs heavy, S=1 |
+| 19 | Switchback | 1×0 | S if room | none | U of two 90° | RI 2 | bushes, CF, S=1 |
+| 20 | Cave mouth | 0 | S if room | C (light, cave) | to the cave | I 2–3 | bushes, LR, T by the cave, S=1 |
+| 21 | Terraces | 1×3 | S if room | C2 (light + ramp, mid/dark + stairs) | along the terraces | RI 2 | bushes, LR, CF, T, S=1 |
+| 22 | Stone ruins | 0 | S if room | C (stone, ramp) | to the ramp | I 1–2 | LR obstacles, stone outcrops, ruins clutter, T, S=2 |
+| 23 | Woodcutter camp | **2** (4 and 5) | S if room | F | trunk + spur | I 2 | big CF + ash, logs heavy, S=1 |
 | 24 | Rock garden | 0 | P + WP + WR | none | edge + L | R 2–3 | outcrops, bushes |
-| 25 | Deep forest | 0 | none | none | 1 trunk | I 1–2 | canopy wall, logs heavy, bushes, S=1; darker tone cover |
-| 26 | Village square | **3** (0, 1, 2) | none | none | plaza + 2 trunks | R 1–2 | T at plaza corners, S=3 |
-| 27 | Hedge garden | 1×2 | none | F+G | through gate | R 2 | hedges heavy, carpets heavy, T, S=1 |
-| 28 | Ridgeline | 1×1 | none | R (light ridge across the map, two passes) | through the pass | I 2–3 | bushes, LR, T at the pass, S=1 |
-| 29 | Walled mesa | 0 | none | C+R (14–18 × 7–8 top in stone, mid, or dark; ridge walls on it, each end two walkable columns short of the outer rim) | to the mesa | R 1–2 | LR, outcrops, T, S=1 |
+| 25 | Deep forest | 0 | S if room | none | 1 trunk | I 1–2 | canopy wall, logs heavy, bushes, S=1; darker tone cover |
+| 26 | Village square | **3** (0, 1, 2) | S if room | none | plaza + 2 trunks | R 1–2 | T at plaza corners, S=3 |
+| 27 | Hedge garden | 1×2 | S if room | F+G | through gate | R 2 | hedges heavy, carpets heavy, T, S=1 |
+| 28 | Ridgeline | 1×1 | S if room | R (light ridge across the map, two passes) | through the pass | I 2–3 | bushes, LR, T at the pass, S=1 |
+| 29 | Walled mesa | 0 | S if room | C+R (14–18 × 7–8 top in stone, mid, or dark; ridge walls on it, each end two walkable columns short of the outer rim) | to the mesa | R 1–2 | LR, outcrops, T, S=1 |
 
 `1×N` means one house of prefab N. Only recipes 10 and 23 place two
 houses and 26 three. Recipes 5, 12, 18, 20, 22, 24, 25, 29 place zero. C2 is two plateaus.

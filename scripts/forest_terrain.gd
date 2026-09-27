@@ -15,11 +15,11 @@ const RECIPES := [
 	{"name": "Pastoral", "houses": [0], "water": "P+WP+WR", "height": "F", "path": "trunk + L", "patch": ["R", 2, 3], "props": ["bushes", "LR", "T"], "signs": 1},
 	{"name": "Crossroads", "houses": [1], "water": "P if room+WP", "height": "", "path": "2 trunks 90", "patch": ["I", 2, 3], "props": ["bushes", "LR", "T"], "signs": 2},
 	{"name": "Pond walk", "houses": [2], "water": "P+WP+WR", "height": "", "path": "skirts shore", "patch": ["R", 2, 2], "props": ["bushes"], "signs": 1},
-	{"name": "Garden", "houses": [3], "water": "", "height": "F+G", "path": "through gate", "patch": ["R", 2, 2], "props": ["bushes", "LR", "T"], "signs": 2},
-	{"name": "Lookout", "houses": [0], "water": "", "height": "C", "path": "to plateau foot", "patch": ["I", 2, 2], "props": ["LR obstacles", "CF", "T"], "signs": 1},
+	{"name": "Garden", "houses": [3], "water": "S if room", "height": "F+G", "path": "through gate", "patch": ["R", 2, 2], "props": ["bushes", "LR", "T"], "signs": 2},
+	{"name": "Lookout", "houses": [0], "water": "S if room", "height": "C", "path": "to plateau foot", "patch": ["I", 2, 2], "props": ["LR obstacles", "CF", "T"], "signs": 1},
 	{"name": "Open meadow", "houses": [], "water": "", "height": "", "path": "edge-to-edge", "patch": ["R", 3, 4], "props": ["bushes", "LR"], "signs": 0},
 	{"name": "Twin water", "houses": [1], "water": "P2+WP+WR", "height": "", "path": "between blobs", "patch": ["R", 1, 2], "props": [], "signs": 1},
-	{"name": "South road", "houses": [2], "water": "", "height": "", "path": "south third", "patch": ["I", 2, 3], "props": ["bushes", "CF", "T"], "signs": 0},
+	{"name": "South road", "houses": [2], "water": "S if room", "height": "", "path": "south third", "patch": ["I", 2, 3], "props": ["bushes", "CF", "T"], "signs": 0},
 	{"name": "Shore spur", "houses": [3], "water": "P+WP+WR", "height": "", "path": "trunk + spur", "patch": ["R", 2, 2], "props": ["T"], "signs": 2},
 	{"name": "Three-way", "houses": [0], "water": "P if room+WP", "height": "", "path": "+2 branches 90", "patch": ["I", 2, 3], "props": ["bushes", "LR", "T"], "signs": 3},
 	{"name": "West hamlet", "houses": [1, 3], "water": "P+WP", "height": "F", "path": "from east, L", "patch": ["RI", 2, 2], "props": ["CF", "T"], "signs": 2},
@@ -28,24 +28,24 @@ const RECIPES := [
 	{"name": "Orchard", "houses": [3], "water": "P if room+WP", "height": "", "path": "short trunk", "patch": ["R", 2, 2], "props": ["bushes heavy", "T"], "signs": 1},
 	{"name": "Shore hamlet", "houses": [0], "water": "P+WP+WR", "height": "F between", "path": "short trunk", "patch": ["R", 1, 2], "props": ["CF", "T"], "signs": 2},
 	{"name": "Double lean", "houses": [1], "water": "P if room+WP", "height": "", "path": "two L", "patch": ["I", 2, 3], "props": ["LR", "T"], "signs": 1},
-	{"name": "Below the rim", "houses": [2], "water": "", "height": "C", "path": "lawn south of plateau", "patch": ["I", 2, 2], "props": ["LR", "T"], "signs": 1},
-	{"name": "Gate road", "houses": [3], "water": "", "height": "G", "path": "through gate", "patch": ["R", 2, 2], "props": ["T"], "signs": 2},
+	{"name": "Below the rim", "houses": [2], "water": "S if room", "height": "C", "path": "lawn south of plateau", "patch": ["I", 2, 2], "props": ["LR", "T"], "signs": 1},
+	{"name": "Gate road", "houses": [3], "water": "S if room", "height": "G", "path": "through gate", "patch": ["R", 2, 2], "props": ["T"], "signs": 2},
 	{"name": "Sparse wild", "houses": [], "water": "P if blob", "height": "", "path": "1 trunk", "patch": ["I", 1, 2], "props": ["LR"], "signs": 0},
-	{"name": "Switchback", "houses": [0], "water": "", "height": "", "path": "U of two 90", "patch": ["RI", 2, 2], "props": ["bushes", "CF"], "signs": 1},
+	{"name": "Switchback", "houses": [0], "water": "S if room", "height": "", "path": "U of two 90", "patch": ["RI", 2, 2], "props": ["bushes", "CF"], "signs": 1},
 	# Recipes past the original twenty use the cliff kit, the extra
 	# buildings, and the camp props.
-	{"name": "Cave mouth", "houses": [], "water": "", "height": "C", "path": "to the cave", "patch": ["I", 2, 3], "props": ["bushes", "LR", "T"], "signs": 1, "top": "light", "cave": true},
-	{"name": "Terraces", "houses": [3], "water": "", "height": "C2", "path": "along the terraces", "patch": ["RI", 2, 2], "props": ["bushes", "LR", "CF", "T"], "signs": 1},
-	{"name": "Stone ruins", "houses": [], "water": "", "height": "C", "path": "to the ramp", "patch": ["I", 1, 2], "props": ["LR obstacles", "outcrops", "ruins", "T"], "signs": 2, "top": "stone"},
-	{"name": "Woodcutter camp", "houses": [4, 5], "water": "", "height": "F", "path": "trunk + spur", "patch": ["I", 2, 2], "props": ["CF big", "logs heavy"], "signs": 1},
+	{"name": "Cave mouth", "houses": [], "water": "S if room", "height": "C", "path": "to the cave", "patch": ["I", 2, 3], "props": ["bushes", "LR", "T"], "signs": 1, "top": "light", "cave": true},
+	{"name": "Terraces", "houses": [3], "water": "S if room", "height": "C2", "path": "along the terraces", "patch": ["RI", 2, 2], "props": ["bushes", "LR", "CF", "T"], "signs": 1},
+	{"name": "Stone ruins", "houses": [], "water": "S if room", "height": "C", "path": "to the ramp", "patch": ["I", 1, 2], "props": ["LR obstacles", "outcrops", "ruins", "T"], "signs": 2, "top": "stone"},
+	{"name": "Woodcutter camp", "houses": [4, 5], "water": "S if room", "height": "F", "path": "trunk + spur", "patch": ["I", 2, 2], "props": ["CF big", "logs heavy"], "signs": 1},
 	{"name": "Rock garden", "houses": [], "water": "P+WP+WR", "height": "", "path": "edge + L", "patch": ["R", 2, 3], "props": ["outcrops", "bushes"], "signs": 0},
-	{"name": "Deep forest", "houses": [], "water": "", "height": "", "path": "1 trunk", "patch": ["I", 1, 2], "props": ["canopy", "logs heavy", "bushes"], "signs": 1, "tones": [0.45, 0.24, 0.12]},
-	{"name": "Village square", "houses": [0, 1, 2], "water": "", "height": "", "path": "plaza + 2 trunks", "patch": ["R", 1, 2], "props": ["T"], "signs": 3},
-	{"name": "Hedge garden", "houses": [2], "water": "", "height": "F+G", "path": "through gate", "patch": ["R", 2, 2], "props": ["hedges heavy", "carpets heavy", "T"], "signs": 1},
+	{"name": "Deep forest", "houses": [], "water": "S if room", "height": "", "path": "1 trunk", "patch": ["I", 1, 2], "props": ["canopy", "logs heavy", "bushes"], "signs": 1, "tones": [0.45, 0.24, 0.12]},
+	{"name": "Village square", "houses": [0, 1, 2], "water": "S if room", "height": "", "path": "plaza + 2 trunks", "patch": ["R", 1, 2], "props": ["T"], "signs": 3},
+	{"name": "Hedge garden", "houses": [2], "water": "S if room", "height": "F+G", "path": "through gate", "patch": ["R", 2, 2], "props": ["hedges heavy", "carpets heavy", "T"], "signs": 1},
 	# Rock ridges: a low rock wall with a rim above and below and rounded
 	# caps where it stops, so a gap between two segments is a pass.
-	{"name": "Ridgeline", "houses": [1], "water": "", "height": "R", "path": "through the pass", "patch": ["I", 2, 3], "props": ["bushes", "LR", "T"], "signs": 1},
-	{"name": "Walled mesa", "houses": [], "water": "", "height": "C+R", "path": "to the mesa", "patch": ["R", 1, 2], "props": ["LR", "outcrops", "T"], "signs": 1},
+	{"name": "Ridgeline", "houses": [1], "water": "S if room", "height": "R", "path": "through the pass", "patch": ["I", 2, 3], "props": ["bushes", "LR", "T"], "signs": 1},
+	{"name": "Walled mesa", "houses": [], "water": "S if room", "height": "C+R", "path": "to the mesa", "patch": ["R", 1, 2], "props": ["LR", "outcrops", "T"], "signs": 1},
 ]
 
 # FLAT_GRASS: one plain cell and three quiet speckles.
@@ -343,6 +343,7 @@ var deco := {} # cell -> atlas
 var tones: Array[Dictionary] = [] # per level: cell -> {atlas, alt}
 var blobs: Array[Dictionary] = [] # {rect, cells, shape, mode, tiles, baked}
 var ponds: Array[Rect2i] = []
+var streams: Array[Dictionary] = [] # {cells: {cell: true}}, water cells of each stream
 var deep := {} # cell -> true
 var hedge := {} # cell -> atlas
 var accents := {} # cell -> atlas
@@ -362,6 +363,9 @@ var leans := 0
 var spawn := Vector2i.ZERO
 var goals: Array[Vector2i] = []
 var dropped := PackedStringArray()
+var floor_notes := PackedStringArray() # what the liveliness floor added, for the report
+var floor_before := 0.0 # weakest window's expected motion before and after the floor
+var floor_after := 0.0
 
 var _rng := RandomNumberGenerator.new()
 var _taken := {} # objects plus their buffer rings
@@ -386,6 +390,8 @@ func generate(p_map_id: int, p_recipe := -1) -> String:
 		dropped.append("no layout fit after %d attempts" % ATTEMPTS)
 	elif recipe.water.begins_with("P if room"):
 		_optional_pond()
+	elif recipe.water.begins_with("S if room") and not _stream():
+		dropped.append("stream (no room)")
 	_grass_zones()
 	_grow_patches()
 	_grow_hedges()
@@ -394,6 +400,7 @@ func generate(p_map_id: int, p_recipe := -1) -> String:
 	_place_trees()
 	_plateau_trees()
 	_scatter_deco()
+	_liveliness_floor()
 	return _verify()
 
 
@@ -414,6 +421,157 @@ func _optional_pond() -> void:
 	dropped.append("pond (no room)")
 
 
+# "S if room": a brook three cells wide that enters from a map edge and
+# meanders in a staircase of straight runs (at least four cells between
+# turns, never doubling back) until it runs off another edge or ends in a
+# spring. It keeps two cells from the path and everything placed, so it never
+# needs a bridge, and it is dropped if it would cut the spawn off from a goal.
+# Cells past the map edge count as water, so it flows off the map instead of
+# growing a shore there. Tiles, plants, and surfaces are the pond's.
+const STREAM_WIDTH := 3
+const STREAM_LENGTH := Vector2i(22, 46)
+
+func _stream() -> bool:
+	for attempt in 60:
+		var side := _rng.randi() % 4
+		var start: Vector2i
+		var dir: Vector2i
+		match side:
+			0:
+				start = Vector2i(_rng.randi_range(4, WIDTH - 8), -STREAM_WIDTH + 1)
+				dir = Vector2i(0, 1)
+			1:
+				start = Vector2i(_rng.randi_range(4, WIDTH - 8), HEIGHT - 1)
+				dir = Vector2i(0, -1)
+			2:
+				start = Vector2i(-STREAM_WIDTH + 1, _rng.randi_range(4, HEIGHT - 8))
+				dir = Vector2i(1, 0)
+			_:
+				start = Vector2i(WIDTH - 1, _rng.randi_range(4, HEIGHT - 8))
+				dir = Vector2i(-1, 0)
+		var flow := dir # the way it runs; turns go sideways and back to this
+		var p := start
+		var squares: Array[Vector2i] = [p]
+		var run := 0
+		var side_dir := Vector2i(dir.y, dir.x) * (1 if _rng.randf() < 0.5 else -1)
+		for i in _rng.randi_range(STREAM_LENGTH.x, STREAM_LENGTH.y):
+			run += 1
+			if run >= 4 and _rng.randf() < 0.3:
+				dir = side_dir if dir == flow else flow
+				if dir == flow:
+					side_dir = Vector2i(flow.y, flow.x) * (1 if _rng.randf() < 0.5 else -1)
+				run = 0
+			p += dir
+			squares.append(p)
+			if not Rect2i(p, Vector2i(STREAM_WIDTH, STREAM_WIDTH)).intersects(Rect2i(0, 0, WIDTH, HEIGHT)):
+				break # ran off the far side
+		var cells := {}
+		for q in squares:
+			for y in STREAM_WIDTH:
+				for x in STREAM_WIDTH:
+					cells[q + Vector2i(x, y)] = true
+		# A stream that stops inside the map rises from a spring: a small pool.
+		if Rect2i(p, Vector2i(STREAM_WIDTH, STREAM_WIDTH)).intersects(Rect2i(0, 0, WIDTH, HEIGHT)):
+			var pool := Rect2i(p - Vector2i(1, 1), Vector2i(STREAM_WIDTH + 2, STREAM_WIDTH + 2))
+			for y in range(pool.position.y, pool.end.y):
+				for x in range(pool.position.x, pool.end.x):
+					cells[Vector2i(x, y)] = true
+		_stream_bumps(cells, _rng.randi_range(3, 6))
+		var inside := {}
+		for c in cells:
+			if _inside(c):
+				inside[c] = true
+		if inside.size() < 40:
+			continue
+		var clear := true
+		for c in inside:
+			if _taken.has(c) or _near(c, path, 2) or water.has(c) or plateau.has(c):
+				clear = false
+				break
+		if not clear:
+			continue
+		var tiles := {}
+		for c in inside:
+			var t := _pool_tile(c, cells, WATER_SET, WATER_INNER)
+			if t == NONE:
+				clear = false
+				break
+			tiles[c] = t
+		if not clear:
+			continue
+		var added: Array[Vector2i] = []
+		for c in inside:
+			if not _blocked.has(c):
+				_blocked[c] = true
+				added.append(c)
+		var reach := true
+		for g in goals:
+			if not _reaches(spawn, g):
+				reach = false
+		if not reach:
+			for c in added:
+				_blocked.erase(c)
+			continue
+		var wet_props := _water_props(inside, "WP")
+		for c in inside:
+			var t: Vector2i = tiles[c]
+			if t == WATER_SET + Vector2i(1, 1):
+				t = SHALLOW_SURFACE
+			features[c] = t
+			water[c] = true
+			_solid[c] = true
+		props.append_array(wet_props)
+		for c in inside:
+			for y in range(-1, 2):
+				for x in range(-1, 2):
+					if _inside(c + Vector2i(x, y)):
+						_taken[c + Vector2i(x, y)] = true
+		streams.append({"cells": inside})
+		return true
+	return false
+
+
+# Two-by-two bulges on the banks, so the edges wander instead of running
+# straight. A bulge whose cells or neighbors the water set cannot draw is
+# taken back off.
+func _stream_bumps(cells: Dictionary, count: int) -> void:
+	var edge: Array[Vector2i] = []
+	for c in cells:
+		for d in [Vector2i(1, 0), Vector2i(-1, 0), Vector2i(0, 1), Vector2i(0, -1)]:
+			if not cells.has(c + d):
+				edge.append(c)
+				break
+	edge.sort()
+	var placed := 0
+	for i in 40:
+		if placed >= count or edge.is_empty():
+			return
+		var c: Vector2i = edge[_rng.randi() % edge.size()]
+		var dirs := [Vector2i(1, 0), Vector2i(-1, 0), Vector2i(0, 1), Vector2i(0, -1)]
+		var o: Vector2i = dirs[_rng.randi() % 4]
+		if cells.has(c + o):
+			continue
+		var t := Vector2i(o.y, o.x) * (1 if _rng.randf() < 0.5 else -1)
+		var add: Array[Vector2i] = []
+		for k in [c + o, c + o + t, c + o * 2, c + o * 2 + t]:
+			if not cells.has(k):
+				add.append(k)
+		for k in add:
+			cells[k] = true
+		var ok := true
+		for k in add:
+			for y in range(-1, 2):
+				for x in range(-1, 2):
+					var n: Vector2i = k + Vector2i(x, y)
+					if cells.has(n) and _pool_tile(n, cells, WATER_SET, WATER_INNER) == NONE:
+						ok = false
+		if ok:
+			placed += 1
+		else:
+			for k in add:
+				cells.erase(k)
+
+
 func walkable(cell: Vector2i) -> bool:
 	return _inside(cell) and not _blocked.has(cell)
 
@@ -422,9 +580,10 @@ func _reset(seed_value: int) -> void:
 	_rng.seed = seed_value
 	for d in [lawn, features, path, water, deep, hedge, accents, canopy, ridge, ridge_rock, plateau, ledge, stairs, ramps, deco, fence, _taken, _solid, _blocked]:
 		d.clear()
-	for a in [blobs, ponds, props, houses, goals, tones, caves, plateaus]:
+	for a in [blobs, ponds, streams, props, houses, goals, tones, caves, plateaus]:
 		a.clear()
 	dropped.clear()
+	floor_notes.clear()
 	gate = Vector2i(-1, -1)
 	leans = 0
 	hedgerows = 0
@@ -2446,6 +2605,162 @@ func _place_trees() -> void:
 		_block_collider(tree)
 
 
+# ---------------------------------------------------------------- liveliness floor
+# Every camera-sized window should have something moving in it. After the map
+# is placed, the liveliness estimate (scripts/liveliness_features.gd with the
+# weights below) is worked out for every 43x18-cell window; while the weakest
+# is under FLOOR, it gets a motion anchor: a pair of wayside lanterns (the
+# torch) flanking the path if the path crosses it, otherwise a campfire in a
+# clearing. At most FLOOR_ANCHORS per map; an anchor that would cut the spawn
+# off from a goal is not placed. The weights are frozen here from the
+# 2026-09-27 calibration, so recalibrating never rearranges a map.
+const FLOOR := 0.09 # % of pixels moving per frame
+const FLOOR_ANCHORS := 3
+const FLOOR_VIEW := Vector2i(43, 18)
+const FLOOR_WEIGHTS := {"leaves": 2.084, "water_anim": 9.745, "sparkles": 25.091, "glow": 22.858, "smoke": 132.027,
+	"butterflies": 1.173, "fireflies": 0.983, "streak": 0.005, "animals": 0.243}
+
+func _liveliness_floor() -> void:
+	var features = load("res://scripts/liveliness_features.gd") # load, not preload: it preloads this script
+	floor_notes.clear()
+	var tried := {}
+	for n in FLOOR_ANCHORS + 2:
+		var weakest := _weakest_window(features, tried)
+		if n == 0:
+			floor_before = weakest.value
+		floor_after = weakest.value
+		if weakest.value >= FLOOR or floor_notes.size() >= FLOOR_ANCHORS or weakest.rect.size == Vector2i.ZERO:
+			return
+		var note := _floor_anchor(weakest.rect, weakest.value < FLOOR * 0.5)
+		if note == "":
+			tried[weakest.rect.position] = true # nothing fits here; look at the next weakest
+		else:
+			floor_notes.append(note)
+
+
+# The window with the least expected motion, skipping `tried` origins:
+# {rect, value}.
+func _weakest_window(features, tried: Dictionary) -> Dictionary:
+	var g: Dictionary = features.grid(self)
+	var m := PackedFloat32Array()
+	m.resize(WIDTH * HEIGHT)
+	m.fill(0.0)
+	for f in FLOOR_WEIGHTS:
+		var a: PackedFloat32Array = g[f]
+		var w: float = FLOOR_WEIGHTS[f]
+		for i in WIDTH * HEIGHT:
+			m[i] += w * a[i]
+	var sat := PackedFloat32Array()
+	sat.resize((WIDTH + 1) * (HEIGHT + 1))
+	sat.fill(0.0)
+	var s := WIDTH + 1
+	for y in HEIGHT:
+		for x in WIDTH:
+			var i := (y + 1) * s + x + 1
+			sat[i] = m[y * WIDTH + x] + sat[i - 1] + sat[i - s] - sat[i - s - 1]
+	var best := {"rect": Rect2i(), "value": INF}
+	var area := float(FLOOR_VIEW.x * FLOOR_VIEW.y)
+	var lowest := INF
+	for y in HEIGHT - FLOOR_VIEW.y + 1:
+		for x in WIDTH - FLOOR_VIEW.x + 1:
+			var v := (sat[(y + FLOOR_VIEW.y) * s + x + FLOOR_VIEW.x] - sat[y * s + x + FLOOR_VIEW.x]
+				- sat[(y + FLOOR_VIEW.y) * s + x] + sat[y * s + x]) / area
+			lowest = minf(lowest, v)
+			if not tried.has(Vector2i(x, y)) and v < best.value:
+				best = {"rect": Rect2i(x, y, FLOOR_VIEW.x, FLOOR_VIEW.y), "value": v}
+	if best.value == INF:
+		best.value = lowest
+	return best
+
+
+# Lanterns across the path if the path crosses the window's middle, else a
+# campfire; a very quiet window (`big`) gets the campfire first. Returns a
+# note, or "" if nothing fit.
+func _floor_anchor(win: Rect2i, big: bool) -> String:
+	var inner := win.grow_individual(-6, -3, -6, -3)
+	var order := ["campfire", "lanterns"] if big else ["lanterns", "campfire"]
+	for kind in order:
+		if kind == "lanterns" and _floor_lanterns(inner):
+			return "lanterns"
+		if kind == "campfire" and _floor_campfire(inner):
+			return "campfire"
+	return ""
+
+
+# Two torches facing each other across the path, on free lawn.
+func _floor_lanterns(inner: Rect2i) -> bool:
+	var cells: Array = path.keys().filter(func(c): return inner.has_point(c))
+	cells.sort()
+	for i in range(cells.size() - 1, 0, -1):
+		var j := _rng.randi_range(0, i)
+		var tmp = cells[i]
+		cells[i] = cells[j]
+		cells[j] = tmp
+	for c in cells.slice(0, 40):
+		for d in [Vector2i(0, 1), Vector2i(1, 0)]:
+			var a: Vector2i = c
+			while path.has(a - d):
+				a -= d
+			var b: Vector2i = c
+			while path.has(b + d):
+				b += d
+			var spots: Array[Vector2i] = [a - d, b + d]
+			var ok := true
+			for p in spots:
+				if not _inside(p) or _taken.has(p) or _solid.has(p) or water.has(p) or plateau.has(p) or hedge.has(p) or ridge.has(p):
+					ok = false
+			if not ok:
+				continue
+			var torches: Array[Dictionary] = []
+			for p in spots:
+				torches.append({"art": TORCHES[_rng.randi() % TORCHES.size()], "cell": p, "block": true})
+			if not _try_block(torches):
+				continue
+			for t in torches:
+				props.append(t)
+				_taken[t.cell] = true
+				_solid[t.cell] = true
+				deco.erase(t.cell)
+			return true
+	return false
+
+
+# A campfire on free lawn, clear of the path.
+func _floor_campfire(inner: Rect2i) -> bool:
+	for i in 120:
+		var c := Vector2i(_rng.randi_range(inner.position.x, inner.end.x - 1), _rng.randi_range(inner.position.y, inner.end.y - 1))
+		var foot := _footprint("campfire", c)
+		if not _rect_free(foot.grow(1)) or _near_rect(foot, path, 1):
+			continue
+		var fire := {"art": "campfire", "cell": c, "block": true}
+		if not _try_block([fire]):
+			continue
+		props.append(fire)
+		_claim(foot.grow(1))
+		_solidify(foot)
+		for y in range(foot.position.y, foot.end.y):
+			for x in range(foot.position.x, foot.end.x):
+				deco.erase(Vector2i(x, y))
+		return true
+	return false
+
+
+# Blocks the props' collider cells if every goal stays reachable; true if so.
+func _try_block(new_props: Array) -> bool:
+	var added: Array[Vector2i] = []
+	for p in new_props:
+		for c in _collider_cells(p):
+			if not _blocked.has(c):
+				_blocked[c] = true
+				added.append(c)
+	for g in goals:
+		if not _reaches(spawn, g):
+			for c in added:
+				_blocked.erase(c)
+			return false
+	return true
+
+
 # Plateau tops get one or two trees on light, mid, and dark tops (the plain
 # crowns: the grassy-base variants bake lawn green), set back from the rim and
 # the way up. A tree that would cut the spawn off from a goal is not placed.
@@ -2710,6 +3025,8 @@ func _verify() -> String:
 	])
 	if not dropped.is_empty():
 		lines.append("  dropped: %s" % ", ".join(dropped))
+	lines.append("  floor: weakest window %.3f%% -> %.3f%%%s" % [floor_before, floor_after,
+		(", added " + ", ".join(floor_notes)) if not floor_notes.is_empty() else ""])
 	return "\n".join(lines)
 
 

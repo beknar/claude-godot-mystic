@@ -10,7 +10,7 @@ extends SceneTree
 ##   godot --headless -s res://tools/liveliness.gd -- <first_id> [count] [recipe] [heat]
 ## `heat` also prints a map of predicted motion per cell.
 
-const Features := preload("res://tools/liveliness_features.gd")
+const Features := preload("res://scripts/liveliness_features.gd")
 const Terrain := preload("res://scripts/forest_terrain.gd")
 const VIEW := Vector2i(43, 18)
 const SHADES := " .:-=+*#%@"
