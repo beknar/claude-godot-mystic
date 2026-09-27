@@ -4,3 +4,9 @@
 
 # Per-user Claude Code settings
 .claude/settings.local.json
+
+# Liveliness capture frames (large, temporary)
+.liveliness/
+.liveliness_before/
+.liveliness_walk/
+__pycache__/

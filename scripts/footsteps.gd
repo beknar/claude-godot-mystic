@@ -28,6 +28,7 @@ var _travel := 0.0
 var _shore_cool := 0.0
 var _dirt := {} # cells of dirt islands
 var _rng := RandomNumberGenerator.new()
+var stats := {"steps": 0, "dust": 0, "grass": 0, "shore": 0} # events, for tools/walker_test.gd
 
 
 func _ready() -> void:
@@ -76,12 +77,15 @@ func _step(feet: Vector2, heading: Vector2) -> void:
 	# Bits start just behind the walker (and out to its sides when walking
 	# up or down), where its sprite does not cover them.
 	var behind := feet - heading * 7.0 + Vector2(0, 1)
+	stats.steps += 1
 	if terrain.path.has(cell) or _dirt.has(cell):
+		stats.dust += 1
 		for i in _rng.randi_range(4, 5):
 			_bits.append({"pos": behind + Vector2(_rng.randf_range(-5, 5), _rng.randf_range(-1, 1)),
 				"vel": Vector2(_rng.randf_range(-8, 8), _rng.randf_range(-8, -3)) - heading * 6.0, "t": 0.0,
 				"life": _rng.randf_range(0.5, 0.8), "color": DUST[_rng.randi() % DUST.size()], "gravity": 0.0})
 	elif terrain.deco.has(cell):
+		stats.grass += 1
 		for i in 3:
 			_bits.append({"pos": behind + Vector2(_rng.randf_range(-4, 4), -1), "vel": Vector2(_rng.randf_range(-12, 12), _rng.randf_range(-26, -16)),
 				"t": 0.0, "life": 0.45, "color": BLADES[_rng.randi() % BLADES.size()], "gravity": 90.0})
@@ -89,6 +93,7 @@ func _step(feet: Vector2, heading: Vector2) -> void:
 		for d in [Vector2i(0, 1), Vector2i(0, -1), Vector2i(1, 0), Vector2i(-1, 0)]:
 			if terrain.water.has(cell + d):
 				water_life._ring(Vector2(cell + d) * 16.0 + Vector2(8, 8) - Vector2(d) * 5.0, 0.0)
+				stats.shore += 1
 				_shore_cool = SHORE_EVERY
 				break
 

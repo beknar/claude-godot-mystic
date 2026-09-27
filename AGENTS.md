@@ -733,6 +733,20 @@ Motion lives outside the tile art, in four scripts that `forest.gd` adds:
   bursts and hover, and dart off from the walker; fireflies (up to 14)
   drift over dark and deep grass and under the canopy wall, pulsing with a
   faint cross of glow at the peak.
+- `scripts/wildlife.gd` (`Wildlife`) — ten small animals drawn in code as
+  tiny pixel sprites (a rabbit is 7 px tall beside the 32 px walker) in
+  colors snapped to the sheet's palette, each y-sorted on `Actors`:
+  rabbit (lawn), squirrel (by trunks), vole (dark grass), mouse (by logs,
+  crates, fences), hedgehog (by bushes and hedges), frog (shore), duck (open
+  water), sparrow (lawn near paths and fences), lizard (plateau tops, rocks,
+  ridges), fox (anywhere on the ground, 35 % of maps, one). `plan()` picks
+  four to seven eligible species per map from the map id, one to three
+  groups each at least eight cells apart and six from the spawn, so every
+  map has its own population and the same map always the same one. Each
+  animal idles, wanders around its group's home, and reacts to the walker
+  its own way: rabbits and the fox run, squirrels run up a tree, voles,
+  mice, and lizards dash and hide, hedgehogs curl up, frogs jump into the
+  water, ducks paddle off, and a sparrow flock flies to a new spot.
 - `scripts/footsteps.gd` — the ground answers the walker every 9 px of
   travel: puffs of dust behind it on cobble and dirt, grass blades flicking
   up from tufts and flowers, a ripple ring at the shore when it walks
@@ -745,7 +759,9 @@ flipbook starts on a random frame at a slightly different speed, so no
 two fires flicker in step.
 
 Everything moves on whole world pixels and uses the sheet's colors; no
-new art. Map generation is unchanged.
+new sheet art (the animals are drawn in code, their colors snapped to the
+sheet). Map generation is unchanged; the animal population is chosen from
+the finished map.
 
 ## Forest generator
 

@@ -26,6 +26,7 @@ var _flowers: Array[Vector2] = [] # flower centers in world pixels
 var _ponds: Array[Rect2] = [] # open water rects in world pixels
 var _rng := RandomNumberGenerator.new()
 var _time := 0.0
+var scattered := {"butterflies": 0, "dragonflies": 0} # for tools/walker_test.gd
 
 
 func _ready() -> void:
@@ -78,6 +79,7 @@ func _update_butterflies(delta: float, feet: Vector2) -> void:
 		elif b.pos.distance_to(feet) < SCARE_RADIUS:
 			# Scatter: off away from the walker, then settle on a far flower.
 			b.flee = 1.4
+			scattered.butterflies += 1
 			b.rest = 0.0
 			b.vel = (b.pos - feet).normalized().rotated(_rng.randf_range(-0.6, 0.6)) * 42.0
 			b.target = _far_flower(feet)
@@ -109,6 +111,7 @@ func _update_dragonflies(delta: float, feet: Vector2) -> void:
 			d.flee -= delta
 		elif d.pos.distance_to(feet) < SCARE_RADIUS:
 			d.flee = 0.8
+			scattered.dragonflies += 1
 			d.target = _pond_point(d.pond, feet)
 			d.hover = 0.0
 		if d.hover > 0.0:

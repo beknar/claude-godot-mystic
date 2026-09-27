@@ -26,6 +26,7 @@ var _sources: Array[Dictionary] = [] # {crown: Rect2, base_y: float, colors: Arr
 var _leaves: Array[Dictionary] = []
 var _rng := RandomNumberGenerator.new()
 var _spawn_acc := 0.0
+var kicked := 0 # leaves the walker has kicked, for tools/walker_test.gd
 
 
 func _ready() -> void:
@@ -84,6 +85,7 @@ func kick(at: Vector2, motion: Vector2) -> void:
 			leaf.ground += push
 			leaf.shape = _rng.randi() % SHAPES.size()
 			leaf.rest = maxf(leaf.rest, 0.6)
+			kicked += 1
 
 
 func _spawn() -> void:

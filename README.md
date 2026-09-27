@@ -69,6 +69,24 @@ It prints one line per map with its checks, then a summary of how many
 maps passed, how many plateaus got stairs, and how often each prop art was
 placed.
 
+To estimate how alive each map looks, per camera-sized window and for the
+whole scene:
+
+```
+Godot_v4.6.1-stable_win64.exe --headless --path E:\code\claude-godot-mystic -s res://tools/liveliness.gd -- 100000 300 [recipe] [heat]
+```
+
+It prints the predicted share of pixels moving per frame (cloud shadows
+aside, which add about the same everywhere) for the scene, for the weakest
+and strongest 43×18-cell window, and how much of the weakest window is
+quiet; `heat` adds a per-cell map. The weights come from a rendered
+calibration: `tools/liveliness_capture.tscn` films 13 maps (10 for fitting,
+3 held back) at 8 fps without the walker (about 38 minutes), then
+`python3 tools/liveliness_analyze.py watch .liveliness` measures the frames
+as they arrive and `... fit .liveliness` writes `tools/liveliness_coef.json`
+and `docs/liveliness-calibration.md`. Run the capture again after changing
+an effect.
+
 Ponds animate through the sheet's four shore frames. Plateaus have a
 three-wide stair up the face, and the top is walkable. Trees come in eight
 variants (two shapes, plain or flowering, with or without a grassy base).
@@ -82,7 +100,25 @@ petals, pale wind streaks, and drifting cloud shadows across every map. Campfire
 flicker with warm light and smoke, ponds ripple, fish jump, and reeds nod
 in the wind. Butterflies drift between flowers, dragonflies dart over
 ponds, fireflies glow in the dark grass, and the ground reacts to the
-walker: dust on paths, grass flicks, shore ripples, and kicked leaves.
+walker: dust on paths, grass flicks, shore ripples, and kicked leaves. Every map has its own
+population of small animals (rabbits, squirrels, voles, mice, hedgehogs,
+frogs, ducks, sparrows, lizards, and now and then a fox) in groups that
+keep to their habitat and flee, hide, curl up, dive, or fly off when the
+walker comes near. `tools/check_wildlife.gd` (same arguments as
+`check_recipes.gd`) lists each map's population. To check how the scene answers the
+walker, `tools/walker_test.tscn` walks a route through each camera view
+(past the animals, cobble, dirt, tufts, flowers, the shore, and trees) and
+counts animal reactions, dust puffs, grass flicks, kicked leaves, and
+scattered butterflies. Headless it runs all 30 recipes in a few minutes:
+
+```
+Godot_v4.6.1-stable_win64.exe --headless --fixed-fps 60 --path E:\code\claude-godot-mystic res://tools/walker_test.tscn
+```
+
+With a window it also films the 13 calibration maps (about 38 minutes, the
+walker's own sprite masked out); measure with
+`python3 tools/liveliness_analyze.py watch .liveliness_walk`, then compare
+with the at-rest capture with `... walkcmp .liveliness`.
 
 ## Player
 

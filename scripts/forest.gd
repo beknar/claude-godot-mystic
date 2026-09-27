@@ -38,6 +38,7 @@ var fire: FireAmbience
 var water_life: WaterLife
 var critters: Critters
 var footsteps: Footsteps
+var wildlife: Wildlife
 var _plant_tops: Array[Sprite2D] = [] # top parts of reeds and water grass, which nod
 var _leaf_colors := {} # art name -> {light, dark}
 var tone_layers: Array[TileMapLayer] = []
@@ -125,6 +126,9 @@ func _add_ambience() -> void:
 	leaves.name = "Leaves"
 	leaves.wind = wind
 	add_child(leaves)
+	wildlife = Wildlife.new()
+	wildlife.name = "Wildlife"
+	add_child(wildlife)
 	clouds = CloudShadows.new()
 	clouds.name = "CloudShadows"
 	clouds.wind = wind
@@ -191,6 +195,7 @@ func _reset_ambience() -> void:
 	for r in terrain.ponds:
 		ponds.append(Rect2(Vector2(r.position) * TILE + Vector2(8, 8), Vector2(r.size) * TILE - Vector2(16, 16)))
 	critters.setup(flowers, ponds, dark)
+	wildlife.setup(terrain, actors, walker, _pixels, water_life)
 
 
 # Leaf colors for a tree, from its sprite: `light` are the brightest common
