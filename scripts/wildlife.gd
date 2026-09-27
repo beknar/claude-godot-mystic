@@ -108,6 +108,8 @@ const FOX_CHANCE := 0.35
 const SPECIES_PER_MAP := Vector2i(4, 7)
 const MIN_HABITAT := 6 # cells a species needs before it can live on a map
 const GROUP_GAP := 8 # cells between two groups of one species
+const QUIET_TRIES := 6 # candidate spots a group compares before settling
+const QUIET_CAP := 14.0 # cells; farther than this from any motion counts the same
 
 static var _sheet_colors: Array[Color] = []
 
@@ -191,14 +193,25 @@ static func plan(t: PaintedTerrain) -> Dictionary:
 		eligible[j] = tmp
 	var chosen := eligible.slice(0, rng.randi_range(SPECIES_PER_MAP.x, SPECIES_PER_MAP.y))
 	var spawn := t.spawn
+	var quiet := quiet_field(t)
+	var placed: Array[Vector2i] = [] # group centers of every species so far
 	var groups: Array[Dictionary] = []
 	for kind in chosen:
 		var spec: Dictionary = SPECIES[kind]
 		var cells: Array = habitats[spec.habitat].keys()
 		cells.sort() # dictionary order is not part of the seed
 		var centers: Array[Vector2i] = []
+		# Groups that do not need trees or water settle where the scene is
+		# quietest: the best of a few candidates by distance from water,
+		# fires, trees, and the groups already placed.
+		var seek_quiet: bool = not spec.habitat in ["trees", "shore", "water"]
 		for g in rng.randi_range(spec.groups.x, spec.groups.y):
-			for attempt in 12:
+			var best := Vector2i(-1, -1)
+			var best_q := -1.0
+			var found := 0
+			for attempt in 24:
+				if found >= (QUIET_TRIES if seek_quiet else 1):
+					break
 				var c: Vector2i = cells[rng.randi() % cells.size()]
 				if Vector2(c - spawn).length() < 6.0:
 					continue # not right on top of the walker
@@ -208,7 +221,17 @@ static func plan(t: PaintedTerrain) -> Dictionary:
 						near = true
 				if near:
 					continue
+				found += 1
+				var q: float = quiet[c.y * W + c.x]
+				for other in placed:
+					q = minf(q, Vector2(c - other).length())
+				if q > best_q:
+					best_q = q
+					best = c
+			if best.x >= 0:
+				var c := best
 				centers.append(c)
+				placed.append(c)
 				var around: Array[Vector2i] = []
 				for dy in range(-2, 3):
 					for dx in range(-2, 3):
@@ -220,8 +243,40 @@ static func plan(t: PaintedTerrain) -> Dictionary:
 					around[i] = around[j]
 					around[j] = tmp
 				groups.append({"kind": kind, "center": c, "cells": around.slice(0, rng.randi_range(spec.size.x, spec.size.y))})
-				break
 	return {"habitats": habitats, "groups": groups}
+
+
+## Per cell, the distance in cells (capped at QUIET_CAP) to the nearest thing
+## that already keeps the scene moving: water, a campfire or torch, a tree.
+static func quiet_field(t: PaintedTerrain) -> PackedFloat32Array:
+	var d := PackedFloat32Array()
+	d.resize(W * H)
+	d.fill(QUIET_CAP)
+	var front: Array[Vector2i] = []
+	for c in t.water:
+		front.append(c)
+	for p in t.props:
+		if p.has("art") and (p.art in PaintedTerrain.TREES or p.art in PaintedTerrain.SHADE_TREES or p.art in PaintedTerrain.TORCHES or p.art in ["campfire", "campfire_big"]):
+			front.append(p.cell)
+	for c in front:
+		if c.x >= 0 and c.y >= 0 and c.x < W and c.y < H:
+			d[c.y * W + c.x] = 0.0
+	# Breadth-first, eight neighbors, so the distance is in whole cells.
+	var i := 0
+	while i < front.size():
+		var c: Vector2i = front[i]
+		i += 1
+		var v := d[c.y * W + c.x] + 1.0
+		if v >= QUIET_CAP:
+			continue
+		for dy in range(-1, 2):
+			for dx in range(-1, 2):
+				var n := c + Vector2i(dx, dy)
+				if n.x < 0 or n.y < 0 or n.x >= W or n.y >= H or d[n.y * W + n.x] <= v:
+					continue
+				d[n.y * W + n.x] = v
+				front.append(n)
+	return d
 
 
 static func habitat_cells(t: PaintedTerrain) -> Dictionary:
@@ -255,6 +310,18 @@ static func habitat_cells(t: PaintedTerrain) -> Dictionary:
 		bushes[c] = true
 	for c in t.ridge:
 		rocks[c] = true
+	# Green plateau tops (not stone) are ground too: rabbits and sparrow
+	# flocks live up there as well as on the lawn.
+	var green_top := {}
+	for info in t.plateaus:
+		if info.tone == "stone":
+			continue
+		var top: Rect2i = info.top
+		for y in range(top.position.y, top.end.y):
+			for x in range(top.position.x, top.end.x):
+				var c := Vector2i(x, y)
+				if land.has(c) and t.plateau.has(c) and not t.stairs.has(c) and not t.ramps.has(c):
+					green_top[c] = true
 	var h := {"lawn": {}, "trees": {}, "dark": {}, "clutter": {}, "bushes": {}, "shore": {}, "water": {}, "open": {}, "rocky": {}, "roam": {}}
 	for c in land:
 		var tone := t._tone_level(c)
@@ -265,7 +332,7 @@ static func habitat_cells(t: PaintedTerrain) -> Dictionary:
 		if wet:
 			h.shore[c] = true
 		var on_ground: bool = not t.plateau.has(c) and not t.path.has(c)
-		if on_ground and tone <= 0 and not _near(c, t.water, 2):
+		if (on_ground or green_top.has(c)) and tone <= 0 and not _near(c, t.water, 2):
 			h.lawn[c] = true
 		if on_ground and tone >= 1:
 			h.dark[c] = true
@@ -279,7 +346,7 @@ static func habitat_cells(t: PaintedTerrain) -> Dictionary:
 			h.bushes[c] = true
 		if (t.plateau.has(c) and not t.stairs.has(c)) or _near(c, rocks, 2):
 			h.rocky[c] = true
-		if on_ground and tone <= 0 and not wet and (_near(c, t.path, 3) or _near(c, t.fence, 3)):
+		if (on_ground and tone <= 0 and not wet and (_near(c, t.path, 3) or _near(c, t.fence, 3))) or green_top.has(c):
 			h.open[c] = true
 	for c in t.water:
 		if t._near_all(c, t.water, 1):

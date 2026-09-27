@@ -636,6 +636,12 @@ Cut a three-wide stair into the face: `(1–3, 24)`, `(1–3, 25)`, then
 adds a spur). The plateau top interior and the rim cells over the stairs
 are walkable; the rest of the rim and the face block.
 
+Plateau trees: every light, mid, or dark plateau top gets one tree (two on
+a top at least 14 wide), a plain crown `tree_a`, `tree_b`, `bloom_a`, or
+`bloom_b` (the grassy-base variants bake lawn green), trunk on an interior
+row, the landing above the stairs or ramp kept open. A tree that would cut
+the spawn off from a goal is not placed. Stone tops get none.
+
 The cliff kit comes in four tones — light, mid, dark, stone — each with a
 3×3 top and a 4×4 ramp (a two-wide gap through the face with shaded
 rock sides, rim row first):
@@ -739,17 +745,23 @@ Motion lives outside the tile art, in four scripts that `forest.gd` adds:
   rabbit (lawn), squirrel (by trunks), vole (dark grass), mouse (by logs,
   crates, fences), hedgehog (by bushes and hedges), frog (shore), duck (open
   water), sparrow (lawn near paths and fences), lizard (plateau tops, rocks,
-  ridges), fox (anywhere on the ground, 35 % of maps, one). `plan()` picks
-  four to seven eligible species per map from the map id, one to three
-  groups each at least eight cells apart and six from the spawn, so every
-  map has its own population and the same map always the same one. Each
+  ridges), fox (anywhere on the ground, 35 % of maps, one). Green plateau
+  tops count as lawn and open ground too. `plan()` picks four to seven
+  eligible species per map from the map id, one to three groups each at
+  least eight cells apart and six from the spawn, so every map has its own
+  population and the same map always the same one. Groups that do not need
+  trees or water settle in the quietest of six candidate spots: farthest
+  from water, campfires, torches, trees, and the groups already placed, so
+  animals fill the parts of the map nothing else moves in. Each
   animal idles, wanders around its group's home, and reacts to the walker
   its own way: rabbits and the fox run, squirrels run up a tree, voles,
   mice, and lizards dash and hide, hedgehogs curl up, frogs jump into the
   water, ducks paddle off, and a sparrow flock flies to a new spot.
 - `scripts/footsteps.gd` — the ground answers the walker every 9 px of
   travel: puffs of dust behind it on cobble and dirt, grass blades flicking
-  up from tufts and flowers, a ripple ring at the shore when it walks
+  up from tufts and flowers (three) and, on 60 % of steps, from plain grass
+  (one or two; not on stone tops, stairs, or ramps), in sunlit blade colors
+  lighter than any grass tone so they read, a ripple ring at the shore when it walks
   beside water, and fallen leaves near its feet kicked aside. Bits start a
   few pixels behind the walker so its sprite never hides them.
 
@@ -791,6 +803,9 @@ verify walk + reject list
 ### Recipe table (`recipe = seed % 30`)
 
 Houses = 0, 1, or 2 (2 only here when written). P/P2 = pond(s).
+P if room = a pond in whichever quarter of the map has room for one after
+the layout (dropped, not failed, when none fits), so a road-and-lawn recipe
+still has water moving somewhere.
 F = fence yard. G = gate line. C = plateau. L = approx-45° lean.
 Patch = count of *blobs* after autotile (R round shape, I irregular
 shape). Props: bushes, land rocks (LR), water plants (WP), water
@@ -799,27 +814,27 @@ rocks (WR), campfire (CF), torches (T), signs (S).
 | # | Name | Houses | Water | Height | Path | Patch blobs | Props |
 |---|---|---|---|---|---|---|---|
 | 0 | Pastoral | 1×0 | P + WP + WR | F | trunk + L | R 2–3 | bushes, LR, T, S=1 |
-| 1 | Crossroads | 1×1 | none | none | 2 trunks 90° | I 2–3 | bushes, LR, S=2 |
+| 1 | Crossroads | 1×1 | P if room + WP | none | 2 trunks 90° | I 2–3 | bushes, LR, T, S=2 |
 | 2 | Pond walk | 1×2 | P + WP + WR | none | skirts shore | R 2 | bushes, S=1 |
 | 3 | Garden | 1×3 | none | F+G | through gate | R 2 | bushes, LR, T, S=2 |
-| 4 | Lookout | 1×0 | none | C | to plateau foot | I 2 | LR obstacles, S=1 |
+| 4 | Lookout | 1×0 | none | C | to plateau foot | I 2 | LR obstacles, CF, T, S=1 |
 | 5 | Open meadow | 0 | none | none | edge-to-edge | R 3–4 | bushes, LR, no signs |
 | 6 | Twin water | 1×1 | P2 + WP + WR | none | between blobs | R 1–2 | S=1 |
 | 7 | South road | 1×2 | none | none | south third | I 2–3 | bushes, CF, T |
 | 8 | Shore spur | 1×3 | P + WP + WR | none | trunk + spur | R 2 | S=2, T |
-| 9 | Three-way | 1×0 | none | none | +2 branches 90° | I 2–3 | bushes, LR, S=3 |
+| 9 | Three-way | 1×0 | P if room + WP | none | +2 branches 90° | I 2–3 | bushes, LR, T, S=3 |
 | 10 | West hamlet | **2** (1 and 3) | P + WP | F | from east, L | RI 2 | CF, T, S=2 |
 | 11 | East hamlet | 1×2 | P + WR | F | from west, L | R 2 | T, S=1, bushes |
 | 12 | Wild lane | 0 | moisture P | none | 1 trunk | I 3–4 | bushes, LR obstacles |
-| 13 | Orchard | 1×3 | none | none | short trunk | R 2 | bushes heavy, S=1 |
+| 13 | Orchard | 1×3 | P if room + WP | none | short trunk | R 2 | bushes heavy, T, S=1 |
 | 14 | Shore hamlet | 1×0 | P + WP + WR | F between | short trunk | R 1–2 | CF, T, S=2 |
-| 15 | Double lean | 1×1 | none | none | two L | I 2–3 | LR, S=1 |
+| 15 | Double lean | 1×1 | P if room + WP | none | two L | I 2–3 | LR, T, S=1 |
 | 16 | Below the rim | 1×2 | none | C | lawn south of plateau | I 2 | LR, S=1, T |
 | 17 | Gate road | 1×3 | none | G | through gate | R 2 | T on gate, S=2 |
 | 18 | Sparse wild | 0 | P if blob | none | 1 trunk | I 1–2 | LR only |
 | 19 | Switchback | 1×0 | none | none | U of two 90° | RI 2 | bushes, CF, S=1 |
 | 20 | Cave mouth | 0 | none | C (light, cave) | to the cave | I 2–3 | bushes, LR, T by the cave, S=1 |
-| 21 | Terraces | 1×3 | none | C2 (light + ramp, mid/dark + stairs) | along the terraces | RI 2 | bushes, LR, S=1 |
+| 21 | Terraces | 1×3 | none | C2 (light + ramp, mid/dark + stairs) | along the terraces | RI 2 | bushes, LR, CF, T, S=1 |
 | 22 | Stone ruins | 0 | none | C (stone, ramp) | to the ramp | I 1–2 | LR obstacles, stone outcrops, ruins clutter, T, S=2 |
 | 23 | Woodcutter camp | **2** (4 and 5) | none | F | trunk + spur | I 2 | big CF + ash, logs heavy, S=1 |
 | 24 | Rock garden | 0 | P + WP + WR | none | edge + L | R 2–3 | outcrops, bushes |

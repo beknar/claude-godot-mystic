@@ -278,7 +278,7 @@ func _free_point(cell: Vector2i) -> Vector2:
 func _counters() -> Dictionary:
 	var f := _forest
 	return {
-		"steps": f.footsteps.stats.steps, "dust": f.footsteps.stats.dust, "grass": f.footsteps.stats.grass,
+		"steps": f.footsteps.stats.steps, "dust": f.footsteps.stats.dust, "grass": f.footsteps.stats.grass, "lawn": f.footsteps.stats.lawn,
 		"shore": f.footsteps.stats.shore, "leaves": f.leaves.kicked,
 		"butterflies": f.critters.scattered.butterflies, "dragonflies": f.critters.scattered.dragonflies,
 		"animals": f.wildlife.scared.duplicate(),
@@ -395,8 +395,8 @@ func _print_map(id: int) -> void:
 	var parts := PackedStringArray()
 	for kind in animals:
 		parts.append("%s %d" % [kind, animals[kind]])
-	print("walker test: map %d done: walked %.0f px (%d snags); steps %d, dust %d, grass %d, shore %d, leaves %d, butterflies %d, dragonflies %d; animals: %s" % [
-		id, travel, snags, sum.steps, sum.dust, sum.grass, sum.shore, sum.leaves, sum.butterflies, sum.dragonflies,
+	print("walker test: map %d done: walked %.0f px (%d snags); steps %d, dust %d, grass %d, lawn %d, shore %d, leaves %d, butterflies %d, dragonflies %d; animals: %s" % [
+		id, travel, snags, sum.steps, sum.dust, sum.grass, sum.lawn, sum.shore, sum.leaves, sum.butterflies, sum.dragonflies,
 		", ".join(parts) if not parts.is_empty() else "none"])
 
 

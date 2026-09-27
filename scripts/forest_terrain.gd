@@ -13,21 +13,21 @@ const ATTEMPTS := 60
 # line, C plateau, "F between" a fence run between house and pond.
 const RECIPES := [
 	{"name": "Pastoral", "houses": [0], "water": "P+WP+WR", "height": "F", "path": "trunk + L", "patch": ["R", 2, 3], "props": ["bushes", "LR", "T"], "signs": 1},
-	{"name": "Crossroads", "houses": [1], "water": "", "height": "", "path": "2 trunks 90", "patch": ["I", 2, 3], "props": ["bushes", "LR"], "signs": 2},
+	{"name": "Crossroads", "houses": [1], "water": "P if room+WP", "height": "", "path": "2 trunks 90", "patch": ["I", 2, 3], "props": ["bushes", "LR", "T"], "signs": 2},
 	{"name": "Pond walk", "houses": [2], "water": "P+WP+WR", "height": "", "path": "skirts shore", "patch": ["R", 2, 2], "props": ["bushes"], "signs": 1},
 	{"name": "Garden", "houses": [3], "water": "", "height": "F+G", "path": "through gate", "patch": ["R", 2, 2], "props": ["bushes", "LR", "T"], "signs": 2},
-	{"name": "Lookout", "houses": [0], "water": "", "height": "C", "path": "to plateau foot", "patch": ["I", 2, 2], "props": ["LR obstacles"], "signs": 1},
+	{"name": "Lookout", "houses": [0], "water": "", "height": "C", "path": "to plateau foot", "patch": ["I", 2, 2], "props": ["LR obstacles", "CF", "T"], "signs": 1},
 	{"name": "Open meadow", "houses": [], "water": "", "height": "", "path": "edge-to-edge", "patch": ["R", 3, 4], "props": ["bushes", "LR"], "signs": 0},
 	{"name": "Twin water", "houses": [1], "water": "P2+WP+WR", "height": "", "path": "between blobs", "patch": ["R", 1, 2], "props": [], "signs": 1},
 	{"name": "South road", "houses": [2], "water": "", "height": "", "path": "south third", "patch": ["I", 2, 3], "props": ["bushes", "CF", "T"], "signs": 0},
 	{"name": "Shore spur", "houses": [3], "water": "P+WP+WR", "height": "", "path": "trunk + spur", "patch": ["R", 2, 2], "props": ["T"], "signs": 2},
-	{"name": "Three-way", "houses": [0], "water": "", "height": "", "path": "+2 branches 90", "patch": ["I", 2, 3], "props": ["bushes", "LR"], "signs": 3},
+	{"name": "Three-way", "houses": [0], "water": "P if room+WP", "height": "", "path": "+2 branches 90", "patch": ["I", 2, 3], "props": ["bushes", "LR", "T"], "signs": 3},
 	{"name": "West hamlet", "houses": [1, 3], "water": "P+WP", "height": "F", "path": "from east, L", "patch": ["RI", 2, 2], "props": ["CF", "T"], "signs": 2},
 	{"name": "East hamlet", "houses": [2], "water": "P+WR", "height": "F", "path": "from west, L", "patch": ["R", 2, 2], "props": ["T", "bushes"], "signs": 1},
 	{"name": "Wild lane", "houses": [], "water": "moisture P", "height": "", "path": "1 trunk", "patch": ["I", 3, 4], "props": ["bushes", "LR obstacles"], "signs": 0},
-	{"name": "Orchard", "houses": [3], "water": "", "height": "", "path": "short trunk", "patch": ["R", 2, 2], "props": ["bushes heavy"], "signs": 1},
+	{"name": "Orchard", "houses": [3], "water": "P if room+WP", "height": "", "path": "short trunk", "patch": ["R", 2, 2], "props": ["bushes heavy", "T"], "signs": 1},
 	{"name": "Shore hamlet", "houses": [0], "water": "P+WP+WR", "height": "F between", "path": "short trunk", "patch": ["R", 1, 2], "props": ["CF", "T"], "signs": 2},
-	{"name": "Double lean", "houses": [1], "water": "", "height": "", "path": "two L", "patch": ["I", 2, 3], "props": ["LR"], "signs": 1},
+	{"name": "Double lean", "houses": [1], "water": "P if room+WP", "height": "", "path": "two L", "patch": ["I", 2, 3], "props": ["LR", "T"], "signs": 1},
 	{"name": "Below the rim", "houses": [2], "water": "", "height": "C", "path": "lawn south of plateau", "patch": ["I", 2, 2], "props": ["LR", "T"], "signs": 1},
 	{"name": "Gate road", "houses": [3], "water": "", "height": "G", "path": "through gate", "patch": ["R", 2, 2], "props": ["T"], "signs": 2},
 	{"name": "Sparse wild", "houses": [], "water": "P if blob", "height": "", "path": "1 trunk", "patch": ["I", 1, 2], "props": ["LR"], "signs": 0},
@@ -35,7 +35,7 @@ const RECIPES := [
 	# Recipes past the original twenty use the cliff kit, the extra
 	# buildings, and the camp props.
 	{"name": "Cave mouth", "houses": [], "water": "", "height": "C", "path": "to the cave", "patch": ["I", 2, 3], "props": ["bushes", "LR", "T"], "signs": 1, "top": "light", "cave": true},
-	{"name": "Terraces", "houses": [3], "water": "", "height": "C2", "path": "along the terraces", "patch": ["RI", 2, 2], "props": ["bushes", "LR"], "signs": 1},
+	{"name": "Terraces", "houses": [3], "water": "", "height": "C2", "path": "along the terraces", "patch": ["RI", 2, 2], "props": ["bushes", "LR", "CF", "T"], "signs": 1},
 	{"name": "Stone ruins", "houses": [], "water": "", "height": "C", "path": "to the ramp", "patch": ["I", 1, 2], "props": ["LR obstacles", "outcrops", "ruins", "T"], "signs": 2, "top": "stone"},
 	{"name": "Woodcutter camp", "houses": [4, 5], "water": "", "height": "F", "path": "trunk + spur", "patch": ["I", 2, 2], "props": ["CF big", "logs heavy"], "signs": 1},
 	{"name": "Rock garden", "houses": [], "water": "P+WP+WR", "height": "", "path": "edge + L", "patch": ["R", 2, 3], "props": ["outcrops", "bushes"], "signs": 0},
@@ -384,14 +384,34 @@ func generate(p_map_id: int, p_recipe := -1) -> String:
 			break
 	if not built:
 		dropped.append("no layout fit after %d attempts" % ATTEMPTS)
+	elif recipe.water.begins_with("P if room"):
+		_optional_pond()
 	_grass_zones()
 	_grow_patches()
 	_grow_hedges()
 	_grass_accents()
 	_place_props()
 	_place_trees()
+	_plateau_trees()
 	_scatter_deco()
 	return _verify()
+
+
+# "P if room": a pond in whichever quarter of the map has room for one, so a
+# road-and-lawn recipe still has water moving somewhere; dropped if none fits.
+func _optional_pond() -> void:
+	var half := Vector2i(WIDTH / 2, HEIGHT / 2)
+	var zones: Array[Rect2i] = [Rect2i(Vector2i(2, 2), half - Vector2i(3, 3)), Rect2i(Vector2i(half.x + 1, 2), half - Vector2i(3, 3)),
+		Rect2i(Vector2i(2, half.y + 1), half - Vector2i(3, 3)), Rect2i(half + Vector2i(1, 1), half - Vector2i(3, 3))]
+	for i in range(zones.size() - 1, 0, -1):
+		var j := _rng.randi_range(0, i)
+		var tmp := zones[i]
+		zones[i] = zones[j]
+		zones[j] = tmp
+	for z in zones:
+		if _pond(z, "WP" if "WP" in recipe.water else ""):
+			return
+	dropped.append("pond (no room)")
 
 
 func walkable(cell: Vector2i) -> bool:
@@ -2426,6 +2446,62 @@ func _place_trees() -> void:
 		_block_collider(tree)
 
 
+# Plateau tops get one or two trees on light, mid, and dark tops (the plain
+# crowns: the grassy-base variants bake lawn green), set back from the rim and
+# the way up. A tree that would cut the spawn off from a goal is not placed.
+const PLATEAU_TREES := ["tree_a", "tree_b", "bloom_a", "bloom_b"]
+
+func _plateau_trees() -> void:
+	for info in plateaus:
+		if info.tone == "stone":
+			continue
+		var top: Rect2i = info.top
+		var want := 2 if top.size.x >= 14 else 1
+		var placed: Array[Vector2i] = []
+		for i in 150:
+			if placed.size() >= want:
+				break
+			var art: String = PLATEAU_TREES[_rng.randi() % PLATEAU_TREES.size()]
+			var c := Vector2i(_rng.randi_range(top.position.x + 2, top.end.x - 3), _rng.randi_range(top.position.y + 1, top.end.y - 2))
+			var foot := _footprint(art, c)
+			if foot.position.x < 0 or foot.end.x > WIDTH:
+				continue # a crown may reach past the top edge; the trunk may not
+			var near := false
+			for p in placed:
+				if Vector2(c - p).length() < 5.0:
+					near = true
+			for x in [info.stairs, info.ramp, info.cave, info.narrow]:
+				if x >= 0 and c.x >= x - 1 and c.x <= x + RAMP_WIDTH and c.y >= top.end.y - 2:
+					near = true # keep the landing at the top of the way up open
+			if near:
+				continue
+			var tree := {"art": art, "cell": c, "block": true}
+			var cells := _collider_cells(tree)
+			var ok := true
+			# The whole top counts as solid ground; other props on it (outcrops)
+			# mark their colliders blocked, so that is the test.
+			for k in cells + [c]:
+				if not plateau.has(k) or ledge.has(k) or stairs.has(k) or ramps.has(k) or ridge.has(k) or _blocked.has(k):
+					ok = false
+			if not ok:
+				continue
+			for k in cells:
+				_blocked[k] = true
+			var reach := true
+			for g in goals:
+				if not _reaches(spawn, g):
+					reach = false
+			if not reach:
+				for k in cells:
+					_blocked.erase(k)
+				continue
+			props.append(tree)
+			placed.append(c)
+			for k in cells + [c]:
+				_solid[k] = true
+				_taken[k] = true
+
+
 # Grass deco picked by the ground under it: flowers and sprouts on the lawn
 # and mid zones, the darkest sprouts on dark and deep zones. A few 3x3
 # flower carpets go on open lawn.
@@ -2512,6 +2588,8 @@ func _verify() -> String:
 		fails.append("%d leans" % leans)
 	var want_ponds := 2 if "P2" in recipe.water else (1 if "P" in recipe.water else 0)
 	if recipe.water == "P if blob" and "pond (no moisture blob)" in dropped:
+		want_ponds = 0
+	if recipe.water.begins_with("P if room") and "pond (no room)" in dropped:
 		want_ponds = 0
 	if ponds.size() != want_ponds:
 		fails.append("ponds %d, recipe wants %d" % [ponds.size(), want_ponds])

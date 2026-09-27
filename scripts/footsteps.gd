@@ -5,6 +5,7 @@ extends Node2D
 ##   cobble path or a dirt island - a small puff of dust that spreads and
 ##     settles, drifting a little with the wind;
 ##   a tuft or flower            - a few blades of grass flick up and fall;
+##   plain grass                 - now and then a blade or two flicks up;
 ##   next to water               - a ripple ring at the nearest shore;
 ## and fallen leaves near its feet are kicked aside. Drawn on whole world
 ## pixels above the actors, starting a few pixels behind the walker so the
@@ -12,8 +13,9 @@ extends Node2D
 
 const STEP := 9.0 # px of travel between steps
 const DUST := [Color(0.6, 0.49, 0.38), Color(0.52, 0.42, 0.33)] # darker than the path it rises from
-const BLADES := [Color(0.48, 0.6, 0.4), Color(0.35, 0.52, 0.33)]
+const BLADES := [Color(0.74, 0.84, 0.52), Color(0.6, 0.74, 0.4)] # sunlit blade tips, lighter than any grass tone
 const SHORE_EVERY := 0.6 # seconds between shore ripples
+const LAWN_CHANCE := 0.6 # steps on plain grass that flick a blade or two
 
 var wind: Wind
 var walker: Node2D
@@ -27,8 +29,9 @@ var _prev_heading_from := Vector2.ZERO
 var _travel := 0.0
 var _shore_cool := 0.0
 var _dirt := {} # cells of dirt islands
+var _bare := {} # plateau stone tops, stairs, and ramps: no grass to flick
 var _rng := RandomNumberGenerator.new()
-var stats := {"steps": 0, "dust": 0, "grass": 0, "shore": 0} # events, for tools/walker_test.gd
+var stats := {"steps": 0, "dust": 0, "grass": 0, "lawn": 0, "shore": 0} # events, for tools/walker_test.gd
 
 
 func _ready() -> void:
@@ -45,6 +48,17 @@ func setup(p_terrain: PaintedTerrain, p_walker: Node2D) -> void:
 	for b in terrain.blobs:
 		for c in b.cells:
 			_dirt[c] = true
+	_bare.clear()
+	for info in terrain.plateaus:
+		if info.tone == "stone":
+			var top: Rect2i = info.top
+			for y in range(top.position.y, top.end.y):
+				for x in range(top.position.x, top.end.x):
+					_bare[Vector2i(x, y)] = true
+	for c in terrain.stairs:
+		_bare[c] = true
+	for c in terrain.ramps:
+		_bare[c] = true
 
 
 func _process(delta: float) -> void:
@@ -88,6 +102,12 @@ func _step(feet: Vector2, heading: Vector2) -> void:
 		stats.grass += 1
 		for i in 3:
 			_bits.append({"pos": behind + Vector2(_rng.randf_range(-4, 4), -1), "vel": Vector2(_rng.randf_range(-12, 12), _rng.randf_range(-26, -16)),
+				"t": 0.0, "life": 0.55, "color": BLADES[_rng.randi() % BLADES.size()], "gravity": 90.0})
+	elif not terrain.water.has(cell) and not _bare.has(cell) and _rng.randf() < LAWN_CHANCE:
+		# Plain grass: a smaller flick than a tuft, a blade or two that hop up.
+		stats.lawn += 1
+		for i in _rng.randi_range(1, 2):
+			_bits.append({"pos": behind + Vector2(_rng.randf_range(-4, 4), -1), "vel": Vector2(_rng.randf_range(-9, 9), _rng.randf_range(-20, -12)),
 				"t": 0.0, "life": 0.45, "color": BLADES[_rng.randi() % BLADES.size()], "gravity": 90.0})
 	if water_life and _shore_cool <= 0.0:
 		for d in [Vector2i(0, 1), Vector2i(0, -1), Vector2i(1, 0), Vector2i(-1, 0)]:
