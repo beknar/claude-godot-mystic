@@ -31,7 +31,8 @@ func _ready() -> void:
 
 
 ## `fires`: {pos: foot position, kind: "torch" | "campfire" | "campfire_big" |
-## "chimney" (pos is where the smoke leaves the roof)}.
+## "chimney" (pos is where the smoke leaves the roof), and optionally flame:
+## where the flame is, for sprites shorter than the Painted Lands ones}.
 func set_fires(fires: Array[Dictionary]) -> void:
 	for f in _fires:
 		if f.glow:
@@ -46,7 +47,7 @@ func set_fires(fires: Array[Dictionary]) -> void:
 			continue
 		var torch: bool = f.kind == "torch"
 		var radius := 22 if torch else (40 if f.kind == "campfire" else 52)
-		var flame: Vector2 = f.pos + (Vector2(0, -24) if torch else Vector2(0, -8))
+		var flame: Vector2 = f.get("flame", f.pos + (Vector2(0, -24) if torch else Vector2(0, -8)))
 		var glow := Sprite2D.new()
 		glow.texture = _glow(radius)
 		glow.material = add

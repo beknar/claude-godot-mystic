@@ -1,0 +1,30 @@
+[gd_scene format=3]
+
+[ext_resource type="Script" path="res://scripts/caves.gd" id="1_script"]
+[ext_resource type="Script" uid="uid://bur3cxtn52dtl" path="res://scripts/randomizer_menu.gd" id="2_menu"]
+
+[node name="RandomizerGreenCaves" type="Node2D"]
+texture_filter = 1
+script = ExtResource("1_script")
+map_id = 130021
+
+[node name="Ground" type="TileMapLayer" parent="."]
+
+[node name="Zone" type="TileMapLayer" parent="."]
+
+[node name="Features" type="TileMapLayer" parent="."]
+
+[node name="WaterDeco" type="TileMapLayer" parent="."]
+
+[node name="Deco" type="TileMapLayer" parent="."]
+
+[node name="Actors" type="Node2D" parent="."]
+y_sort_enabled = true
+
+[node name="Collision" type="StaticBody2D" parent="."]
+collision_mask = 0
+
+[node name="Menu" type="CanvasLayer" parent="."]
+layer = 10
+script = ExtResource("2_menu")
+title = "Green Caves randomizer"

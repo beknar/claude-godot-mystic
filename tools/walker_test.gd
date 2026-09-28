@@ -13,9 +13,13 @@ extends Node2D
 ##   godot --path . res://tools/walker_test.tscn -- [map_id ...]
 ##   writes frames and a JSON per view to .liveliness_walk/raw/, measured by
 ##   python3 tools/liveliness_analyze.py watch .liveliness_walk
+## Add `caves` to walk Green Caves maps (randomizer-greencaves) instead; the
+## results go to .liveliness_walk_caves.
 
 const Wild := preload("res://scripts/wildlife.gd")
 const MAP_SCENE := preload("res://scenes/wilds/wilds.tscn")
+const CAVE_SCENE := preload("res://scenes/randomizer-greencaves/randomizer-greencaves.tscn")
+const CAVE_RENDERED_MAPS := [130021, 130022, 130023, 130025, 130026, 130027, 130004, 130009, 130010, 130014]
 const TILE := 16
 const ZOOM := 5
 const VIEW := Vector2i(43, 18)
@@ -31,6 +35,7 @@ const ARRIVE := 3.0 # px from a route point that counts as there
 const STUCK_TIME := 1.0 # s without getting closer before the walker is moved on
 
 var _headless := false
+var _caves := false
 var _forest: Node2D
 var _walker: CharacterBody2D
 var _camera: Camera2D
@@ -61,17 +66,20 @@ var _out := ""
 func _ready() -> void:
 	_headless = DisplayServer.get_name() == "headless"
 	for a in OS.get_cmdline_user_args():
-		_plan.append(int(a))
+		if a == "caves":
+			_caves = true
+		else:
+			_plan.append(int(a))
 	if _plan.is_empty():
 		if _headless:
 			for r in 30:
-				_plan.append(120000 + r)
+				_plan.append((130000 if _caves else 120000) + r)
 		else:
-			_plan = RENDERED_MAPS.duplicate()
-	_out = ProjectSettings.globalize_path("res://.liveliness_walk")
+			_plan = CAVE_RENDERED_MAPS.duplicate() if _caves else RENDERED_MAPS.duplicate()
+	_out = ProjectSettings.globalize_path("res://.liveliness_walk_caves" if _caves else "res://.liveliness_walk")
 	DirAccess.make_dir_recursive_absolute(_out + "/raw")
 	DirAccess.remove_absolute(_out + "/raw/ALL_DONE")
-	_forest = MAP_SCENE.instantiate()
+	_forest = (CAVE_SCENE if _caves else MAP_SCENE).instantiate()
 	add_child(_forest)
 	_camera = Camera2D.new()
 	_camera.zoom = Vector2(ZOOM, ZOOM)
@@ -173,10 +181,11 @@ func _release() -> void:
 # dirt island cell, two tuft or flower cells, a shore cell, and the ground
 # under a tree, joined by A* paths that stay inside the view.
 func _make_route() -> Array[Vector2]:
-	var t: PaintedTerrain = _forest.terrain
+	var t = _forest.terrain
 	var view := Rect2i(VIEWS[_view_i], VIEW)
 	var inner := view.grow(-1)
-	var land: Dictionary = Wild.habitat_cells(t)["_land"]
+	var habitats: Dictionary = t.wildlife_plan().habitats if _caves else Wild.habitat_cells(t)
+	var land: Dictionary = habitats["_land"]
 	var astar := AStarGrid2D.new()
 	astar.region = view
 	astar.cell_size = Vector2(TILE, TILE)
@@ -203,30 +212,42 @@ func _make_route() -> Array[Vector2]:
 			picks.append(c)
 			animals += 1
 	var kinds := {"path": [], "dirt": [], "deco": [], "shore": [], "tree": []}
+	var water: Dictionary = t.water_cells() if _caves else t.water
+	var path: Dictionary = t.rails if _caves else t.path
 	for y in range(inner.position.y, inner.end.y):
 		for x in range(inner.position.x, inner.end.x):
 			var c := Vector2i(x, y)
 			if not land.has(c):
 				continue
-			if t.path.has(c):
+			if path.has(c):
 				kinds.path.append(c)
 			if t.deco.has(c):
 				kinds.deco.append(c)
 			for d in [Vector2i(1, 0), Vector2i(-1, 0), Vector2i(0, 1), Vector2i(0, -1)]:
-				if t.water.has(c + d):
+				if water.has(c + d):
 					kinds.shore.append(c)
 					break
-	for b in t.blobs:
-		for c in b.cells:
-			if inner.has_point(c) and land.has(c):
-				kinds.dirt.append(c)
-	for c in Wild.habitat_cells(t)["_trunks"]:
+	if not _caves:
+		for b in t.blobs:
+			for c in b.cells:
+				if inner.has_point(c) and land.has(c):
+					kinds.dirt.append(c)
+	for c in habitats["_trunks"]:
 		var below: Vector2i = c + Vector2i(0, 1)
 		if inner.has_point(below) and land.has(below):
 			kinds.tree.append(below)
 	for k in ["path", "dirt", "deco", "deco", "shore", "tree"]:
 		if not kinds[k].is_empty():
 			picks.append(kinds[k][rng.randi() % kinds[k].size()])
+	if _caves:
+		# Caves have fewer landmarks: three spots on the open floor as well.
+		var open: Array = []
+		for y in range(inner.position.y, inner.end.y):
+			for x in range(inner.position.x, inner.end.x):
+				if land.has(Vector2i(x, y)):
+					open.append(Vector2i(x, y))
+		for i in mini(3, open.size()):
+			picks.append(open[rng.randi() % open.size()])
 	if picks.is_empty():
 		return []
 	# Nearest-neighbor order from the first pick, then A* legs between them.

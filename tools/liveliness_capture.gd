@@ -11,10 +11,14 @@ extends Node2D
 ## the frames: leaves in the air and on the ground, streak pixels, rings,
 ## drops, butterflies, dragonflies, fireflies, smoke puffs, animal pixels,
 ## cloud edges, and the wind. tools/liveliness_analyze.py measures the frames and fits the proxy.
-##   godot --path . res://tools/liveliness_capture.tscn [-- <map_id> ... [quick]]
+##   godot --path . res://tools/liveliness_capture.tscn [-- <map_id> ... [quick] [caves]]
+## `caves` films Green Caves maps (randomizer-greencaves) into
+## .liveliness_caves, with the cave features and cave_life.gd counts.
 
-const Features := preload("res://scripts/liveliness_features.gd")
+const PaintedFeatures := preload("res://scripts/liveliness_features.gd")
+const CaveFeatures := preload("res://scripts/cave_liveliness_features.gd")
 const MAP_SCENE := preload("res://scenes/wilds/wilds.tscn")
+const CAVE_SCENE := preload("res://scenes/randomizer-greencaves/randomizer-greencaves.tscn")
 const TILE := 16
 const ZOOM := 5
 const VIEW := Vector2i(43, 18) # cells on screen at 3440x1440, zoom 5
@@ -29,9 +33,15 @@ const RECORD := 25.0 # s per view
 # originals, and one each of the recipes given ponds, torches, or fires).
 const CALIBRATE := [120005, 120025, 120006, 120023, 120026, 120021, 120027, 120024, 120012, 120028]
 const HOLDOUT := [120000, 120010, 120020, 120001, 120004, 120009, 120013, 120015]
+# Caves: eight for the fit (every floor, pools, lake, rails, terrace, camp,
+# crystals, moss), four held back.
+const CAVE_CALIBRATE := [130021, 130022, 130023, 130025, 130026, 130027, 130004, 130010]
+const CAVE_HOLDOUT := [130009, 130014, 130018, 130028]
 const VIEWS := [Vector2i(0, 0), Vector2i(17, 0), Vector2i(0, 11), Vector2i(17, 11), Vector2i(0, 22), Vector2i(17, 22)]
 
 var _forest: Node2D
+var _caves := false
+var Features = PaintedFeatures
 var _camera: Camera2D
 var _plan: Array = []
 var _map_i := -1
@@ -60,14 +70,17 @@ func _ready() -> void:
 		if a == "quick": # smoke test: short warm-up and views
 			_warmup = 2.0
 			_record = 3.0
+		elif a == "caves":
+			_caves = true
+			Features = CaveFeatures
 		else:
 			_plan.append(int(a))
 	if _plan.is_empty():
-		_plan = CALIBRATE + HOLDOUT
-	_out = ProjectSettings.globalize_path("res://.liveliness/raw")
+		_plan = CAVE_CALIBRATE + CAVE_HOLDOUT if _caves else CALIBRATE + HOLDOUT
+	_out = ProjectSettings.globalize_path("res://.liveliness_caves/raw" if _caves else "res://.liveliness/raw")
 	DirAccess.make_dir_recursive_absolute(_out)
 	DirAccess.remove_absolute(_out + "/ALL_DONE")
-	_forest = MAP_SCENE.instantiate()
+	_forest = (CAVE_SCENE if _caves else MAP_SCENE).instantiate()
 	add_child(_forest)
 	_camera = Camera2D.new()
 	_camera.zoom = Vector2(ZOOM, ZOOM)
@@ -87,7 +100,9 @@ func _next_map() -> void:
 	_forest.build(id, -1)
 	# Fixed seeds for every effect, so a map's capture can be run again.
 	seed(id)
-	for key in ["wind", "leaves", "streaks", "clouds", "fire", "water_life", "critters", "footsteps"]:
+	var keys := ["wind", "leaves", "fire", "water_life", "critters", "footsteps", "cave_life"] if _caves else \
+		["wind", "leaves", "streaks", "clouds", "fire", "water_life", "critters", "footsteps"]
+	for key in keys:
 		var node: Node = _forest.get(key)
 		node.get("_rng").seed = id * 31 + key.hash()
 	# Wind._ready() would reseed at random, so set its starting state here.
@@ -102,7 +117,8 @@ func _next_map() -> void:
 	w.set("_gust_t", -1.0)
 	w.set("_next_turn", rng.randf_range(20.0, 40.0))
 	w.set("_next_gust", rng.randf_range(6.0, 16.0))
-	_forest.clouds.reset(Rect2(0, 0, Features.W * TILE, Features.H * TILE))
+	if not _caves:
+		_forest.clouds.reset(Rect2(0, 0, Features.W * TILE, Features.H * TILE))
 	var walker: Node2D = _forest.actors.get_node_or_null("Walker")
 	if walker:
 		walker.get_node("Camera").enabled = false
@@ -202,9 +218,12 @@ func _sample() -> void:
 	var f := _forest
 	for leaf in f.leaves._leaves:
 		_count("leaves_air" if leaf.h > 0.0 else "leaves_rest", Vector2(leaf.ground.x, leaf.ground.y - leaf.h))
-	for s in f.streaks._streaks:
-		for p in s.trail:
-			_count("streak_px", p)
+	if _caves:
+		_sample_caves()
+	else:
+		for s in f.streaks._streaks:
+			for p in s.trail:
+				_count("streak_px", p)
 	for r in f.water_life._rings:
 		_count("rings", r.pos)
 	for d in f.water_life._drops:
@@ -222,7 +241,7 @@ func _sample() -> void:
 			_count_area("animals", a.pos, Features.sprite_area(a.kind))
 	# A cloud shadow's moving rim is what changes pixels; count blocks its
 	# outline box cuts through.
-	for sprite in f.clouds._clouds:
+	for sprite in ([] if _caves else f.clouds._clouds):
 		var size: Vector2 = sprite.texture.get_size()
 		var rect := Rect2(sprite.position - size / 2.0, size)
 		for i in BLOCKS.x * BLOCKS.y:
@@ -230,6 +249,22 @@ func _sample() -> void:
 			if rect.intersects(b) and not rect.encloses(b):
 				_bump("cloud_edge", i, 1.0)
 	_wind += Vector3(f.wind.strength(), f.wind.gust, f.wind.base_strength)
+
+
+# cave_life.gd: drops and splashes, warm and pale motes, glints, bats.
+func _sample_caves() -> void:
+	var life: Node = _forest.cave_life
+	for d in life._drops:
+		_count("drips", d.pos)
+	for s in life._splashes:
+		if s.t < 0.3:
+			_count("drips", s.pos)
+	for m in life._motes:
+		_count("warm" if m.warm else "pale", m.pos)
+	for g in life._glints:
+		_count("glints", Vector2(g.pos))
+	for b in life._bats:
+		_count("bats", b.pos)
 
 
 func _block_rect(i: int) -> Rect2:
@@ -275,7 +310,7 @@ func _finish_view() -> void:
 		blocks.append({"cell": [cell.x, cell.y], "features": Features.block(_grid, Rect2i(cell, Vector2i(BLOCK, BLOCK))), "observed": obs})
 	var meta := {
 		"map": id, "recipe": _forest.terrain.recipe_id, "recipe_name": _forest.terrain.recipe.name,
-		"holdout": id in HOLDOUT, "view": _view_i, "origin": [VIEWS[_view_i].x, VIEWS[_view_i].y],
+		"holdout": id in (CAVE_HOLDOUT if _caves else HOLDOUT), "pack": "caves" if _caves else "painted", "view": _view_i, "origin": [VIEWS[_view_i].x, VIEWS[_view_i].y],
 		"size": [VIEW.x * TILE, VIEW.y * TILE], "block_px": BLOCK * TILE, "blocks_xy": [BLOCKS.x, BLOCKS.y],
 		"frames": _frames, "times": _times, "fps": FPS,
 		"wind": {"strength": _wind.x / _samples, "gust": _wind.y / _samples, "base": _wind.z / _samples},

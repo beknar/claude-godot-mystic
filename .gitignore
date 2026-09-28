@@ -14,3 +14,5 @@ __pycache__/
 
 # Purchased art packs (licensed: no redistribution). Kept local, never pushed.
 assets/pack/
+.liveliness_caves/
+.liveliness_walk_caves/

@@ -37,6 +37,8 @@ var _rng := RandomNumberGenerator.new()
 var surface: Callable # cell -> "dust" | "tuft" | "grass" | "none"
 var water_cells := {}
 var dust_sheet: Texture2D # optional: frames 16 px wide, drawn as a puff
+var dust_colors: Array = DUST # set per map: a little darker than the ground
+var blade_colors: Array = BLADES
 var stats := {"steps": 0, "dust": 0, "grass": 0, "lawn": 0, "shore": 0} # events, for tools/walker_test.gd
 
 
@@ -130,18 +132,18 @@ func _step(feet: Vector2, heading: Vector2) -> void:
 		for i in _rng.randi_range(4, 5):
 			_bits.append({"pos": behind + Vector2(_rng.randf_range(-5, 5), _rng.randf_range(-1, 1)),
 				"vel": Vector2(_rng.randf_range(-8, 8), _rng.randf_range(-8, -3)) - heading * 6.0, "t": 0.0,
-				"life": _rng.randf_range(0.5, 0.8), "color": DUST[_rng.randi() % DUST.size()], "gravity": 0.0})
+				"life": _rng.randf_range(0.5, 0.8), "color": dust_colors[_rng.randi() % dust_colors.size()], "gravity": 0.0})
 	elif ground == "tuft":
 		stats.grass += 1
 		for i in 3:
 			_bits.append({"pos": behind + Vector2(_rng.randf_range(-4, 4), -1), "vel": Vector2(_rng.randf_range(-12, 12), _rng.randf_range(-26, -16)),
-				"t": 0.0, "life": 0.55, "color": BLADES[_rng.randi() % BLADES.size()], "gravity": 90.0})
+				"t": 0.0, "life": 0.55, "color": blade_colors[_rng.randi() % blade_colors.size()], "gravity": 90.0})
 	elif ground == "grass" and _rng.randf() < LAWN_CHANCE:
 		# Plain grass: a smaller flick than a tuft, a blade or two that hop up.
 		stats.lawn += 1
 		for i in _rng.randi_range(1, 2):
 			_bits.append({"pos": behind + Vector2(_rng.randf_range(-4, 4), -1), "vel": Vector2(_rng.randf_range(-9, 9), _rng.randf_range(-20, -12)),
-				"t": 0.0, "life": 0.45, "color": BLADES[_rng.randi() % BLADES.size()], "gravity": 90.0})
+				"t": 0.0, "life": 0.45, "color": blade_colors[_rng.randi() % blade_colors.size()], "gravity": 90.0})
 	if water_life and _shore_cool <= 0.0:
 		for d in [Vector2i(0, 1), Vector2i(0, -1), Vector2i(1, 0), Vector2i(-1, 0)]:
 			if water_cells.has(cell + d):

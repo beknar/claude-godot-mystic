@@ -1,8 +1,8 @@
 # claude-godot-mystic
 
 A top-down pixel-art action RPG prototype in Godot 4.6 (GL Compatibility).
-Maps are assembled on a 16px grid from two hand-painted tile packs and a
-seeded procedural generator. They are never painted as one backdrop.
+Maps are assembled on a 16px grid from three hand-painted tile packs and
+seeded procedural generators. They are never painted as one backdrop.
 
 `AGENTS.md` holds the binding rules. `docs/scene-assembly.md` holds the
 shared inventory, composition steps, and QC checklist. This README gives an
@@ -11,9 +11,10 @@ overview; when the two disagree, `AGENTS.md` wins.
 > **Status:** built so far: `scenes/clearing/clearing.tscn` (the main scene),
 > `scenes/grove/grove.tscn`, `scenes/forest/forest.tscn`,
 > `scenes/wilds/wilds.tscn`, `scenes/randomizer-paintedlands/randomizer-paintedlands.tscn`,
-> `scenes/randomizer-mysticwoods/randomizer-mysticwoods.tscn`, the
-> player and walker scenes, the Mystic Woods and Painted Lands generators,
-> both art packs, the AI character sheets, and `addons/godot_mcp`. Hollow,
+> `scenes/randomizer-mysticwoods/randomizer-mysticwoods.tscn`,
+> `scenes/randomizer-greencaves/randomizer-greencaves.tscn`, the
+> player and walker scenes, the Mystic Woods, Painted Lands, and Green Caves
+> generators, the art packs, the AI character sheets, and `addons/godot_mcp`. Hollow,
 > ford, and heath are not built yet. The Painted Lands generator draws all
 > 30 recipes.
 
@@ -25,6 +26,8 @@ project, copy them in locally:
 
 - Mystic Woods 2.2 (Game Endeavor): its `sprites/` folder to `assets/pack/sprites/`
 - Painted Lands: `TILESET_brighter.png` and `character_sprite_sheet.png` to `assets/pack/`
+- Painted Lands – Green Caves: the pack folder to `assets/pack/green_caves/`
+  (`green_caves_tileset.png`, `explanations.png`)
 
 Then open the project in Godot so it imports them.
 
@@ -48,6 +51,7 @@ between them.
 |---|---|---|---|
 | clearing, grove, hollow, ford, heath | Mystic Woods | `plains.png`, `grass.png` | `scripts/terrain.gd` + `scripts/clearing.gd` |
 | forest, wilds | Painted Lands | `TILESET_brighter.png` | `scripts/forest_terrain.gd` |
+| randomizer-greencaves | Green Caves | `green_caves/green_caves_tileset.png` | `scripts/cave_terrain.gd` + `scripts/caves.gd` |
 
 Heath and forest share seed `91003` by coincidence only. They don't share a
 generator.
@@ -65,6 +69,23 @@ generator.
 | `scenes/wilds/wilds.tscn` | 75125 (recipe 5, Open meadow) | `character_sprite_sheet.png` |
 | `scenes/randomizer-paintedlands/randomizer-paintedlands.tscn` | starts at 75125, then any | `character_sprite_sheet.png` |
 | `scenes/randomizer-mysticwoods/randomizer-mysticwoods.tscn` | starts at 21021, then any | `player.png` |
+| `scenes/randomizer-greencaves/randomizer-greencaves.tscn` | starts at 130021, then any | `character_sprite_sheet.png` (the Painted Lands walker) |
+
+The Green Caves randomizer builds cave maps from its own generator with 30
+recipes (grotto, crystal cavern, flooded hall, mine shaft, miners' camp,
+mossy hollow, terrace steps, ossuary, pillared hall, stalagmite field,
+underground spring, ore vein, dead grove, cave mouth, smugglers' cache, rail
+junction, twin pools, crystal shrine, dark depths, collapsed tunnel,
+overgrown mine, watch post, root cellar, echo chamber, lake terrace, coal
+store, crossroads cavern, hermit's nook, sunken garden, treasure vault). Each
+map has a back wall with a doorway, rock islands, raised terraces with
+stairs, pools and lakes with animated water, mine rails, dark floor zones,
+and the pack's props. The Painted Lands walker walks it, with the same Esc
+menu and recipe picker. Its ambience is the Painted Lands set adapted to a
+cave (fire glow and smoke, water life, glowworms, moths, dragonflies, cave
+animals, footsteps, mossy leaf fall) plus `scripts/cave_life.gd` (drips,
+dust motes, crystal glints, bats), and it has the same liveliness floor.
+`tools/check_caves.gd` sweeps the recipes headless.
 
 The Painted Lands randomizer runs the Painted Lands generator with the wilds
 settings; the Mystic Woods randomizer runs the Mystic Woods generator the
@@ -145,6 +166,17 @@ With a window it also films the 13 calibration maps (about 38 minutes, the
 walker's own sprite masked out); measure with
 `python3 tools/liveliness_analyze.py watch .liveliness_walk`, then compare
 with the at-rest capture with `... walkcmp .liveliness`.
+
+Green Caves uses the same tools with `caves` added: `tools/check_caves.gd --
+<first_id> [count] [recipe] [dump]` checks maps,
+`tools/liveliness.gd -- <first_id> <count> -1 caves` estimates them from
+`tools/liveliness_coef_caves.json`, `tools/sim_cave.gd` measures the cave-only
+effects headless (drips, motes, glints, bats, the pool frames and sparkles),
+`tools/liveliness_capture.tscn -- caves` films 12 cave maps into
+`.liveliness_caves` (`liveliness_analyze.py watch .liveliness_caves caves`,
+then `fit .liveliness_caves caves`, which writes
+`docs/liveliness-calibration-caves.md`), and `tools/walker_test.tscn --
+caves` walks them.
 
 ## Player
 
@@ -271,6 +303,10 @@ Art (purchased; not included in this repository, see "Art packs" above):
   [antarcticbees](https://antarcticbees.itch.io/antarcticbees-the-painted-lands-forest).
   `TILESET_brighter.png` and `character_sprite_sheet.png`. License: use and
   modification in personal and commercial projects.
+- **The Painted Lands – Green Caves Tileset** by
+  [antarcticbees](https://antarcticbees.itch.io). `green_caves_tileset.png`
+  (the pack's slimes are not used). License: see the pack's itch.io page;
+  purchased, not redistributed here.
 
 Other:
 

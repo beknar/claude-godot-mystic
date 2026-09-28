@@ -7,11 +7,14 @@ extends SceneTree
 ## (43x18 cells, every cell offset), the weakest and strongest window, the
 ## spread, and the quiet share (cells below the calibrated quiet level) of
 ## the weakest window.
-##   godot --headless -s res://tools/liveliness.gd -- <first_id> [count] [recipe] [heat]
-## `heat` also prints a map of predicted motion per cell.
+##   godot --headless -s res://tools/liveliness.gd -- <first_id> [count] [recipe] [heat] [caves]
+## `heat` also prints a map of predicted motion per cell. `caves` estimates
+## Green Caves maps (cave_terrain.gd) with tools/liveliness_coef_caves.json.
 
-const Features := preload("res://scripts/liveliness_features.gd")
-const Terrain := preload("res://scripts/forest_terrain.gd")
+const PaintedFeatures := preload("res://scripts/liveliness_features.gd")
+const PaintedMaps := preload("res://scripts/forest_terrain.gd")
+const CaveFeatures := preload("res://scripts/cave_liveliness_features.gd")
+const CaveMaps := preload("res://scripts/cave_terrain.gd")
 const VIEW := Vector2i(43, 18)
 const SHADES := " .:-=+*#%@"
 
@@ -22,7 +25,10 @@ func _init() -> void:
 	var count := int(args[1]) if args.size() > 1 else 10
 	var pinned := int(args[2]) if args.size() > 2 else -1
 	var heat := "heat" in args
-	var coef = JSON.parse_string(FileAccess.get_file_as_string("res://tools/liveliness_coef.json"))
+	var caves := "caves" in args
+	var Features = CaveFeatures if caves else PaintedFeatures
+	var Terrain = CaveMaps if caves else PaintedMaps
+	var coef = JSON.parse_string(FileAccess.get_file_as_string("res://tools/liveliness_coef_caves.json" if caves else "res://tools/liveliness_coef.json"))
 	if coef == null:
 		push_error("no tools/liveliness_coef.json: run the capture and liveliness_analyze.py fit first")
 		quit(1)
@@ -30,14 +36,14 @@ func _init() -> void:
 	var weights: Dictionary = coef.weights
 	var quiet: float = coef.quiet
 	print("liveliness: local motion, %% of pixels per frame; cloud shadows add about %.2f%% anywhere" % float(coef.cloud_background))
-	var W := Features.W
-	var H := Features.H
+	var W: int = Features.W
+	var H: int = Features.H
 	var scenes: Array[float] = []
 	var weakest: Array[float] = []
 	for id in range(first, first + count):
 		var t = Terrain.new()
 		t.generate(id, pinned)
-		var g := Features.grid(t)
+		var g: Dictionary = Features.grid(t)
 		var m := PackedFloat32Array()
 		m.resize(W * H)
 		m.fill(0.0)
@@ -77,7 +83,7 @@ func _init() -> void:
 		# Which effects the weakest window has at all.
 		var kinds := PackedStringArray()
 		for f in weights:
-			if f == "streak":
+			if f == "streak" or f == "motes" or f == "bats":
 				continue
 			var s := 0.0
 			for y in range(lo_at.y, lo_at.y + VIEW.y):
