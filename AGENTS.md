@@ -140,6 +140,15 @@ There is no health, enemy, or save. The editor addon
 - Painted Lands: `TILESET_brighter.png`
 - Green Caves: `green_caves/green_caves_tileset.png` (+ `explanations.png`,
   the pack's own guide). Its slimes are characters and are not used.
+- Cozy Cottage interiors: `cozy_cottage/` (§ Interiors).
+
+**What goes with what:** `docs/painted-lands-art-fit.md` is the one art
+reference for combining the antarcticbees tilesets (Forest, Green Caves,
+Cozy Cottage, and Farm – 4 Seasons, which is not in the project yet and would
+go to `assets/pack/farm/`, git-ignored). Read it before putting one pack's
+art on another pack's maps: it lists every pairing and three-pack map idea,
+what fits as it is, what needs a color remap, what never mixes, and counts,
+with sheet coordinates.
 
 `assets/ai/` is generated in Grok Build (`assets/ai/README.md`).
 Never put a generated sheet in `assets/pack/`. The wanderer sheet

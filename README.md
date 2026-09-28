@@ -307,6 +307,10 @@ the sheet:
 - `assets/ai/`: generated art (Grok Build). Never put generated sheets in
   `assets/pack/`.
 
+`docs/painted-lands-art-fit.md` is the reference for what art from the
+antarcticbees tilesets goes with what (Forest, Green Caves, Cozy Cottage, and
+the not-yet-used Farm – 4 Seasons).
+
 ## Editor automation
 
 The project is driven from Claude Code through the Godot MCP server
