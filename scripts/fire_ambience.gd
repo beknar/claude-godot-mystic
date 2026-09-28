@@ -31,7 +31,8 @@ func _ready() -> void:
 
 
 ## `fires`: {pos: foot position, kind: "torch" | "campfire" | "campfire_big" |
-## "chimney" (pos is where the smoke leaves the roof), and optionally flame:
+## "chimney" (pos is where the smoke leaves the roof) | "hearth" (a fireplace
+## indoors: glow, no smoke) | "lamp"; optionally radius, smoke, and flame:
 ## where the flame is, for sprites shorter than the Painted Lands ones}.
 func set_fires(fires: Array[Dictionary]) -> void:
 	for f in _fires:
@@ -45,8 +46,8 @@ func set_fires(fires: Array[Dictionary]) -> void:
 		if f.kind == "chimney":
 			_fires.append({"radius": 0, "glow": null, "phase": 0.0, "smoke": true, "flame": f.pos, "rate": 0.0, "puffs": CHIMNEY_SMOKE})
 			continue
-		var torch: bool = f.kind == "torch"
-		var radius := 22 if torch else (40 if f.kind == "campfire" else 52)
+		var torch: bool = f.kind == "torch" or f.kind == "lamp"
+		var radius: int = f.get("radius", 22 if torch else (40 if f.kind == "campfire" else 52))
 		var flame: Vector2 = f.get("flame", f.pos + (Vector2(0, -24) if torch else Vector2(0, -8)))
 		var glow := Sprite2D.new()
 		glow.texture = _glow(radius)
@@ -54,7 +55,7 @@ func set_fires(fires: Array[Dictionary]) -> void:
 		glow.position = flame.floor()
 		add_child(glow)
 		_fires.append({"radius": radius, "glow": glow, "phase": _rng.randf() * TAU,
-			"smoke": not torch, "flame": flame, "rate": _rng.randf_range(7.0, 11.0), "puffs": 1.0})
+			"smoke": f.get("smoke", not torch and f.kind != "hearth"), "flame": flame, "rate": _rng.randf_range(7.0, 11.0), "puffs": 1.0})
 	queue_redraw()
 
 

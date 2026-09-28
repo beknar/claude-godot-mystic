@@ -20,6 +20,8 @@ const RIDGE_FRONT := 8
 ## Pins the recipe (-1: map_id % recipe count). The fixed scenes pin theirs
 ## so adding recipes never changes them.
 @export var recipe := -1
+## Houses open onto generated interiors (house_interiors.gd): the randomizer.
+@export var interiors := false
 
 @onready var ground: TileMapLayer = $Ground
 @onready var features_layer: TileMapLayer = $Features
@@ -29,6 +31,7 @@ const RIDGE_FRONT := 8
 @onready var collision: StaticBody2D = $Collision
 
 var terrain: PaintedTerrain
+var house_interiors: HouseInteriors
 # Ambience: one wind that the leaves, streaks, and cloud shadows all follow.
 var wind: Wind
 var leaves: AmbientLeaves
@@ -70,6 +73,11 @@ func _ready() -> void:
 	for layer in [ground, features_layer, deco_layer, accent_layer] + tone_layers:
 		layer.tile_set = tiles
 	_add_ambience()
+	if interiors:
+		house_interiors = HouseInteriors.new()
+		house_interiors.name = "HouseInteriors"
+		add_child(house_interiors)
+		house_interiors.setup(self)
 	build(map_id, recipe)
 
 
@@ -94,6 +102,8 @@ func build(id: int, pinned := -1) -> void:
 	_place_props()
 	_spawn_walker()
 	_reset_ambience()
+	if house_interiors:
+		house_interiors.reset(terrain, actors.get_node("Walker"))
 	print(report)
 
 

@@ -28,7 +28,15 @@ const TILE := 16
 const W := Terrain.W
 const H := Terrain.H
 const NAMES := ["leaves", "water_anim", "sparkles", "rings", "flames", "glow", "smoke", "butterflies", "dragonflies",
-	"fireflies", "animals", "drips", "warm", "glints", "motes", "bats"]
+	"fireflies", "animals", "drips", "warm", "glints", "motes", "bats", "home"]
+## Homes' own life (interior_life.gd), per piece in % of a camera window
+## (43 x 18 cells), from tools/sim_interior.gd; the "home" feature carries it
+## already weighted (weight 1). Cave homes have no sunbeams; the cat lives in
+## 70 % of homes.
+const HOME_HEARTH := 0.0164
+const HOME_STEAM := 0.0016
+const HOME_CAT := 0.0109 * 0.7
+const VIEW_CELLS := 43.0 * 18.0
 
 
 static func grid(t) -> Dictionary:
@@ -92,6 +100,29 @@ static func grid(t) -> Dictionary:
 		var each := clampi(dark.size() / 25, 0, 14) / float(dark.size())
 		for p in dark:
 			_add(g.fireflies, p, each)
+	# Homes: hearth and lamp glow like any fire's, flames, steam and moths,
+	# and a cat roaming the floor.
+	for h in t.homes:
+		var origin := Vector2(h.origin * TILE)
+		var p: InteriorPlan = h.plan
+		for it in p.items:
+			var a: Dictionary = InteriorArt.ART.get(it.art, {})
+			var rect: Rect2i = a.get("rect", Rect2i())
+			var top_left: Vector2 = origin + Vector2(it.pos) - Vector2(rect.size.x / 2.0, rect.size.y)
+			if a.has("hearth"):
+				var hr: Rect2i = a.hearth
+				var flame := top_left + Vector2(hr.get_center())
+				_glow(g.glow, flame, 30)
+				_add(g.home, flame, HOME_HEARTH * VIEW_CELLS)
+			elif a.has("lamp"):
+				var at := top_left + Vector2(a.lamp)
+				_glow(g.glow, at, 14)
+				_add(g.home, at, HOME_STEAM * VIEW_CELLS)
+			elif a.get("steam", false):
+				_add(g.home, top_left, HOME_STEAM * VIEW_CELLS)
+		var floor := p.open_floor()
+		for c in floor:
+			_add(g.home, origin + Vector2(c * TILE) + Vector2(8, 8), HOME_CAT * VIEW_CELLS / floor.size())
 	var plan: Dictionary = t.wildlife_plan()
 	for grp in plan.groups:
 		var spec: Dictionary = Wildlife.SPECIES[grp.kind]
@@ -99,6 +130,14 @@ static func grid(t) -> Dictionary:
 		var r: float = minf(spec.home, 80.0)
 		_spread(g.animals, Rect2(home - Vector2(r, r), Vector2(r, r) * 2.0), Base.sprite_area(grp.kind) * grp.cells.size())
 	return g
+
+
+# The bright inner half of a fire's glow (fire_ambience.gd), in cells of area.
+static func _glow(a: PackedFloat32Array, at: Vector2, r: int) -> void:
+	for y in range(-r, r + 1):
+		for x in range(-r, r + 1):
+			if Vector2(x, y * 1.25).length() / r < 0.55:
+				_add(a, at + Vector2(x, y), 1.0 / (TILE * TILE))
 
 
 static func sprite_area(kind: String) -> float:

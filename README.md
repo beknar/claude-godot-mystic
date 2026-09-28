@@ -28,6 +28,9 @@ project, copy them in locally:
 - Painted Lands: `TILESET_brighter.png` and `character_sprite_sheet.png` to `assets/pack/`
 - Painted Lands – Green Caves: the pack folder to `assets/pack/green_caves/`
   (`green_caves_tileset.png`, `explanations.png`)
+- Painted Lands – Interior Cozy Cottage: the pack folder to
+  `assets/pack/cozy_cottage/` (`wallpapers_and_floors.png`, `furniture.png`,
+  `decoration.png`)
 
 Then open the project in Godot so it imports them.
 
@@ -85,7 +88,28 @@ menu and recipe picker. Its ambience is the Painted Lands set adapted to a
 cave (fire glow and smoke, water life, glowworms, moths, dragonflies, cave
 animals, footsteps, mossy leaf fall) plus `scripts/cave_life.gd` (drips,
 dust motes, crystal glints, bats), and it has the same liveliness floor.
-`tools/check_caves.gd` sweeps the recipes headless.
+`tools/check_caves.gd` sweeps the recipes headless. Seven recipes have homes
+built into the cave (Miners' camp, Smugglers' cache, Root cellar, Hermit's
+nook, and the new Hermit's home, Cave hamlet with three homes, and
+Underground manor with one of five or six rooms): rock-walled, entered
+through an arched doorway, furnished inside.
+
+### Interiors
+
+Both randomizers furnish homes with the Cozy Cottage interior pack
+(`scripts/interior_plan.gd`, `interior_view.gd`, `interior_life.gd`): one to
+six rooms (cottage, living room, hall, kitchen, bedroom, study, bath, dining
+room, pantry), doors between them, a way out, windows, wallpaper, floors, and
+furniture by room, in five wood tones. In the Painted Lands randomizer every
+house has a door: walk up into it from the doorstep and the screen fades into
+its interior (a porch cottage has three to six rooms, a hut one or two); walk
+out the bottom to return. Three new Painted Lands recipes put several houses
+on one map (Cottage row, Twin cottages, Manor green). Inside, fires flicker
+in the hearths, lamps glow, sunbeams fall through the windows with dust in
+them, cups steam, moths circle the lamps, and most homes have a cat that
+naps by the fire or in the sun and comes to say hello or trots off.
+`tools/check_interiors.gd` checks 600 homes, `tools/interior_preview.tscn`
+shows six, and `tools/sim_interior.gd` measures how lively they are.
 
 The Painted Lands randomizer runs the Painted Lands generator with the wilds
 settings; the Mystic Woods randomizer runs the Mystic Woods generator the
@@ -303,6 +327,10 @@ Art (purchased; not included in this repository, see "Art packs" above):
   [antarcticbees](https://antarcticbees.itch.io/antarcticbees-the-painted-lands-forest).
   `TILESET_brighter.png` and `character_sprite_sheet.png`. License: use and
   modification in personal and commercial projects.
+- **The Painted Lands – Interior Cozy Cottage Tileset** by
+  [antarcticbees](https://antarcticbees.itch.io). Wallpapers, floors,
+  furniture, and decoration for the home interiors. License: see the pack's
+  itch.io page; purchased, not redistributed here.
 - **The Painted Lands – Green Caves Tileset** by
   [antarcticbees](https://antarcticbees.itch.io). `green_caves_tileset.png`
   (the pack's slimes are not used). License: see the pack's itch.io page;

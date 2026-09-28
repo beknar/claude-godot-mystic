@@ -35,6 +35,7 @@ const FACE := 2 # a wall or terrace face (blocks)
 const TERRACE := 3 # raised walkable floor
 const STAIR := 4
 const WATER := 5
+const HOME := 6 # floor inside a home (and its doorway): walkable, painted by interior_view.gd
 
 const ROLES := {15: Vector2i(1, 1), 14: Vector2i(1, 0), 11: Vector2i(1, 2), 7: Vector2i(0, 1), 13: Vector2i(2, 1),
 	6: Vector2i(0, 0), 12: Vector2i(2, 0), 3: Vector2i(0, 2), 9: Vector2i(2, 2)}
@@ -140,7 +141,7 @@ const RECIPES := [
 	{"name": "Crystal cavern", "floor": "light", "band": true, "islands": [1, 3], "terraces": [0, 0], "pools": [0, 1], "zones": 0.3, "piece": "crystal_ring", "scatter": [["CRYSTALS", 22], ["ROCKS", 4]], "torches": 0},
 	{"name": "Flooded hall", "floor": "light", "band": true, "islands": [0, 1], "terraces": [0, 0], "pools": [1, 2], "lake": true, "zones": 0.2, "piece": "cairn", "scatter": [["CONES", 5], ["PLANTS", 4], ["ROCKS", 4]], "torches": 1},
 	{"name": "Mine shaft", "floor": "dark", "band": true, "islands": [1, 2], "terraces": [0, 0], "pools": [0, 0], "rails": true, "zones": 0.0, "piece": "mine", "scatter": [["ORES", 5], ["ROCKS", 4], ["CLUTTER", 3]], "torches": 3},
-	{"name": "Miners' camp", "floor": "light", "band": true, "islands": [0, 1], "terraces": [0, 0], "pools": [0, 1], "zones": 0.15, "piece": "camp", "scatter": [["CLUTTER", 6], ["ORES", 3], ["ROCKS", 3]], "torches": 2},
+	{"name": "Miners' camp", "floor": "light", "band": true, "islands": [0, 1], "terraces": [0, 0], "pools": [0, 1], "zones": 0.15, "piece": "camp", "scatter": [["CLUTTER", 6], ["ORES", 3], ["ROCKS", 3]], "torches": 2, "homes": [1, 1], "rooms": [2, 3]},
 	{"name": "Mossy hollow", "floor": "moss", "band": true, "islands": [1, 2], "terraces": [0, 1], "pools": [1, 2], "zones": 0.0, "piece": "grove", "scatter": [["PLANTS", 14], ["TREES", 4], ["TUFTS", 30]], "torches": 0},
 	{"name": "Terrace steps", "floor": "light", "band": true, "islands": [0, 1], "terraces": [2, 2], "pools": [0, 1], "zones": 0.2, "piece": "terrace_top", "scatter": [["ROCKS", 6], ["CRYSTALS", 3]], "torches": 1},
 	{"name": "Ossuary", "floor": "dark", "band": true, "islands": [1, 2], "terraces": [0, 1], "pools": [0, 0], "zones": 0.0, "piece": "bones", "scatter": [["BONES", 10], ["ROCKS", 5]], "faces": "skull", "torches": 2},
@@ -150,7 +151,7 @@ const RECIPES := [
 	{"name": "Ore vein", "floor": "dark", "band": true, "islands": [1, 3], "terraces": [0, 0], "pools": [0, 0], "rails": true, "zones": 0.0, "piece": "mine", "scatter": [["ORES", 14], ["ROCKS", 4]], "torches": 2},
 	{"name": "Dead grove", "floor": "light", "band": true, "islands": [0, 1], "terraces": [0, 1], "pools": [0, 1], "zones": 0.25, "piece": "grove", "scatter": [["TREES", 6], ["BRANCHES", 4], ["ROCKS", 4]], "torches": 0},
 	{"name": "Cave mouth", "floor": "light", "band": true, "islands": [0, 1], "terraces": [0, 0], "pools": [0, 1], "zones": 0.15, "piece": "doorway", "scatter": [["ROCKS", 6], ["PLANTS", 4], ["TUFTS", 10]], "torches": 2},
-	{"name": "Smugglers' cache", "floor": "dark", "band": true, "islands": [1, 2], "terraces": [0, 1], "pools": [0, 0], "zones": 0.0, "piece": "cache", "scatter": [["CLUTTER", 8], ["ROCKS", 3]], "torches": 2},
+	{"name": "Smugglers' cache", "floor": "dark", "band": true, "islands": [1, 2], "terraces": [0, 1], "pools": [0, 0], "zones": 0.0, "piece": "cache", "scatter": [["CLUTTER", 8], ["ROCKS", 3]], "torches": 2, "homes": [1, 1], "rooms": [1, 2]},
 	{"name": "Rail junction", "floor": "light", "band": true, "islands": [1, 2], "terraces": [0, 0], "pools": [0, 1], "rails": true, "zones": 0.15, "piece": "mine", "scatter": [["ROCKS", 5], ["ORES", 4], ["CLUTTER", 3]], "torches": 2},
 	{"name": "Twin pools", "floor": "light", "band": true, "islands": [0, 1], "terraces": [0, 0], "pools": [2, 2], "zones": 0.2, "piece": "spring", "scatter": [["PLANTS", 6], ["CONES", 4], ["CRYSTALS", 3]], "torches": 1},
 	{"name": "Crystal shrine", "floor": "light", "band": true, "islands": [0, 1], "terraces": [1, 1], "pools": [0, 1], "zones": 0.25, "piece": "shrine", "scatter": [["CRYSTALS", 12], ["ROCKS", 3]], "torches": 2},
@@ -158,14 +159,17 @@ const RECIPES := [
 	{"name": "Collapsed tunnel", "floor": "light", "band": true, "islands": [4, 6], "terraces": [0, 0], "pools": [0, 0], "zones": 0.2, "piece": "cairn", "scatter": [["ROCKS", 14], ["BRANCHES", 2]], "torches": 1},
 	{"name": "Overgrown mine", "floor": "moss", "band": true, "islands": [1, 2], "terraces": [0, 0], "pools": [0, 1], "rails": true, "zones": 0.0, "piece": "mine", "scatter": [["PLANTS", 10], ["TREES", 3], ["TUFTS", 20], ["ORES", 3]], "torches": 1},
 	{"name": "Watch post", "floor": "light", "band": true, "islands": [0, 1], "terraces": [1, 1], "pools": [0, 1], "zones": 0.2, "piece": "terrace_top", "scatter": [["ROCKS", 5], ["CLUTTER", 3]], "torches": 2},
-	{"name": "Root cellar", "floor": "dark", "band": true, "islands": [0, 1], "terraces": [0, 0], "pools": [0, 1], "zones": 0.0, "piece": "cellar", "scatter": [["TREES", 4], ["CLUTTER", 5], ["BRANCHES", 2]], "torches": 2},
+	{"name": "Root cellar", "floor": "dark", "band": true, "islands": [0, 1], "terraces": [0, 0], "pools": [0, 1], "zones": 0.0, "piece": "cellar", "scatter": [["TREES", 4], ["CLUTTER", 5], ["BRANCHES", 2]], "torches": 2, "homes": [1, 1], "rooms": [2, 3]},
 	{"name": "Echo chamber", "floor": "light", "band": true, "islands": [0, 0], "terraces": [0, 0], "pools": [0, 1], "zones": 0.4, "piece": "cairn", "scatter": [["ROCKS", 5], ["CRYSTALS", 5], ["CONES", 3]], "torches": 0},
 	{"name": "Lake terrace", "floor": "light", "band": true, "islands": [0, 0], "terraces": [1, 1], "pools": [1, 1], "lake": true, "zones": 0.2, "piece": "terrace_top", "scatter": [["CONES", 4], ["PLANTS", 4]], "torches": 1},
 	{"name": "Coal store", "floor": "dark", "band": true, "islands": [1, 2], "terraces": [0, 0], "pools": [0, 0], "rails": true, "zones": 0.0, "piece": "coal", "scatter": [["CLUTTER", 4], ["ORES", 4]], "torches": 2},
 	{"name": "Crossroads cavern", "floor": "light", "band": true, "islands": [2, 3], "terraces": [0, 0], "pools": [0, 1], "zones": 0.2, "piece": "crossroads", "scatter": [["ROCKS", 6], ["PLANTS", 3]], "torches": 2},
-	{"name": "Hermit's nook", "floor": "moss", "band": true, "islands": [1, 2], "terraces": [0, 1], "pools": [0, 1], "zones": 0.0, "piece": "camp", "scatter": [["BRANCHES", 3], ["PLANTS", 6], ["TUFTS", 14], ["TREES", 2]], "torches": 0},
+	{"name": "Hermit's nook", "floor": "moss", "band": true, "islands": [1, 2], "terraces": [0, 1], "pools": [0, 1], "zones": 0.0, "piece": "camp", "scatter": [["BRANCHES", 3], ["PLANTS", 6], ["TUFTS", 14], ["TREES", 2]], "torches": 0, "homes": [1, 1], "rooms": [1, 2]},
 	{"name": "Sunken garden", "floor": "moss", "band": true, "islands": [0, 1], "terraces": [0, 1], "pools": [1, 2], "zones": 0.0, "piece": "grove", "scatter": [["TREES", 5], ["PLANTS", 10], ["TUFTS", 24]], "torches": 0},
 	{"name": "Treasure vault", "floor": "dark", "band": true, "islands": [0, 1], "terraces": [1, 1], "pools": [0, 0], "zones": 0.0, "piece": "vault", "scatter": [["CRYSTALS", 8], ["ROCKS", 3]], "torches": 3},
+	{"name": "Hermit's home", "floor": "moss", "band": true, "islands": [0, 1], "terraces": [0, 0], "pools": [1, 1], "zones": 0.0, "piece": "grove", "scatter": [["PLANTS", 10], ["TUFTS", 24], ["TREES", 3], ["BRANCHES", 2]], "torches": 1, "homes": [1, 1], "rooms": [1, 2]},
+	{"name": "Cave hamlet", "floor": "light", "band": true, "islands": [0, 1], "terraces": [0, 0], "pools": [0, 1], "zones": 0.2, "piece": "camp", "scatter": [["CLUTTER", 6], ["PLANTS", 4], ["ROCKS", 3]], "torches": 2, "homes": [3, 3], "rooms": [1, 2]},
+	{"name": "Underground manor", "floor": "dark", "band": true, "islands": [0, 0], "terraces": [0, 0], "pools": [0, 1], "zones": 0.0, "piece": "shrine", "scatter": [["CRYSTALS", 6], ["PLANTS", 4], ["ROCKS", 2]], "torches": 3, "homes": [1, 1], "rooms": [5, 6]},
 ]
 const ATTEMPTS := 40
 
@@ -190,6 +194,7 @@ var fires: Array[Vector2i] = [] # campfire and torch cells
 var pools: Array[Rect2i] = []
 var terraces: Array[Rect2i] = []
 var islands: Array[Rect2i] = []
+var homes: Array[Dictionary] = [] # {origin: Vector2i, plan: InteriorPlan, door: Vector2i (the arch's walkable cell)}
 var rails := {} # cell -> true
 var blocked := {} # cells the walker cannot enter
 var spawn := Vector2i.ZERO
@@ -203,7 +208,7 @@ var _rng := RandomNumberGenerator.new()
 var _occupied := {} # cells claimed by structures, pools and their rings, props
 
 
-## Builds map `p_map_id` with recipe `p_recipe` (-1: map id % 30). Returns
+## Builds map `p_map_id` with recipe `p_recipe` (-1: map id % recipe count). Returns
 ## the report; its "  checks:" line is "ok" when the map passes.
 func generate(p_map_id: int, p_recipe := -1, p_enrich := true) -> String:
 	map_id = p_map_id
@@ -214,7 +219,7 @@ func generate(p_map_id: int, p_recipe := -1, p_enrich := true) -> String:
 		attempt = a
 		_rng.seed = hash(Vector2i(map_id, a))
 		_build()
-		if _reaches_all():
+		if _reaches_all() and homes.size() >= recipe.get("homes", [0, 0])[0]:
 			break
 	return _report()
 
@@ -224,7 +229,7 @@ func _build() -> void:
 	kind.fill(FLOOR)
 	for d in [floor_tiles, zone, zone_tiles, features, anim, deco, water_deco, sparkles, accents, rails, blocked, _occupied]:
 		d.clear()
-	for a in [props, fires, pools, terraces, islands, goals]:
+	for a in [props, fires, pools, terraces, islands, goals, homes]:
 		a.clear()
 	notes.clear()
 	fails.clear()
@@ -235,6 +240,9 @@ func _build() -> void:
 		_back_wall()
 	for i in _rng.randi_range(recipe.terraces[0], recipe.terraces[1]):
 		_terrace()
+	var h: Array = recipe.get("homes", [0, 0])
+	for i in _rng.randi_range(h[0], h[1]):
+		_home()
 	if recipe.get("lake", false):
 		_pool(Vector2i(_rng.randi_range(9, 14), _rng.randi_range(5, 7)), true)
 	for i in _rng.randi_range(recipe.pools[0], recipe.pools[1]):
@@ -270,6 +278,53 @@ func _back_wall() -> void:
 		for k in 2:
 			features[Vector2i(dx + i, rows + k)] = DOORWAY + Vector2i(i, k)
 	notes.append("back wall %d rows, doorway at %d" % [rows, dx])
+
+
+# A home built into the cave (interior_plan.gd): its ring of walls is cave
+# rock toward the cave and the Cozy Cottage trim toward the rooms, and two
+# rows of cave face under its south wall carry an arched doorway to the way
+# out. Rooms: the recipe's range; each home its own style.
+func _home() -> void:
+	var rr: Array = recipe.get("rooms", [1, 2])
+	var n := _rng.randi_range(rr[0], rr[1])
+	var plan := InteriorPlan.new().generate(map_id * 7919 + attempt * 131 + homes.size() * 17, n,
+		{"black": true, "exit_width": 3, "max_size": Vector2i(30, 18)})
+	var need := plan.size + Vector2i(0, 2)
+	for i in 120:
+		var at := Vector2i(_rng.randi_range(2, W - need.x - 2), _rng.randi_range(4, H - need.y - 5))
+		if not _free(Rect2i(at, need).grow(2)):
+			continue
+		for c in plan.kind:
+			var k: int = plan.kind[c]
+			kind[_i(at + c)] = WALL if k == InteriorPlan.WALL else (FACE if k == InteriorPlan.FACE else HOME)
+		for c in plan.blocked:
+			blocked[at + c] = true
+		# The cave face under the south wall, with the arch at the way out.
+		var ex: int = plan.exit_cell.x
+		for x in plan.size.x:
+			for k in 2:
+				var c := at + Vector2i(x, plan.size.y + k)
+				if absi(x - ex) <= 1:
+					features[c] = DOORWAY + Vector2i(x - ex + 1, k)
+					kind[_i(c)] = HOME if x == ex else FACE
+				else:
+					var col := 0 if x == 0 else (2 if x == plan.size.x - 1 else 1)
+					features[c] = WALL_FACE + Vector2i(col, k)
+					kind[_i(c)] = FACE
+		var door := at + Vector2i(ex, plan.size.y + 1)
+		homes.append({"origin": at, "plan": plan, "door": door})
+		# Keep the approach to the arch open, and the home off-limits to scatter.
+		_claim(Rect2i(at, need).grow(1))
+		_claim(Rect2i(door + Vector2i(-1, 1), Vector2i(3, 2)))
+		# The walker must be able to get in: the entry room is a goal.
+		for d in [Vector2i(0, -2), Vector2i(0, -3), Vector2i(0, -4)]:
+			var inside: Vector2i = at + plan.exit_cell + d
+			if kind[_i(inside)] == HOME and not blocked.has(inside):
+				goals.append(inside)
+				break
+		notes.append("home %d rooms %s" % [n, ",".join(plan.rooms.map(func(r): return r.type))])
+		return
+	notes.append("home dropped (no room)")
 
 
 # A rock island: a solid rectangle of wall mass (3-7 x 2-3) with its face.
@@ -811,6 +866,8 @@ const FLOOR_SPARKLE := 0.162 # per sparkle cell
 const FLOOR_FIRE := 139.0 # a campfire: glow 4.75 cells x 21.18, smoke 38.2
 const FLOOR_TORCH := 30.5 # a torch: glow 1.44 cells x 21.18
 const FLOOR_TREE := 4.17
+const FLOOR_HEARTH := 60.0 # a home's hearth: glow, no smoke (estimated from the torch and campfire glows)
+const FLOOR_LAMP := 12.0 # a lamp in a home
 
 func _liveliness_floor() -> void:
 	var added := 0
@@ -851,6 +908,16 @@ func _weakest_window() -> Dictionary:
 		m[_i(c)] += FLOOR_WATER
 	for c in sparkles:
 		m[_i(c)] += FLOOR_SPARKLE
+	for h in homes:
+		for it in h.plan.items:
+			var a: Dictionary = InteriorArt.ART.get(it.art, {})
+			var cell: Vector2i = h.origin + Vector2i(it.pos / TILE)
+			if not _inside(cell):
+				continue
+			if a.has("hearth"):
+				m[_i(cell)] += FLOOR_HEARTH
+			elif a.has("lamp"):
+				m[_i(cell)] += FLOOR_LAMP
 	for p in props:
 		var tag: String = PROPS[p.art].tag
 		var c: Vector2i = p.cell
@@ -963,7 +1030,7 @@ func wildlife_plan() -> Dictionary:
 	for y in H:
 		for x in W:
 			var c := Vector2i(x, y)
-			if walkable(c) and kind[_i(c)] == FLOOR:
+			if walkable(c) and (kind[_i(c)] == FLOOR or kind[_i(c)] == HOME):
 				land[c] = true
 	var clutter: Array[Vector2i] = []
 	var rocks: Array[Vector2i] = []
@@ -979,8 +1046,8 @@ func wildlife_plan() -> Dictionary:
 		for d in [Vector2i.UP, Vector2i.RIGHT, Vector2i.DOWN, Vector2i.LEFT, Vector2i(0, 2), Vector2i(0, -2), Vector2i(2, 0), Vector2i(-2, 0)]:
 			if water.has(c + d):
 				h.shore[c] = true
-		if _near_any(c, clutter, 2):
-			h.clutter[c] = true
+		if _near_any(c, clutter, 2) or kind[_i(c)] == HOME:
+			h.clutter[c] = true # mice by crates and bones, and in every home
 		if _near_any(c, rocks, 2):
 			h.rocky[c] = true
 		if (moss or deco.has(c)) and not h.shore.has(c):
@@ -1012,7 +1079,7 @@ func walkable(c: Vector2i) -> bool:
 	if not _inside(c) or blocked.has(c):
 		return false
 	var k := kind[_i(c)]
-	return k == FLOOR or k == TERRACE or k == STAIR
+	return k == FLOOR or k == TERRACE or k == STAIR or k == HOME
 
 
 func _reaches_all() -> bool:
@@ -1045,7 +1112,7 @@ func _reaches(from: Vector2i, to: Vector2i) -> bool:
 
 
 func _report() -> String:
-	var counts := [0, 0, 0, 0, 0, 0]
+	var counts := [0, 0, 0, 0, 0, 0, 0]
 	for k in kind:
 		counts[k] += 1
 	if not _reaches_all():
@@ -1054,13 +1121,15 @@ func _report() -> String:
 		fails.append("no rails")
 	if (recipe.pools[0] > 0 or recipe.get("lake", false)) and pools.is_empty():
 		fails.append("no pool")
+	if recipe.get("homes", [0, 0])[0] > homes.size():
+		fails.append("homes %d of %d" % [homes.size(), recipe.homes[0]])
 	if recipe.terraces[0] > 0 and terraces.is_empty():
 		fails.append("no terrace")
 	var lines := PackedStringArray([
 		"Green Caves map %d: recipe %d %s, %dx%d (layout attempt %d)" % [map_id, recipe_id, recipe.name, W, H, attempt],
-		"  cells: floor %d, wall %d, face %d, terrace %d, stair %d, water %d" % counts,
-		"  pools %d, terraces %d, islands %d, rails %d, zone %d cells, props %d, fires %d" % [pools.size(), terraces.size(),
-			islands.size(), rails.size(), zone.size(), props.size(), fires.size()],
+		"  cells: floor %d, wall %d, face %d, terrace %d, stair %d, water %d, home %d" % counts,
+		"  pools %d, terraces %d, islands %d, homes %d, rails %d, zone %d cells, props %d, fires %d" % [pools.size(), terraces.size(),
+			islands.size(), homes.size(), rails.size(), zone.size(), props.size(), fires.size()],
 		"  %s" % ", ".join(notes),
 	])
 	if not floor_notes.is_empty():

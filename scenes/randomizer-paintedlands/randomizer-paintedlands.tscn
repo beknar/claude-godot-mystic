@@ -8,6 +8,7 @@ texture_filter = 1
 script = ExtResource("1_script")
 map_id = 75125
 recipe = 5
+interiors = true
 
 [node name="Ground" type="TileMapLayer" parent="." unique_id=373625155]
 

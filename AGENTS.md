@@ -578,8 +578,10 @@ Upper: outer (21,0) / north (22,0)
 ## Houses (0 or 1, unless the recipe names more)
 
 Default is **zero or one** house per map. Two only on recipes 10 (West
-hamlet) and 23 (Woodcutter camp), three only on 26 (Village square); those
-recipes name every prefab.
+hamlet), 23 (Woodcutter camp), 31 (Twin cottages), and 32 (Manor green),
+three only on 26 (Village square) and 30 (Cottage row); those recipes name
+every prefab. In the randomizer every house has a door into an interior
+(§ Interiors).
 
 The sheet has four complete buildings. Never mix tiles from two
 prefabs. Regions are in sheet cells; the doorstep is the cell the path
@@ -982,9 +984,16 @@ rocks (WR), campfire (CF), torches (T), signs (S).
 | 27 | Hedge garden | 1×2 | S if room | F+G | through gate | R 2 | hedges heavy, carpets heavy, T, S=1 |
 | 28 | Ridgeline | 1×1 | S if room | R (light ridge across the map, two passes) | through the pass | I 2–3 | bushes, LR, T at the pass, S=1 |
 | 29 | Walled mesa | 0 | S if room | C+R (14–18 × 7–8 top in stone, mid, or dark; ridge walls on it, each end two walkable columns short of the outer rim) | to the mesa | R 1–2 | LR, outcrops, T, S=1 |
+| 30 | Cottage row | **3** (1, 2, 3) | S if room | none | plaza + 2 trunks | R 1–2 | bushes, carpets heavy, T, S=2 |
+| 31 | Twin cottages | **2** (0 and 2) | P + WP | F | from east, L | RI 2 | bushes, T, S=1 |
+| 32 | Manor green | **2** (0 and 3) | S if room | none | plaza + 2 trunks | R 2–3 | bushes, LR, T, S=2 |
 
-`1×N` means one house of prefab N. Only recipes 10 and 23 place two
-houses and 26 three. Recipes 5, 12, 18, 20, 22, 24, 25, 29 place zero. C2 is two plateaus.
+Recipes 30–32 use the village and hamlet layouts with other buildings: in
+the randomizer every house opens onto an interior (§ Interiors), so these
+put homes of different sizes side by side. The hut must come last in a row.
+
+`1×N` means one house of prefab N. Only recipes 10, 23, 31, and 32 place two
+houses and 26 and 30 three. Recipes 5, 12, 18, 20, 22, 24, 25, 29 place zero. C2 is two plateaus.
 The forest and wilds scenes pin recipes 3 and 5, so adding recipes
 never changes those maps.
 
@@ -1054,14 +1063,14 @@ not use their sheets here. Sheet: `assets/pack/green_caves/green_caves_tileset.p
 ## Pipeline
 
 spawn near the bottom → back wall (2–3 rows, doorway, face variants) →
-terraces with stairs → lake, pools → rock islands (4–8 × 3–4) → goal (the
+terraces with stairs → homes (recipes that have them) → lake, pools → rock islands (4–8 × 3–4) → goal (the
 farthest open spot) → rails from spawn to goal (at most two bends) → the
 recipe's set piece at the goal → dark zones + halos → floor patches → floor
 → scatter ×1.4 plus 10–16 small floor bits → wall torches in pairs →
 liveliness floor → reach check (spawn to goal and to every terrace top; up
 to 40 layout attempts).
 
-## Recipes (`recipe = id % 30`)
+## Recipes (`recipe = id % 33`)
 
 | # | Name | Floor | Set piece / features |
 |---|---|---|---|
@@ -1069,7 +1078,7 @@ to 40 layout attempts).
 | 1 | Crystal cavern | light | crystal ring, crystal rock tree |
 | 2 | Flooded hall | light | lake + pools |
 | 3 | Mine shaft | dark | mine (carts, coal, crates), rails |
-| 4 | Miners' camp | light | campfire camp |
+| 4 | Miners' camp | light | campfire camp, a home of 2–3 rooms |
 | 5 | Mossy hollow | moss | grove, pools, tufts |
 | 6 | Terrace steps | light | two terraces, goal on top |
 | 7 | Ossuary | dark | bones, skull faces |
@@ -1079,7 +1088,7 @@ to 40 layout attempts).
 | 11 | Ore vein | dark | ore, rails |
 | 12 | Dead grove | light | dead trees, branches |
 | 13 | Cave mouth | light | signpost and torches |
-| 14 | Smugglers' cache | dark | crates, barrels, chests |
+| 14 | Smugglers' cache | dark | crates, barrels, chests, a home of 1–2 rooms |
 | 15 | Rail junction | light | mine, rails |
 | 16 | Twin pools | light | two pools |
 | 17 | Crystal shrine | light | pillar gate, crystals, terrace |
@@ -1087,14 +1096,29 @@ to 40 layout attempts).
 | 19 | Collapsed tunnel | light | 4–6 islands, rocks |
 | 20 | Overgrown mine | moss | mine, rails, plants |
 | 21 | Watch post | light | terrace top with signpost and torch |
-| 22 | Root cellar | dark | barrels, trough, rock tree |
+| 22 | Root cellar | dark | barrels, trough, rock tree, a home of 2–3 rooms |
 | 23 | Echo chamber | light | open hall, large zones |
 | 24 | Lake terrace | light | lake + terrace |
 | 25 | Coal store | dark | coal, carts, rails |
 | 26 | Crossroads cavern | light | signpost and boards |
-| 27 | Hermit's nook | moss | camp |
+| 27 | Hermit's nook | moss | camp, a home of 1–2 rooms |
 | 28 | Sunken garden | moss | grove, pools |
 | 29 | Treasure vault | dark | chests, pillars, violet crystals, terrace |
+| 30 | Hermit's home | moss | a home of 1–2 rooms, grove, a pool |
+| 31 | Cave hamlet | light | three homes of 1–2 rooms, camp |
+| 32 | Underground manor | dark | one home of 5–6 rooms, pillar gate, crystals |
+
+**Homes** (`_home()`): an InteriorPlan (§ Interiors) built into the cave.
+Its wall ring is cave rock toward the cave floor and the Cozy Cottage trim
+toward the rooms (wall tops composed per quarter cell, the cottage black
+recoloured to the rock's fill), and two rows of cave face under its south
+wall carry the arched doorway `(5–7, 9–10)` over the way out (the arch's
+middle column walkable). Interior floor is kind `HOME` (walkable; mice live
+there). A cave home has no sunbeams; its hearths and lamps glow through
+`fire_ambience.gd` ("hearth", "lamp") and it has its own life
+(`interior_life.gd`). Homes go before pools and islands, and a map retries its
+layout until every home the recipe asks for fits and the entry room is
+reachable.
 
 ## Ambience and liveliness
 
@@ -1111,8 +1135,86 @@ streaks, drifters, or grass waves underground.
 
 Liveliness floor: every 43×18 window should reach 0.2 % on the frozen
 weights in `cave_terrain.gd` (from the rendered cave calibration: pool cells
-0.65, sparkles 0.16, campfire 139, torch 30.5, mossy trees 4.17); weak windows
+0.65, sparkles 0.16, campfire 139, torch 30.5, mossy trees 4.17, a home's
+hearth 60, a lamp 12); weak windows
 get a campfire (with a branch) or a torch pair, up to six. Calibration:
 `docs/liveliness-calibration-caves.md` (12 maps filmed, 4 held back). The estimate is `scripts/cave_liveliness_features.gd` with
 `tools/liveliness_coef_caves.json` (`tools/liveliness.gd ... caves`).
+
+---
+
+# Interiors (Cozy Cottage)
+
+Pack: The Painted Lands – Interior Cozy Cottage Tileset (antarcticbees),
+`assets/pack/cozy_cottage/` (git-ignored). Sheets: `wallpapers_and_floors.png`,
+`furniture.png` (five wood tones, 288 px apart), `decoration.png`. Catalog
+`scripts/interior_art.gd`; generator `scripts/interior_plan.gd`; painter
+`scripts/interior_view.gd`; life `scripts/interior_life.gd`; the Painted Lands
+doors `scripts/house_interiors.gd`. Used by the Green Caves homes and the
+Painted Lands randomizer's houses; never on the outdoor maps themselves.
+
+Sheet systems:
+
+- Wallpaper groups at rows 0, 5, 10, 15: a lip (wall top edged toward the
+  room) over three face rows; one trim color each (cream, brown, mid, dark),
+  matching the wall-top frames at `(0, 20)`, `(5, 20)`, `(10, 20)`, `(15, 20)`
+  (3×3, trim on the side toward the room; nubs for a room only diagonal in
+  the next two columns, rows 0–1 of the frame) and their black-filled copies
+  nine rows lower (used everywhere: the void round an interior is black).
+- Doorways: two-wide openings with a transparent hole; group starts
+  `DOORWAY` = 29, 34, 34, 38.
+- Floors: planks in 2×4 blocks from `(28–44, 20–23)`, parquet 2×2 from rows
+  25–28, tiles `(20–27, 21–23)` (kitchens, baths, pantries).
+- Furniture and decoration: `InteriorArt.ART` (rect, footprint cells, place:
+  wall, floor, face, top). Fireplaces are their own art in any wood tone.
+  Kitchen counters are modules along the north wall (`COUNTERS`, wood or
+  marble tops, one sink). Left out: fridges, washers, stoves, screens.
+
+Layout (`InteriorPlan.generate(seed, rooms, opts)`): a rectangle split into
+one to six rooms by one-cell walls (each room at least 4 wide and 6 tall: three
+face rows and three floor rows); each split gets a door (a gap two cells tall
+in a vertical wall, or a two-wide doorway through a horizontal wall and the
+face under it, drawn with the group's door frame); the way out is a gap in the
+south wall of a south room (three wide, the arch's, in caves). Room sets by
+count (the first is the entry room): 1 cottage; 2 living/bedroom,
+cottage/bedroom, living/kitchen; 3 living, kitchen, bedroom (or hall …, or
+study); 4–6 add study, bath, dining, pantry, a second bedroom. Bath and pantry
+take the smallest rooms.
+
+Furnishing: a window first (not in hearth rooms, baths, or pantries), then the
+room's set (cottage: hearth, bed, wardrobe, counters, table and chairs;
+living: hearth, rug, sofa, low table, armchair, bookshelf, floor lamp; hall;
+kitchen: counters with a sink, dish shelf, table and chairs; bedroom: bed,
+nightstand, wardrobe, dresser or vanity; study: bookshelves, desk and chair;
+bath: tub, vanity; dining: long table and chairs; pantry: shelves, baskets),
+floor plants and baskets in corners, hangings on the face (windows,
+paintings, vines, herbs, shelves, mirrors) where nothing tall stands, and
+something on every table and cabinet top. Tall wall furniture never stands in
+front of a hanging. A piece is placed only if every door, the way out, and
+some floor of every room stay reachable from the way out; door cells, their
+approach, and the doorway rows are kept clear. Every home has a fire: without
+a living room, a cooking hearth takes a wall (displacing a hanging).
+`tools/check_interiors.gd` checks 600 homes; `tools/interior_preview.tscn`
+shows six side by side.
+
+Life (`interior_life.gd`): flickering flames in every fireplace opening
+(y-sorted just in front of it), dappled sunbeams from each window (Painted
+Lands; slanted, dithered, dimming as clouds pass, leaf shadows moving across
+them, dust motes turning in them), steam from cups and teapots, a moth round
+half the lamps, and a house cat in 70 % of homes (four coats: sleeps by the
+hearth or in a sunbeam, stretches, wanders, sits and flicks its tail, comes to
+sit by the walker or trots off). Hearth and lamp light come from
+`fire_ambience.gd` (radius 30 and 14, no smoke). `tools/sim_interior.gd`
+measures it headless: about 0.59 % of a home's pixels change per frame
+(quietest 0.33 %), comparable with the outdoor camera windows.
+
+Painted Lands doors (`house_interiors.gd`, `forest.gd` `interiors = true` in
+the randomizer only): walking up into a door from its doorstep fades to black
+and opens the house's interior, a sub-map 20000 px below the map (rooms by
+building: porch cottage 3–6, flower cottage 2–4, gable cottage 2–5, hut 1–2,
+shed 1, barn 1–3, from the map id and house index; built once per map). The
+outdoor map is hidden and paused, the walker is moved inside above the way
+out, and the camera is limited to the home (centered when smaller than the
+screen). Walking down through the way out returns to the doorstep facing out.
+Regenerating from the menu while indoors drops the interior first.
 

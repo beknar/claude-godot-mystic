@@ -35,6 +35,9 @@ var critters: Critters
 var footsteps: Footsteps
 var wildlife: Wildlife
 var cave_life: CaveLife
+var home_life: InteriorLife
+var homes_node: Node2D # the homes' InteriorViews, over the floor and under the actors
+var home_views: Array = []
 var report := ""
 var _atlas: TileSetAtlasSource
 var _pixels: Image
@@ -49,6 +52,10 @@ func _ready() -> void:
 	var tiles := _build_tileset()
 	for layer in [ground, zone_layer, features_layer, water_deco, deco_layer]:
 		layer.tile_set = tiles
+	homes_node = Node2D.new()
+	homes_node.name = "Homes"
+	add_child(homes_node)
+	move_child(homes_node, actors.get_index())
 	_add_ambience()
 	build(map_id, recipe)
 
@@ -61,13 +68,14 @@ func build(id: int, pinned := -1) -> void:
 	report = terrain.generate(map_id, recipe)
 	for layer in [ground, zone_layer, features_layer, water_deco, deco_layer]:
 		layer.clear()
-	for node in [actors, collision]:
+	for node in [actors, collision, homes_node]:
 		for child in node.get_children():
 			node.remove_child(child)
 			child.queue_free()
 	_paint()
 	_build_collision()
 	_place_props()
+	_place_homes()
 	_spawn_walker()
 	_reset_ambience()
 	print(report)
@@ -204,6 +212,19 @@ func _place_props() -> void:
 		actors.add_child(body)
 
 
+## Homes built into the cave: each plan painted in place, its ring edged with
+## the cave's rock toward the cave floor, its furniture among the actors.
+func _place_homes() -> void:
+	home_views.clear()
+	for h in terrain.homes:
+		var view := InteriorView.new()
+		view.cave_sheet = SHEET
+		view.position = Vector2(h.origin * TILE)
+		homes_node.add_child(view)
+		view.build(h.plan, actors)
+		home_views.append(view)
+
+
 ## A prop's foot in world pixels: the bottom middle of its footprint.
 static func foot_of(prop: Dictionary) -> Vector2:
 	var fc: Rect2i = CaveTerrain.PROPS[prop.art].foot_cells
@@ -295,6 +316,10 @@ func _add_ambience() -> void:
 	wildlife = Wildlife.new()
 	cave_life = CaveLife.new()
 	cave_life.water_life = water_life
+	home_life = InteriorLife.new()
+	home_life.name = "HomeLife"
+	add_child(home_life)
+	move_child(home_life, actors.get_index()) # under the y-sorted actors
 	for n in [footsteps, critters, fire, leaves, wildlife, cave_life]:
 		add_child(n)
 	for n in [water_life, footsteps, critters, fire, leaves, cave_life]:
@@ -336,6 +361,14 @@ func _reset_ambience() -> void:
 				flowers.append(foot + Vector2(0, -10))
 		if prop.art == "rock_tree_crystal":
 			glinters.append(_bright_pixels(Rect2i(art.region.position + Vector2i(0, 40), Vector2i(art.region.size.x, 24)), top_left + Vector2(0, 40)))
+	# Homes: hearths and lamps glow (no smoke indoors), and their own life.
+	for v in home_views:
+		for r in v.hearths:
+			fires.append({"pos": r.end, "kind": "hearth", "flame": r.get_center(), "radius": 30, "smoke": false})
+			lights.append(r.get_center())
+		for l in v.lamps:
+			fires.append({"pos": l, "kind": "lamp", "flame": l, "radius": 14, "smoke": false})
+	home_life.setup(home_views, actors, walker, false)
 	fire.set_fires(fires)
 	leaves.set_sources(sources)
 	cave_life.setup(terrain.drip_spots(), lights, glinters)

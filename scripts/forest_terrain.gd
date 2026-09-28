@@ -46,6 +46,11 @@ const RECIPES := [
 	# caps where it stops, so a gap between two segments is a pass.
 	{"name": "Ridgeline", "houses": [1], "water": "S if room", "height": "R", "path": "through the pass", "patch": ["I", 2, 3], "props": ["bushes", "LR", "T"], "signs": 1},
 	{"name": "Walled mesa", "houses": [], "water": "S if room", "height": "C+R", "path": "to the mesa", "patch": ["R", 1, 2], "props": ["LR", "outcrops", "T"], "signs": 1},
+	# Every house opens onto an interior in the randomizer, so these put more
+	# homes of different sizes on one map.
+	{"name": "Cottage row", "houses": [1, 2, 3], "water": "S if room", "height": "", "path": "plaza + 2 trunks", "patch": ["R", 1, 2], "props": ["bushes", "carpets heavy", "T"], "signs": 2},
+	{"name": "Twin cottages", "houses": [0, 2], "water": "P+WP", "height": "F", "path": "from east, L", "patch": ["RI", 2, 2], "props": ["bushes", "T"], "signs": 1},
+	{"name": "Manor green", "houses": [0, 3], "water": "S if room", "height": "", "path": "plaza + 2 trunks", "patch": ["R", 2, 3], "props": ["bushes", "LR", "T"], "signs": 2},
 ]
 
 # FLAT_GRASS: one plain cell and three quiet speckles.
@@ -649,6 +654,9 @@ func _layout() -> bool:
 		27: return _lay_hedge_garden()
 		28: return _lay_ridgeline()
 		29: return _lay_walled_mesa()
+		30: return _lay_village()
+		31: return _lay_hamlet(false)
+		32: return _lay_village()
 	return false
 
 

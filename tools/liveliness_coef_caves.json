@@ -17,7 +17,8 @@
     "warm": 0.0,
     "glints": 0.0,
     "motes": 0.038289434778078967,
-    "bats": 0.0
+    "bats": 0.0,
+    "home": 1.0
   },
   "quiet": 0.05,
   "cloud_background": 0.0,
@@ -71,5 +72,8 @@
     130018,
     130028
   ],
-  "source": "rendered capture (.liveliness_caves), fit by tools/liveliness_analyze.py fit .liveliness_caves caves"
+  "source": "rendered capture (.liveliness_caves), fit by tools/liveliness_analyze.py fit .liveliness_caves caves",
+  "notes": {
+    "home": "homes' interior life, already weighted per piece (tools/sim_interior.gd); weight 1"
+  }
 }
