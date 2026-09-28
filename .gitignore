@@ -11,3 +11,6 @@
 .liveliness_walk/
 .liveliness_animals/
 __pycache__/
+
+# Purchased art packs (licensed: no redistribution). Kept local, never pushed.
+assets/pack/
