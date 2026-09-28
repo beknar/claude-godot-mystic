@@ -57,6 +57,8 @@ static func grid(t) -> Dictionary:
 		var art: Dictionary = Terrain.PROPS[prop.art]
 		var top_left := Vector2((prop.cell + art.cell) * TILE)
 		var size := Vector2(art.region.size * TILE)
+		if art.has("splice"): # spliced trees draw their crown lower
+			top_left.y += art.splice.y - art.splice.x
 		var foot := top_left + Vector2(art.base)
 		if prop.art in Terrain.TREES or prop.art in Terrain.SHADE_TREES:
 			var crown := Rect2(top_left + Vector2(5, 4), Vector2(size.x - 10, size.y * 0.45))

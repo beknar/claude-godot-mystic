@@ -232,17 +232,22 @@ const HOUSES := {
 # barn are outbuildings and have none.
 const CHIMNEYS := {0: Vector2i(47, 2), 1: Vector2i(87, 2), 2: Vector2i(87, 2), 3: Vector2i(23, 14)}
 
+# "splice": Vector2i(cut, join) on a tree whose sheet art stacks two bottoms
+# (the tree's own root flare, then the grass-tuft or shade row drawn with a
+# second trunk base): pixel rows cut..join-1 are dropped and the part above
+# is drawn join-cut pixels lower, so one trunk runs into the base. The foot,
+# collider, and sort point stay where the region puts them.
 const PROPS := {
 	"tree_a": {"region": Rect2i(29, 11, 4, 5), "cell": Vector2i(-2, -4), "base": Vector2i(34, 78), "block": Vector2(12, 6)},
 	"tree_b": {"region": Rect2i(33, 11, 5, 6), "cell": Vector2i(-2, -5), "base": Vector2i(40, 91), "block": Vector2(14, 6)},
 	# The same trees with the grass tuft the sheet draws under each trunk.
-	"tree_a_base": {"region": Rect2i(29, 11, 4, 6), "cell": Vector2i(-2, -5), "base": Vector2i(34, 92), "block": Vector2(12, 6)},
-	"tree_b_base": {"region": Rect2i(33, 11, 5, 7), "cell": Vector2i(-2, -6), "base": Vector2i(40, 106), "block": Vector2(14, 6)},
+	"tree_a_base": {"region": Rect2i(29, 11, 4, 6), "cell": Vector2i(-2, -5), "base": Vector2i(34, 92), "block": Vector2(12, 6), "splice": Vector2i(72, 80)},
+	"tree_b_base": {"region": Rect2i(33, 11, 5, 7), "cell": Vector2i(-2, -6), "base": Vector2i(40, 106), "block": Vector2(14, 6), "splice": Vector2i(88, 96)},
 	# Flowering versions (lavender blossom), rows 18+.
 	"bloom_a": {"region": Rect2i(29, 18, 4, 5), "cell": Vector2i(-2, -4), "base": Vector2i(34, 78), "block": Vector2(12, 6)},
 	"bloom_b": {"region": Rect2i(33, 18, 5, 6), "cell": Vector2i(-2, -5), "base": Vector2i(40, 91), "block": Vector2(14, 6)},
-	"bloom_a_base": {"region": Rect2i(29, 18, 4, 6), "cell": Vector2i(-2, -5), "base": Vector2i(34, 92), "block": Vector2(12, 6)},
-	"bloom_b_base": {"region": Rect2i(33, 18, 5, 7), "cell": Vector2i(-2, -6), "base": Vector2i(40, 106), "block": Vector2(14, 6)},
+	"bloom_a_base": {"region": Rect2i(29, 18, 4, 6), "cell": Vector2i(-2, -5), "base": Vector2i(34, 92), "block": Vector2(12, 6), "splice": Vector2i(72, 80)},
+	"bloom_b_base": {"region": Rect2i(33, 18, 5, 7), "cell": Vector2i(-2, -6), "base": Vector2i(40, 106), "block": Vector2(14, 6), "splice": Vector2i(88, 96)},
 	"log": {"region": Rect2i(21, 25, 2, 1), "cell": Vector2i(-1, 0), "base": Vector2i(16, 15), "block": Vector2(28, 6)},
 	"log_b": {"region": Rect2i(21, 26, 2, 1), "cell": Vector2i(-1, 0), "base": Vector2i(16, 15), "block": Vector2(28, 6)},
 	"crate": {"region": Rect2i(21, 27, 1, 1), "cell": Vector2i.ZERO, "base": Vector2i(8, 15), "block": Vector2(12, 6)},
@@ -280,8 +285,8 @@ const PROPS := {
 	"water_grass_big_b": {"region": Rect2i(47, 7, 2, 2), "cell": Vector2i(-1, -1), "base": Vector2i(16, 31), "block": Vector2.ZERO},
 	# Shade trees: the trees whose base row carries dark ground shade, only
 	# on the darkest grass, where the shade matches the ground.
-	"shade_tree": {"region": Rect2i(25, 11, 4, 5), "cell": Vector2i(-2, -4), "base": Vector2i(32, 79), "block": Vector2(14, 6)},
-	"shade_bloom": {"region": Rect2i(25, 18, 4, 5), "cell": Vector2i(-2, -4), "base": Vector2i(32, 79), "block": Vector2(14, 6)},
+	"shade_tree": {"region": Rect2i(25, 11, 4, 5), "cell": Vector2i(-2, -4), "base": Vector2i(32, 79), "block": Vector2(14, 6), "splice": Vector2i(61, 64)},
+	"shade_bloom": {"region": Rect2i(25, 18, 4, 5), "cell": Vector2i(-2, -4), "base": Vector2i(32, 79), "block": Vector2(14, 6), "splice": Vector2i(61, 64)},
 	"ash": {"region": Rect2i(28, 29, 1, 1), "cell": Vector2i.ZERO, "base": Vector2i(8, 15), "block": Vector2.ZERO},
 	# Rock outcrops: a small raised top on a short face, one per tone.
 	"outcrop_light": {"region": Rect2i(9, 12, 2, 6), "cell": Vector2i(-1, -5), "base": Vector2i(16, 94), "block": Vector2(24, 8)},

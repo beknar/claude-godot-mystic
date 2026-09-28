@@ -157,6 +157,8 @@ func _reset_ambience() -> void:
 		var art: Dictionary = PaintedTerrain.PROPS[prop.art]
 		var top_left := Vector2((prop.cell + art.cell) * TILE)
 		var size := Vector2(art.region.size * TILE)
+		if art.has("splice"): # the crown is drawn lower on spliced trees
+			top_left.y += art.splice.y - art.splice.x
 		sources.append({
 			"crown": Rect2(top_left + Vector2(5, 4), Vector2(size.x - 10, size.y * 0.45)),
 			"base_y": top_left.y + art.base.y,
@@ -571,6 +573,12 @@ func _place_props() -> void:
 			var top := _region_sprite(Rect2(region.position, Vector2(region.size.x, cut)), -base)
 			body.add_child(top)
 			_plant_tops.append(top)
+		elif prop.has("art") and PaintedTerrain.PROPS[prop.art].has("splice"):
+			# Two pieces: the base rows where the region puts them, the tree
+			# above the cut moved down onto them, so the trunk is unbroken.
+			var sp: Vector2i = PaintedTerrain.PROPS[prop.art].splice
+			body.add_child(_region_sprite(Rect2(region.position + Vector2(0, sp.y), Vector2(region.size.x, region.size.y - sp.y)), Vector2(0, sp.y) - base))
+			body.add_child(_region_sprite(Rect2(region.position, Vector2(region.size.x, sp.x)), Vector2(0, sp.y - sp.x) - base))
 		else:
 			body.add_child(_region_sprite(region, -base))
 		if prop.block and block != Vector2.ZERO:

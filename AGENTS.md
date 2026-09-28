@@ -561,7 +561,11 @@ required.
 
 **Trees** — `(29–32, 11–15)` and `(33–37, 11–16)`, and their flowering
 versions seven rows down. Each can take the grass tuft the sheet draws in
-the row under its trunk (region one row taller). Never `(25–28, 11–15)`
+the row under its trunk (region one row taller). That row starts a second trunk
+base under the tree's own root flare, so the grassy-base variants (and the
+shade trees, whose shade row does the same) are spliced: the flare rows are
+dropped and the tree above is drawn that many pixels lower onto the base
+(`splice` in `PROPS`), so one trunk runs into the grass. Never `(25–28, 11–15)`
 or `(25–28, 18–22)`: both carry a stray foliage band in the base row.
 
 **Clutter** — every map: one to three fallen logs `(21–22, 25)`,
