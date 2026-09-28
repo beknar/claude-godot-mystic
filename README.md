@@ -256,3 +256,27 @@ the sheet:
 The project is driven from Claude Code through the Godot MCP server
 (`@satelliteoflove/godot-mcp`). It talks to the `addons/godot_mcp` editor
 plugin over WebSocket port 6550.
+
+## Credits
+
+Art (purchased; not included in this repository, see "Art packs" above):
+
+- **Mystic Woods – 16x16 Pixel Art Asset Pack** (v2.2) by
+  [Game Endeavor](https://game-endeavor.itch.io/mystic-woods)
+  ([@GameEndeavor](https://twitter.com/GameEndeavor)). Tilesets, objects,
+  decorations, water, walls, floors, chests, particles, and the player.
+  License: commercial use and modification allowed; no redistribution or
+  resale, even if modified.
+- **The Painted Lands – Forest Tileset** by
+  [antarcticbees](https://antarcticbees.itch.io/antarcticbees-the-painted-lands-forest).
+  `TILESET_brighter.png` and `character_sprite_sheet.png`. License: use and
+  modification in personal and commercial projects.
+
+Other:
+
+- `assets/ai/` character sheets: generated with Grok Build (see
+  `assets/ai/README.md`); not part of either pack.
+- `addons/godot_mcp`: the Godot MCP editor addon
+  ([`@satelliteoflove/godot-mcp`](https://www.npmjs.com/package/@satelliteoflove/godot-mcp)),
+  used to drive the editor from the MCP server.
+- Engine: [Godot 4.6](https://godotengine.org).
