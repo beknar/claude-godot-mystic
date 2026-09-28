@@ -12,6 +12,7 @@ const SPEED := 7.0 # px/s at full wind strength
 const BAYER := [0, 8, 2, 10, 12, 4, 14, 6, 3, 11, 1, 9, 15, 7, 13, 5]
 
 var wind: Wind
+var shade := SHADE # the shadow's color; another pack sets its own darkest grass
 var bounds := Rect2()
 var _clouds: Array[Sprite2D] = []
 var _pos: Array[Vector2] = []
@@ -90,5 +91,5 @@ func _make_cloud() -> ImageTexture:
 			var t := clampf(f / 0.12, 0.0, 1.0)
 			if t < 1.0 and BAYER[(y % 4) * 4 + (x % 4)] / 16.0 >= t:
 				continue
-			img.set_pixel(x, y, SHADE)
+			img.set_pixel(x, y, shade)
 	return ImageTexture.create_from_image(img)

@@ -18,6 +18,7 @@ const TIP := Color(0.78, 0.86, 0.55)
 const BAYER := [0, 8, 2, 10, 12, 4, 14, 6, 3, 11, 1, 9, 15, 7, 13, 5]
 
 var wind: Wind
+var tip := TIP # sunlit tip color, lighter than the pack's grass
 var view_override := Rect2() # set by headless tools; otherwise the camera's view
 var _grass := {} # cell -> true
 var _tips := {} # cell -> Array[Vector2i] pixel offsets in the cell
@@ -129,7 +130,7 @@ func pixels() -> Dictionary:
 					var level: float = k * f.strength
 					if BAYER[(p.y % 4) * 4 + (p.x % 4)] / 16.0 >= level:
 						continue
-					out[p + lean] = Color(TIP, 0.55 + 0.4 * level)
+					out[p + lean] = Color(tip, 0.55 + 0.4 * level)
 	return out
 
 

@@ -113,9 +113,10 @@ Mystic Woods randomizer:
 
 - `scenes/randomizer-mysticwoods/randomizer-mysticwoods.tscn` — the Mystic
   Woods pipeline (`terrain.gd` + `clearing.gd`, `player.png`), starting at the
-  clearing's seed `21021` (`recipe = -1`: seed % 13), with the same Esc menu
-  (`randomizer_menu.gd`): it shows the map id, recipe, and checks, regenerates
-  from a random new seed, and can pin any of the 13 Mystic Woods recipes. The
+  clearing's seed `21021` (`recipe = -1`: seed % 16, `enrich = true`), with the
+  same Esc menu (`randomizer_menu.gd`): it shows the map id, recipe, and checks,
+  regenerates from a random new seed, and can pin any of the 16 Mystic Woods
+  recipes. The
   menu works with any map script that has `build(id)`, `map_summary()`, and
   `recipe_names()`.
 
@@ -208,7 +209,7 @@ smooth, carve, re-autotile, scatter, then the three checks above.
 
 ### Mystic Woods recipes
 
-`terrain.gd` `RECIPES`; `recipe = seed % 13` unless pinned. Recipe 0 is the
+`terrain.gd` `RECIPES`; `recipe = seed % 16` unless pinned. Recipe 0 is the
 pipeline above, built exactly as before (clearing and grove pin it). The
 others tune the cliff threshold, the water, the goal arena's radius, and
 the scatter, add a set piece around the goal, and retry with a new layout
@@ -231,6 +232,32 @@ fences, walls, and blocking pieces count as solid in the reach check.
 | 10 | Woodcutter's glade | noise | fire pit ringed with logs; many stumps and logs |
 | 11 | Campsite | 1–3 ponds | fire pit with log seats, bench, crates, sign |
 | 12 | Mushroom hollow | none | dense trees and cypresses, mushrooms everywhere, a stump at the goal |
+| 13 | Abandoned house | none | plank floor (`wooden.png`) with a rug (red or blue-stone set, 3 × 3 or round, runner, side strip, door mat), bed, bookshelf, a table with a potion and a scroll, stools, pots, an iron chest, wall stubs at the corners; saplings |
+| 14 | Stone chapel | 1–3 ponds | bordered red stone floor (`flooring.png`) with its round medallion, a blue-stone runner and mat, pillars down both sides, the long table as an altar, a gold chest and a heart, potted trees; graves |
+| 15 | Tree nursery | noise | fenced yard with rows of saplings, empty pots and sprouts, dirt spots, trodden and dug earth |
+
+Chests (`chest_01.png` iron, `chest_02.png` gold; Farmstead, Stone ruins,
+Campsite, house, chapel) play their four frames open when the player comes
+within 24 px. Huts hang one of the four doors (`wooden_door.png`,
+`wooden_door_b.png`, shut or ajar) by cell. Ponds carry animated rocks
+(`rock_in_water_01-sheet.png`) and lilies (`water_lillies.png`) and the
+ripple decorations.
+
+**Randomizer extras (`enrich`, off in the fixed scenes):** 8 px detail from
+`decor_8x8.png` on an 8 px layer (stones, sprigs, and flowers on the meadow
+green; specks on the plain dirt fill), stones and dirt spots from
+`decor_16x16.png`, bare earth round fire pits and in dug beds, the plateau's
+inside corners (`plains.png` 4–5, 4–6), and a liveliness floor: each 43 × 18
+window's motion is estimated with the Painted Lands weights (water, fire,
+leaves), and a window under 0.09 % gets a small pond (over grass and flowers,
+never props) or a fire pit (at most two), up to five anchors. The scene also
+runs the Painted Lands ambience in this pack's colors: wind, leaves from the
+tree crowns, streaks, cloud shadows (darkest leaf green), water life (rings
+deeper than the water), butterflies, dragonflies, and fireflies (in shade),
+small animals (`wildlife.gd` with habitats built from this map), footsteps
+(dust puffs from `dust_particles_01.png`, grass flicks), drifters, and grass
+waves. `tools/pack_usage.gd` and `tools/pack_usage.py` measure how much of the
+pack the maps use.
 
 Water uses `water-sheet.png`: a 3 × 3 bank-and-water autotile and a 2 × 2
 island, six frames five cells apart (tile animation). The art has no inner

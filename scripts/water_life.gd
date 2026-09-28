@@ -17,6 +17,10 @@ const RING_HIGHLIGHT := Color(0.93, 0.97, 1.0)
 const DROP_COLOR := Color(0.23, 0.55, 0.6)
 
 var wind: Wind
+# Colors, per pack: rings in a color darker than the water, a pale highlight.
+var ring_color := RING_COLOR
+var ring_highlight := RING_HIGHLIGHT
+var drop_color := DROP_COLOR
 var _cells: Array[Vector2i] = [] # open water cells (not shore)
 var _rings: Array[Dictionary] = []
 var _drops: Array[Dictionary] = []
@@ -104,11 +108,11 @@ func _draw() -> void:
 		var k: float = r.t / r.life
 		var radius: float = r.r0 + RING_SPEED * r.t
 		var a := 1.0 if k < 0.55 else 1.0 - (k - 0.55) / 0.45
-		_draw_ring(r.pos, radius, Color(RING_COLOR, a))
+		_draw_ring(r.pos, radius, Color(ring_color, a))
 		if k < 0.5 and radius > 2.0:
-			_draw_ring(r.pos, radius - 1.0, Color(RING_HIGHLIGHT, 0.7 * (1.0 - k * 2.0)))
+			_draw_ring(r.pos, radius - 1.0, Color(ring_highlight, 0.7 * (1.0 - k * 2.0)))
 	for d in _drops:
-		draw_rect(Rect2(Vector2(d.pos).floor(), Vector2.ONE), DROP_COLOR)
+		draw_rect(Rect2(Vector2(d.pos).floor(), Vector2.ONE), drop_color)
 
 
 # A flattened pixel circle (water seen from above at an angle): one pixel

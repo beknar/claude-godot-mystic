@@ -111,7 +111,7 @@ const GROUP_GAP := 8 # cells between two groups of one species
 const QUIET_TRIES := 6 # candidate spots a group compares before settling
 const QUIET_CAP := 14.0 # cells; farther than this from any motion counts the same
 
-static var _sheet_colors: Array[Color] = []
+static var _sheet_colors := {} # sheet instance id -> Array[Color]
 
 var walker: Node2D
 var water_life: WaterLife
@@ -176,9 +176,18 @@ func _ready() -> void:
 ## Species, groups, and home cells for map `t`, from its map id.
 ## Returns {habitats: {species: {cell: true}}, groups: [{kind, center, cells}]}.
 static func plan(t: PaintedTerrain) -> Dictionary:
-	var rng := RandomNumberGenerator.new()
-	rng.seed = hash([t.map_id, "wildlife"])
 	var habitats := habitat_cells(t)
+	habitats["_w"] = W
+	return plan_from(habitats, t.map_id, t.spawn, quiet_field(t))
+
+
+## The plan for any map: `habitats` as habitat_cells() returns them (plus
+## "_w", the map width), the map id, the walker's spawn cell, and quiet_from()
+## over the things that already move.
+static func plan_from(habitats: Dictionary, map_id: int, spawn: Vector2i, quiet: PackedFloat32Array) -> Dictionary:
+	var rng := RandomNumberGenerator.new()
+	rng.seed = hash([map_id, "wildlife"])
+	var w: int = habitats.get("_w", W)
 	var eligible: Array[String] = []
 	for kind in SPECIES:
 		if habitats[SPECIES[kind].habitat].size() < (12 if kind == "duck" else MIN_HABITAT):
@@ -192,8 +201,6 @@ static func plan(t: PaintedTerrain) -> Dictionary:
 		eligible[i] = eligible[j]
 		eligible[j] = tmp
 	var chosen := eligible.slice(0, rng.randi_range(SPECIES_PER_MAP.x, SPECIES_PER_MAP.y))
-	var spawn := t.spawn
-	var quiet := quiet_field(t)
 	var placed: Array[Vector2i] = [] # group centers of every species so far
 	var groups: Array[Dictionary] = []
 	for kind in chosen:
@@ -222,7 +229,7 @@ static func plan(t: PaintedTerrain) -> Dictionary:
 				if near:
 					continue
 				found += 1
-				var q: float = quiet[c.y * W + c.x]
+				var q: float = quiet[c.y * w + c.x]
 				for other in placed:
 					q = minf(q, Vector2(c - other).length())
 				if q > best_q:
@@ -249,15 +256,23 @@ static func plan(t: PaintedTerrain) -> Dictionary:
 ## Per cell, the distance in cells (capped at QUIET_CAP) to the nearest thing
 ## that already keeps the scene moving: water, a campfire or torch, a tree.
 static func quiet_field(t: PaintedTerrain) -> PackedFloat32Array:
-	var d := PackedFloat32Array()
-	d.resize(W * H)
-	d.fill(QUIET_CAP)
 	var front: Array[Vector2i] = []
 	for c in t.water:
 		front.append(c)
 	for p in t.props:
 		if p.has("art") and (p.art in PaintedTerrain.TREES or p.art in PaintedTerrain.SHADE_TREES or p.art in PaintedTerrain.TORCHES or p.art in ["campfire", "campfire_big"]):
 			front.append(p.cell)
+	return quiet_from(front, W, H)
+
+
+## Distance in cells (capped at QUIET_CAP) from `sources` on a w x h map.
+static func quiet_from(sources: Array[Vector2i], w: int, h: int) -> PackedFloat32Array:
+	var W := w
+	var H := h
+	var d := PackedFloat32Array()
+	d.resize(W * H)
+	d.fill(QUIET_CAP)
+	var front: Array[Vector2i] = sources.duplicate()
 	for c in front:
 		if c.x >= 0 and c.y >= 0 and c.x < W and c.y < H:
 			d[c.y * W + c.x] = 0.0
@@ -366,13 +381,18 @@ static func _near(c: Vector2i, cells: Dictionary, r: int) -> bool:
 
 ## Places the map's animals as y-sorted children of `actors`.
 func setup(t: PaintedTerrain, actors: Node2D, p_walker: Node2D, sheet: Image, p_water_life: WaterLife) -> void:
+	setup_from(plan(t), t.water, actors, p_walker, sheet, p_water_life)
+
+
+## Any map: a plan from plan_from(), its water cells, and the sheet whose
+## palette the animals wear.
+func setup_from(p: Dictionary, water: Dictionary, actors: Node2D, p_walker: Node2D, sheet: Image, p_water_life: WaterLife) -> void:
 	walker = p_walker
 	water_life = p_water_life
 	_animals.clear()
-	var p := plan(t)
 	_habitat = p.habitats
 	_land = _habitat["_land"]
-	_water = t.water
+	_water = water
 	_trunks.clear()
 	for c in _habitat["_trunks"]:
 		_trunks.append(Vector2(c * TILE) + Vector2(8, 12))
@@ -629,19 +649,24 @@ func _clear(a: Animal, from: Vector2, to: Vector2) -> bool:
 
 # The nearest color on the tileset, so every animal wears the pack's palette.
 static func _snap(c: Color, sheet: Image) -> Color:
-	if _sheet_colors.is_empty() and sheet != null:
+	if sheet == null:
+		return c
+	var key := sheet.get_instance_id()
+	if not _sheet_colors.has(key):
 		var seen := {}
 		for y in range(0, sheet.get_height(), 2):
 			for x in range(0, sheet.get_width(), 2):
 				var p := sheet.get_pixel(x, y)
 				if p.a > 0.9:
 					seen[p.to_rgba32()] = true
+		var colors: Array[Color] = []
 		for k in seen:
-			_sheet_colors.append(Color.hex(k))
+			colors.append(Color.hex(k))
+		_sheet_colors[key] = colors
 	var best := c
 	var dist := INF
-	for s in _sheet_colors:
-		var d := (s.r - c.r) ** 2 + (s.g - c.g) ** 2 + (s.b - c.b) ** 2
+	for s: Color in _sheet_colors[key]:
+		var d: float = (s.r - c.r) ** 2 + (s.g - c.g) ** 2 + (s.b - c.b) ** 2
 		if d < dist:
 			dist = d
 			best = s

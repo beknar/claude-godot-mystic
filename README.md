@@ -17,6 +17,17 @@ overview; when the two disagree, `AGENTS.md` wins.
 > ford, and heath are not built yet. The Painted Lands generator draws all
 > 30 recipes.
 
+## Art packs (not in the repository)
+
+The purchased packs are licensed for use but not redistribution, so
+`assets/pack/` is ignored and the history carries none of it. To run the
+project, copy them in locally:
+
+- Mystic Woods 2.2 (Game Endeavor): its `sprites/` folder to `assets/pack/sprites/`
+- Painted Lands: `TILESET_brighter.png` and `character_sprite_sheet.png` to `assets/pack/`
+
+Then open the project in Godot so it imports them.
+
 ## Running
 
 Open the folder in Godot 4.6 and press F5, or run:
@@ -57,10 +68,14 @@ generator.
 
 The Painted Lands randomizer runs the Painted Lands generator with the wilds
 settings; the Mystic Woods randomizer runs the Mystic Woods generator the
-same way, with its own 13 recipes (clearing, pond glade, lake island,
+same way, with its own 16 recipes (clearing, pond glade, lake island,
 farmstead, stone ruins, cottage garden, graveyard, cobble crossroads, rocky
-highland, orchard, woodcutter's glade, campsite, mushroom hollow) in the
-recipe picker. `tools/check_mystic.gd` sweeps them headless.
+highland, orchard, woodcutter's glade, campsite, mushroom hollow, abandoned
+house, stone chapel, tree nursery) in the recipe picker, and the Painted Lands
+ambience (wind, leaves, clouds, water life, critters, animals, footsteps,
+drifters, grass waves) plus a liveliness floor. `tools/check_mystic.gd` sweeps
+the recipes headless; `tools/pack_usage.gd` + `tools/pack_usage.py` report
+how much of the pack the maps use.
 Press Esc for its menu: it shows the current map id, recipe, and check
 result, and **Regenerate with a new seed** builds a fresh map from a random
 id with the same rules (`recipe = id % 30`). The recipe picker can pin the

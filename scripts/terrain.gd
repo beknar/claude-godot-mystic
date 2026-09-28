@@ -65,7 +65,15 @@ const PLATEAU_FILLS: Array[Vector2i] = [Vector2i(2, 5)]
 # decor_16x16.png cells. Their background is the meadow green.
 const TUFTS: Array[Vector2i] = [Vector2i(0, 0), Vector2i(1, 0), Vector2i(2, 0), Vector2i(3, 0), Vector2i(3, 1)]
 const FLOWERS: Array[Vector2i] = [Vector2i(0, 2), Vector2i(1, 2), Vector2i(2, 2), Vector2i(3, 2)]
-const MUSHROOMS: Array[Vector2i] = [Vector2i(0, 3), Vector2i(1, 3), Vector2i(3, 3)]
+const MUSHROOMS: Array[Vector2i] = [Vector2i(0, 3), Vector2i(1, 3), Vector2i(2, 3), Vector2i(3, 3)]
+# decor_16x16.png row 4: loose dirt spots on a transparent ground.
+const DIRT_SPOTS: Array[Vector2i] = [Vector2i(0, 4), Vector2i(1, 4), Vector2i(2, 4), Vector2i(3, 4)]
+# decor_8x8.png (8 px cells): rows 0-2 on the meadow green (stones, sprigs,
+# flowers), row 3 on the dirt fill (specks). Detail sits on an 8 px grid.
+const DETAIL_GRASS: Array[Vector2i] = [Vector2i(0, 0), Vector2i(1, 0), Vector2i(2, 0), Vector2i(3, 0), Vector2i(0, 1),
+	Vector2i(1, 1), Vector2i(2, 1), Vector2i(3, 1), Vector2i(0, 2), Vector2i(1, 2), Vector2i(2, 2), Vector2i(3, 2)]
+const DETAIL_DIRT: Array[Vector2i] = [Vector2i(0, 3), Vector2i(1, 3), Vector2i(2, 3), Vector2i(3, 3)]
+const WATER_RIPPLES: Array[Vector2i] = [Vector2i(1, 0), Vector2i(2, 0)]
 const STONES: Array[Vector2i] = [Vector2i(0, 1), Vector2i(1, 1), Vector2i(2, 1)]
 # water_decorations.png: rocks in water (row 0), lily pads (row 1).
 const WATER_ROCKS: Array[Vector2i] = [Vector2i(0, 0), Vector2i(3, 0), Vector2i(4, 0), Vector2i(5, 0)]
@@ -99,6 +107,12 @@ const RECIPES := [
 	{"name": "Campsite", "cliff": 0.68, "water": "ponds", "arena": 6, "piece": "camp"},
 	{"name": "Mushroom hollow", "cliff": 0.7, "water": "none", "arena": 5, "piece": "hollow", "tree_gap": 4.6,
 		"trees": ["tree_a", "tree_c", "cypress"], "mushrooms": 0.55, "extras": [[["stump_a", "stump_b"], 4, 7.0], [["bush"], 4, 6.0]]},
+	{"name": "Abandoned house", "cliff": 0.72, "water": "none", "arena": 7, "piece": "house",
+		"extras": [[["sapling_a", "sapling_b"], 4, 6.0], [["bush"], 2, 8.0]]},
+	{"name": "Stone chapel", "cliff": 0.68, "water": "ponds", "arena": 9, "piece": "chapel",
+		"extras": [[["grave"], 3, 8.0], [["pillar", "arch"], 2, 10.0]]},
+	{"name": "Tree nursery", "cliff": 0.76, "water": "noise", "arena": 7, "piece": "nursery", "trees": ["tree_a", "tree_b", "cypress"],
+		"extras": [[["sapling_a", "sapling_b"], 6, 4.0], [["pot_empty", "pot_sprout"], 3, 7.0]]},
 ]
 
 # Cells a piece or extra covers, relative to its anchor (bottom-left cell),
@@ -114,6 +128,12 @@ const PIECE_FOOT := {
 	"rock_0": [Rect2i(0, 0, 1, 1), true], "rock_1": [Rect2i(0, 0, 1, 1), true], "rock_2": [Rect2i(0, 0, 1, 1), true],
 	"cypress": [Rect2i(-1, -2, 2, 3), true], "tree_a": [Rect2i(-1, -3, 3, 4), true], "tree_b": [Rect2i(-1, -3, 3, 4), true],
 	"tree_c": [Rect2i(-1, -3, 3, 4), true], "tree_d": [Rect2i(-1, -3, 3, 4), true],
+	"sapling_a": [Rect2i(0, 0, 1, 1), false], "sapling_b": [Rect2i(0, 0, 1, 1), false], "pot_empty": [Rect2i(0, 0, 1, 1), true],
+	"chest_iron": [Rect2i(0, 0, 1, 1), true], "chest_gold": [Rect2i(0, 0, 1, 1), true],
+	"bed": [Rect2i(0, -1, 1, 2), true], "bookshelf": [Rect2i(0, -1, 1, 2), true], "stool": [Rect2i(0, 0, 1, 1), true],
+	"small_table": [Rect2i(0, 0, 1, 1), true], "long_table": [Rect2i(0, 0, 3, 1), true],
+	# Small things set on a table or the floor: no footprint of their own.
+	"potion": [Rect2i(0, 0, 1, 1), false], "scroll": [Rect2i(0, 0, 1, 1), false], "heart": [Rect2i(0, 0, 1, 1), false],
 	# Roofless stone structures from walls.png: wall tops over a brick face.
 	"hut": [Rect2i(0, -4, 3, 5), true], "pillar": [Rect2i(0, -4, 1, 5), true], "arch": [Rect2i(0, -3, 1, 4), true],
 }
@@ -141,6 +161,12 @@ var fence := {} # cell -> true
 var fires: Array[Vector2i] = [] # fire pit cells
 var blocked := {} # cells fences, structures, and set-piece props block
 var lane := {} # the route's cells inside the goal arena: kept clear
+var floors := {} # cell -> [sheet, atlas]: "wooden" or "flooring" floor tiles under a set piece
+var rugs := {} # cell -> [sheet, atlas]: carpet.png rugs lying on a floor (their edges are see-through)
+var detail := {} # 8 px cell -> decor_8x8.png atlas
+var water_anim := {} # cell -> "rock" | "lily": animated rock_in_water / water_lillies on a pond
+var enrich := false # detail, dirt spots, and the liveliness floor (randomizer)
+var floor_notes := PackedStringArray()
 var piece_notes := PackedStringArray()
 var piece_fails := PackedStringArray()
 
@@ -169,7 +195,8 @@ static func plains_cells() -> Array[Vector2i]:
 
 ## `p_recipe`: a recipe index, or -1 for seed % RECIPES.size(). The fixed
 ## scenes pin 0, the original clearing.
-func generate(p_seed: int, p_include_water := true, p_recipe := 0) -> String:
+func generate(p_seed: int, p_include_water := true, p_recipe := 0, p_enrich := false) -> String:
+	enrich = p_enrich
 	seed_value = p_seed
 	recipe_id = p_recipe if p_recipe >= 0 else posmod(p_seed, RECIPES.size())
 	recipe = RECIPES[recipe_id]
@@ -190,12 +217,13 @@ func generate(p_seed: int, p_include_water := true, p_recipe := 0) -> String:
 
 func _build() -> String:
 	kind.resize(WIDTH * HEIGHT)
-	for d in [features, deco, water_deco, fence, blocked, lane, _occupied]:
+	for d in [features, deco, water_deco, fence, blocked, lane, _occupied, floors, rugs, detail, water_anim]:
 		d.clear()
 	for a in [props, ponds, islands, fires]:
 		a.clear()
 	piece_notes.clear()
 	piece_fails.clear()
+	floor_notes.clear()
 
 	_sample_biomes()
 	for i in 3:
@@ -216,6 +244,9 @@ func _build() -> String:
 	var dirt_dups := _break_duplicates(DIRT, DIRT_FILLS)
 	var plateau_dups := _break_duplicates(CLIFF, PLATEAU_FILLS)
 	_scatter()
+	if enrich:
+		_liveliness_floor()
+		_scatter_detail()
 	return _verify(dirt_dups, plateau_dups)
 
 
@@ -327,6 +358,12 @@ func _autotile() -> void:
 					pass # ponds are drawn from water-sheet.png by the painter
 				CLIFF:
 					features[cell] = _pick(x, y, PLATEAU_FILLS) if mask == 15 else PLATEAU_TILES[mask]
+					# The randomizer draws the plateau's inside corners with the
+					# pack's cells (4-5, 4-6), the same layout as the dirt's.
+					if enrich and mask == 15:
+						var open := _open_diagonals(x, y, k)
+						if open != 0:
+							features[cell] = INNER_TILES.get(open, INNER_TILES[open & -open]) + Vector2i(0, 4)
 
 
 func _pool_tile(mask: int, x: int, y: int, k: int, fills: Array, row: int) -> Vector2i:
@@ -531,7 +568,7 @@ func _verify(dirt_dups: int, plateau_dups: int) -> String:
 		if not valid.has(features[c]):
 			bad_ids += 1
 	for c in deco:
-		if not (deco[c] in TUFTS or deco[c] in FLOWERS or deco[c] in MUSHROOMS or deco[c] in STONES):
+		if not (deco[c] in TUFTS or deco[c] in FLOWERS or deco[c] in MUSHROOMS or deco[c] in STONES or deco[c] in DIRT_SPOTS):
 			bad_ids += 1
 	var counts := [0, 0, 0, 0, 0]
 	for k in kind:
@@ -550,6 +587,8 @@ func _verify(dirt_dups: int, plateau_dups: int) -> String:
 		"  dirt 3x3 repeats: %d" % dirt_dups,
 		"  plateau 3x3 repeats: %d%s" % [plateau_dups, " (plains.png has one clean plateau fill)" if plateau_dups > 0 else ""],
 	])
+	if not floor_notes.is_empty():
+		lines.append("  floor: %s" % " ".join(floor_notes))
 	var fails := piece_fails.duplicate()
 	if bad_ids > 0:
 		fails.append("%d ids not in the pack" % bad_ids)
@@ -734,7 +773,15 @@ func _dress_pond(r: Rect2i) -> void:
 			var c := Vector2i(x, y)
 			if _on_island(c) or _rng.randf() > 0.16:
 				continue
-			water_deco[c] = LILIES[_rng.randi() % LILIES.size()] if _rng.randf() < 0.7 else WATER_ROCKS[_rng.randi() % WATER_ROCKS.size()]
+			var roll := _rng.randf()
+			if roll < 0.12:
+				water_anim[c] = "rock" # rock_in_water_01-sheet.png, water lapping round it
+			elif roll < 0.3:
+				water_anim[c] = "lily" # water_lillies.png, bobbing
+			elif roll < 0.4:
+				water_deco[c] = WATER_RIPPLES[_rng.randi() % WATER_RIPPLES.size()]
+			else:
+				water_deco[c] = LILIES[_rng.randi() % LILIES.size()] if _rng.randf() < 0.7 else WATER_ROCKS[_rng.randi() % WATER_ROCKS.size()]
 
 
 func _on_island(c: Vector2i) -> bool:
@@ -829,6 +876,17 @@ func _lay_piece() -> void:
 			if _fenced_yard(Vector2i(9, 7)):
 				var inside := _yard.grow(-1)
 				_near_goal(["crate", "barrel", "basket", "pot", "drawers"], _rng.randi_range(5, 7), inside)
+				_near_goal(["chest_iron"], 1, inside)
+				# A lone hitching post outside the yard (fences.png's single post).
+				for i in 30:
+					var c := shrine + Vector2i(_rng.randi_range(-6, 6), _rng.randi_range(-6, 6))
+					if not _yard.grow(1).has_point(c) and not _near_lane(c) and _piece_fits("sign", c, 0, true) \
+							and not fence.has(c + Vector2i.LEFT) and not fence.has(c + Vector2i.RIGHT) \
+							and not fence.has(c + Vector2i.UP) and not fence.has(c + Vector2i.DOWN):
+						fence[c] = true
+						blocked[c] = true
+						_occupied[c] = true
+						break
 			else:
 				piece_fails.append("no yard")
 		"graveyard":
@@ -851,6 +909,7 @@ func _lay_piece() -> void:
 			_cobble_disk(shrine, 3)
 			var walls := _near_goal(["hut"], 1) + _near_goal(["pillar", "arch"], _rng.randi_range(2, 3))
 			_near_goal(["skull", "big_skull", "rock_0", "rock_2"], 3)
+			_near_goal(["chest_gold"], 1)
 			piece_notes.append("%d walls" % walls)
 			if walls < 2:
 				piece_fails.append("no ruin walls")
@@ -890,9 +949,41 @@ func _lay_piece() -> void:
 				_near_goal(["log", "long_log"] if recipe.piece == "woodcutter" else ["log", "log_flower"], 3,
 					Rect2i(pit - Vector2i(4, 3), Vector2i(9, 7)))
 			_near_goal(["crate", "barrel"], 2)
+			if not fires.is_empty():
+				_bare_earth(fires[0], 3) # trodden earth round the fire
+			_dirt_bed(Vector2i(4, 3)) # a cleared patch: a chopping ground or a camp's work floor
 			if recipe.piece == "camp":
 				_near_goal(["bench"], 1)
 				_near_goal(["sign"], 1)
+				_near_goal(["chest_iron"], 1)
+		"house":
+			_lay_house()
+		"chapel":
+			_lay_chapel()
+		"nursery":
+			if _fenced_yard(Vector2i(9, 7)):
+				var inside := _yard.grow(-1)
+				var rows := 0
+				for y in range(inside.position.y, inside.end.y, 2):
+					for x in range(inside.position.x, inside.end.x):
+						var c := Vector2i(x, y)
+						var art := "sapling_a" if (x + y) % 3 else "sapling_b"
+						if not _near_lane(c) and _piece_fits(art, c, 0, true):
+							_put(art, c)
+							rows += 1
+				_near_goal(["pot_empty", "pot_sprout", "potted_tree", "basket"], 4)
+				_bare_earth(_yard.get_center(), 3) # the worked bed between the rows
+				_dirt_bed(Vector2i(4, 3)) # a freshly dug seedbed outside the yard
+				for i in 12: # the worked soil of the beds
+					var c := inside.position + Vector2i(_rng.randi_range(0, inside.size.x - 1), _rng.randi_range(0, inside.size.y - 1))
+					if not _occupied.has(c) and not lane.has(c) and kind[_i(c.x, c.y)] == GRASS:
+						deco[c] = DIRT_SPOTS[_rng.randi() % DIRT_SPOTS.size()]
+						_occupied[c] = true
+				piece_notes.append("%d saplings" % rows)
+				if rows < 6:
+					piece_fails.append("only %d saplings" % rows)
+			else:
+				piece_fails.append("no yard")
 		"hollow":
 			_near_goal(["stump_b"], 1, Rect2i(shrine - Vector2i(2, 2), Vector2i(5, 5)))
 			for i in 30:
@@ -1055,3 +1146,280 @@ func _fill_rect(r: Rect2i, k: int) -> void:
 	for y in range(r.position.y, r.end.y):
 		for x in range(r.position.x, r.end.x):
 			kind[_i(x, y)] = k
+
+
+# Abandoned house: a plank floor with a red rug, the furniture still standing
+# (bed, bookshelf, table with a potion and a scroll, stools, pots), broken
+# wall stubs at its corners, and a chest. Open to the sky: no roof art.
+func _lay_house() -> void:
+	var r := _floor_rect(Vector2i(6, 5))
+	if r.size == Vector2i.ZERO:
+		piece_fails.append("no floor")
+		return
+	for y in range(r.position.y, r.end.y):
+		for x in range(r.position.x, r.end.x):
+			floors[Vector2i(x, y)] = ["wooden", Vector2i.ZERO]
+	# carpet.png has a red set (rows 0-3) and a blue-stone set (rows 4-7), each
+	# with a 3x3 rug, a round 2x2 rug, a runner, a side strip, and a mat.
+	var row := 0 if _rng.randf() < 0.5 else 4
+	var inner := r.grow(-1)
+	if _rng.randf() < 0.6:
+		_rug(inner, "carpet", Vector2i(1, row))
+	else:
+		var c := inner.position + Vector2i(inner.size.x / 2 - 1, inner.size.y / 2 - 1)
+		for o in [Vector2i(0, 0), Vector2i(1, 0), Vector2i(0, 1), Vector2i(1, 1)]:
+			rugs[c + o] = ["carpet", Vector2i(4, row) + o]
+	for k in 3: # the runner along the front of the floor
+		rugs[Vector2i(r.position.x + 1 + k, r.end.y - 1)] = ["carpet", Vector2i(1 + k, row + 3)]
+	for k in 3: # a strip down the back wall's side
+		rugs[Vector2i(r.end.x - 1, r.position.y + k)] = ["carpet", Vector2i(0, row + k)]
+	rugs[Vector2i(r.position.x, r.end.y - 1)] = ["carpet", Vector2i(0, row + 3)] # the mat at the door
+	var furniture := _near_goal(["bed", "bookshelf"], 2, r) + _near_goal(["stool", "small_table", "pot_empty", "pot_sprout"], 3, r)
+	var tables := 0
+	for i in 40:
+		var c := Vector2i(_rng.randi_range(r.position.x, r.end.x - 2), _rng.randi_range(r.position.y, r.end.y - 1))
+		if not _near_lane(c) and _piece_fits("table", c, 0, true):
+			_put("table", c)
+			props.append({"art": "potion", "cell": c})
+			props.append({"art": "scroll", "cell": c + Vector2i.RIGHT})
+			tables += 1
+			break
+	_near_goal(["chest_iron"], 1, r)
+	for corner in [r.position + Vector2i(-1, 0), Vector2i(r.end.x, r.position.y), Vector2i(r.position.x - 1, r.end.y), r.end]:
+		if _piece_fits("pillar", corner, 0, true):
+			_put("pillar" if _rng.randf() < 0.6 else "arch", corner)
+	piece_notes.append("house: %d furniture, %d table" % [furniture, tables])
+	if furniture + tables < 3:
+		piece_fails.append("house has too little furniture")
+
+
+# Stone chapel: a bordered red stone floor with a round medallion at its
+# heart, a blue-stone rug runner, pillars down both sides, a gold chest and a
+# heart on the medallion, potted trees at the door.
+func _lay_chapel() -> void:
+	var r := _floor_rect(Vector2i(7, 5))
+	if r.size == Vector2i.ZERO:
+		piece_fails.append("no floor")
+		return
+	_rug(r, "flooring", Vector2i(0, 0))
+	var mid := r.position + Vector2i(r.size.x / 2 - 1, r.size.y / 2 - 1)
+	for o in [Vector2i(0, 0), Vector2i(1, 0), Vector2i(0, 1), Vector2i(1, 1)]:
+		floors[mid + o] = ["flooring", Vector2i(3, 0) + o]
+	# The blue rug's pieces: a short runner at the door, a single mat.
+	var runner_y := r.end.y - 1
+	for k in 3:
+		var c := Vector2i(mid.x - 1 + k, runner_y)
+		if floors.has(c):
+			rugs[c] = ["carpet", Vector2i(1 + k, 7)]
+	rugs[Vector2i(r.position.x + 1, r.position.y + 1)] = ["carpet", Vector2i(0, 7)]
+	var pillars := 0
+	for x in [r.position.x - 1, r.end.x]:
+		for y in range(r.position.y + 1, r.end.y + 1, 2):
+			if _piece_fits("pillar", Vector2i(x, y), 0, true):
+				_put("pillar", Vector2i(x, y))
+				pillars += 1
+	_near_goal(["long_table"], 1, Rect2i(r.position.x + 1, r.position.y, r.size.x - 2, 1)) # the altar at the back
+	_near_goal(["chest_gold"], 1, Rect2i(mid, Vector2i(2, 2)))
+	props.append({"art": "heart", "cell": mid + Vector2i(1, 1)})
+	_near_goal(["potted_tree"], 2, Rect2i(r.position.x, r.end.y, r.size.x, 2))
+	piece_notes.append("chapel: %d pillars" % pillars)
+	if pillars < 1:
+		piece_fails.append("chapel has no pillars")
+
+
+# A floor rectangle of `size` in the goal arena on plain grass, clear of
+# everything (the lane may cross it: floors are walkable).
+func _floor_rect(size: Vector2i) -> Rect2i:
+	for i in 60:
+		var at := shrine - size / 2 + Vector2i(_rng.randi_range(-1, 1), _rng.randi_range(-2, 0))
+		var r := Rect2i(at, size)
+		var ok := true
+		for y in range(r.position.y - 1, r.end.y + 1):
+			for x in range(r.position.x - 1, r.end.x + 1):
+				if not _inside(x, y) or kind[_i(x, y)] != GRASS or _occupied.has(Vector2i(x, y)) or not _in_disk(Vector2i(x, y), shrine, shrine_radius):
+					ok = false
+		if ok:
+			return r
+	return Rect2i()
+
+
+# A rug or bordered floor drawn from a 3x3 block (corners, edges, fill) at
+# `origin` in `sheet`, stretched over `r`. Carpet goes on the rug layer, over
+# the floor; flooring is the floor itself.
+func _rug(r: Rect2i, sheet: String, origin: Vector2i) -> void:
+	var into: Dictionary = rugs if sheet == "carpet" else floors
+	if r.size.x < 2 or r.size.y < 2:
+		return
+	for y in range(r.position.y, r.end.y):
+		for x in range(r.position.x, r.end.x):
+			var role := Vector2i(0 if x == r.position.x else (2 if x == r.end.x - 1 else 1),
+				0 if y == r.position.y else (2 if y == r.end.y - 1 else 1))
+			into[Vector2i(x, y)] = [sheet, origin + role]
+
+
+# ---------------------------------------------------------------- liveliness
+# Randomizer only (`enrich`): the same idea as the Painted Lands floor. Each
+# camera-sized window (43 x 18 cells at the Mystic zoom) should have something
+# moving; motion is estimated with the Painted Lands weights (animated water,
+# fire glow and smoke, falling leaves) and a window under FLOOR gets a small
+# pond (over grass and its flowers, never over props), or a fire pit if no
+# pond fits (at most two pits). At most five anchors; never cutting off the goal.
+const FLOOR := 0.09
+const FLOOR_VIEW := Vector2i(43, 18)
+const FLOOR_WATER := 9.745 # per animated water cell
+const FLOOR_FIRE := 240.0 # glow and smoke of one fire pit
+const FLOOR_TREE := 2.084 # leaves of one tree
+
+func _liveliness_floor() -> void:
+	var pits := 0
+	for n in 6:
+		var weak := _weakest_window()
+		if n == 0:
+			floor_notes.append("weakest window %.3f%%" % weak.value)
+		if weak.value >= FLOOR or n == 5:
+			if n > 0:
+				floor_notes.append("-> %.3f%%" % weak.value)
+			return
+		var win: Rect2i = weak.rect
+		if _floor_pond(win):
+			floor_notes.append("pond")
+		elif pits < 2 and _floor_pit(win):
+			floor_notes.append("fire pit")
+			pits += 1
+		else:
+			floor_notes.append("-> %.3f%%" % weak.value)
+			return
+
+
+func _weakest_window() -> Dictionary:
+	var m := PackedFloat32Array()
+	m.resize(WIDTH * HEIGHT)
+	m.fill(0.0)
+	for y in HEIGHT:
+		for x in WIDTH:
+			if kind[_i(x, y)] == WATER:
+				m[_i(x, y)] += FLOOR_WATER
+	for c in fires:
+		m[_i(c.x, c.y)] += FLOOR_FIRE
+	for p in props:
+		if p.art in TREES or p.art == "cypress":
+			m[_i(clampi(p.cell.x, 0, WIDTH - 1), clampi(p.cell.y, 0, HEIGHT - 1))] += FLOOR_TREE
+	var best := {"rect": Rect2i(), "value": INF}
+	var area := float(FLOOR_VIEW.x * FLOOR_VIEW.y)
+	for y in range(0, HEIGHT - FLOOR_VIEW.y + 1, 2):
+		for x in range(0, WIDTH - FLOOR_VIEW.x + 1, 2):
+			var s := 0.0
+			for yy in range(y, y + FLOOR_VIEW.y):
+				for xx in range(x, x + FLOOR_VIEW.x):
+					s += m[_i(xx, yy)]
+			if s / area < best.value:
+				best = {"rect": Rect2i(x, y, FLOOR_VIEW.x, FLOOR_VIEW.y), "value": s / area}
+	return best
+
+
+# A small pond near the window's middle on clear grass; undone if the goal
+# would be cut off.
+func _floor_pond(win: Rect2i) -> bool:
+	var inner := win.grow_individual(-8, -3, -8, -3)
+	for i in 80:
+		var size := Vector2i(_rng.randi_range(4, 6), _rng.randi_range(3, 4))
+		var r := Rect2i(Vector2i(_rng.randi_range(inner.position.x, inner.end.x - size.x), _rng.randi_range(inner.position.y, inner.end.y - size.y)), size)
+		if not _rect_is(r.grow(1), GRASS) or _rect_near_arena(r, 2) or _rect_has_props(r.grow(1)):
+			continue
+		_fill_rect(r, WATER)
+		if not _flood_reaches_shrine():
+			_fill_rect(r, GRASS)
+			continue
+		ponds.append(r)
+		for y in range(r.position.y, r.end.y):
+			for x in range(r.position.x, r.end.x):
+				_occupied[Vector2i(x, y)] = true
+				deco.erase(Vector2i(x, y))
+		_dress_pond(r)
+		return true
+	return false
+
+
+func _floor_pit(win: Rect2i) -> bool:
+	var inner := win.grow_individual(-8, -3, -8, -3)
+	for i in 80:
+		var c := Vector2i(_rng.randi_range(inner.position.x, inner.end.x - 1), _rng.randi_range(inner.position.y, inner.end.y - 1))
+		if _in_arena(c) or not _piece_fits("pit", c, 0, false) or _rect_occupied(Rect2i(c - Vector2i(2, 1), Vector2i(5, 3))):
+			continue
+		_put("pit", c)
+		if not _flood_reaches_shrine():
+			props.pop_back()
+			fires.pop_back()
+			blocked.erase(c)
+			continue
+		for o in [Vector2i(-2, 0), Vector2i(1, 0)]:
+			if _piece_fits("log", c + o, 0, false):
+				_put("log", c + o)
+		return true
+	return false
+
+
+# Cells claimed by anything but grass deco (flowers and tufts may be covered).
+func _rect_has_props(r: Rect2i) -> bool:
+	for y in range(r.position.y, r.end.y):
+		for x in range(r.position.x, r.end.x):
+			var c := Vector2i(x, y)
+			if _occupied.has(c) and not deco.has(c):
+				return true
+	return false
+
+
+func _rect_occupied(r: Rect2i) -> bool:
+	for y in range(r.position.y, r.end.y):
+		for x in range(r.position.x, r.end.x):
+			if _occupied.has(Vector2i(x, y)):
+				return true
+	return false
+
+
+# Randomizer only: 8 px detail (stones, sprigs, flowers on grass; specks on
+# the plain dirt fill) and loose dirt spots beside the path.
+func _scatter_detail() -> void:
+	for y in HEIGHT:
+		for x in WIDTH:
+			var c := Vector2i(x, y)
+			var k := kind[_i(x, y)]
+			if k == GRASS and not _occupied.has(c) and not deco.has(c) and not floors.has(c):
+				if _rng.randf() < (0.08 if recipe.piece == "ruins" or recipe.get("cobble_fields", false) else 0.02):
+					deco[c] = STONES[_rng.randi() % STONES.size()] # a stone in the grass
+				elif _rng.randf() < 0.14:
+					detail[c * 2 + Vector2i(_rng.randi_range(0, 1), _rng.randi_range(0, 1))] = DETAIL_GRASS[_rng.randi() % DETAIL_GRASS.size()]
+				elif _rng.randf() < 0.05 and _count8(x, y, DIRT) > 0:
+					deco[c] = DIRT_SPOTS[_rng.randi() % DIRT_SPOTS.size()]
+			elif k == DIRT and features.get(c) in DIRT_FILLS and _rng.randf() < 0.3:
+				detail[c * 2 + Vector2i(_rng.randi_range(0, 1), _rng.randi_range(0, 1))] = DETAIL_DIRT[_rng.randi() % DETAIL_DIRT.size()]
+
+
+# Bare earth: the dirt kind on free grass within `radius` of `center` (off the
+# lane and anything placed), so the dirt set's fill, inner corners, and the
+# 8 px specks show up where people work and gather.
+func _bare_earth(center: Vector2i, radius: int) -> void:
+	for y in range(center.y - radius, center.y + radius + 1):
+		for x in range(center.x - radius, center.x + radius + 1):
+			var c := Vector2i(x, y)
+			if _inside(x, y) and _in_disk(c, center, radius) and kind[_i(x, y)] == GRASS \
+					and not _occupied.has(c) and not lane.has(c) and x > 0 and y > 0 and x < WIDTH - 1 and y < HEIGHT - 1:
+				kind[_i(x, y)] = DIRT
+
+
+# A clear rectangle of bare earth in the goal arena (grass with nothing on it,
+# off the lane): its middle cells are the dirt set's plain fill.
+func _dirt_bed(size: Vector2i) -> void:
+	for i in 60:
+		var at := shrine + Vector2i(_rng.randi_range(-shrine_radius, shrine_radius - size.x), _rng.randi_range(-shrine_radius, shrine_radius - size.y))
+		var r := Rect2i(at, size)
+		var ok := true
+		for y in range(r.position.y, r.end.y):
+			for x in range(r.position.x, r.end.x):
+				var c := Vector2i(x, y)
+				if not _inside(x, y) or x < 1 or y < 1 or x > WIDTH - 2 or y > HEIGHT - 2 or kind[_i(x, y)] != GRASS \
+						or _occupied.has(c) or lane.has(c) or not _in_disk(c, shrine, shrine_radius):
+					ok = false
+		if ok:
+			_fill_rect(r, DIRT)
+			return
