@@ -14,7 +14,9 @@
     "dragonflies": 0.0,
     "fireflies": 0.9829890479260385,
     "streak": 0.0045188909847730455,
-    "animals": 0.24288026856252803
+    "animals": 0.24288026856252803,
+    "drift": 0.01812,
+    "grass": 0.19688
   },
   "quiet": 0.05,
   "cloud_background": 0.37303710076333774,
@@ -68,5 +70,9 @@
     120013,
     120015,
     120020
-  ]
+  ],
+  "simulated": {
+    "drift": "drifters.gd, measured headless by tools/sim_motion.gd (not yet in a rendered capture)",
+    "grass": "grass_waves.gd per grass cell, measured headless by tools/sim_motion.gd (not yet in a rendered capture)"
+  }
 }

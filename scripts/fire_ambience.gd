@@ -4,7 +4,8 @@ extends Node2D
 ## glow (a round light made of solid, ordered-dither steps, so it stays
 ## pixel art) drawn additively over the scene, flickering out of step with
 ## the others; big fires glow wider. Campfires also send up a thin trail of
-## single-pixel smoke puffs that rise, bend with the wind, and fade.
+## single-pixel smoke puffs that rise, bend with the wind, and fade, and so
+## does every house with a hearth, from its roof (a thinner trail, no glow).
 
 const GLOW_TINT := Color(1.0, 0.62, 0.25)
 const BAYER := [0, 8, 2, 10, 12, 4, 14, 6, 3, 11, 1, 9, 15, 7, 13, 5]
@@ -12,6 +13,7 @@ const SMOKE_RATE := 4.0 # puffs per second per campfire
 const SMOKE_LIFE := Vector2(2.6, 3.8)
 const SMOKE_RISE := 12.0 # px/s
 const SMOKE_BEND := 14.0 # wind carry at full strength
+const CHIMNEY_SMOKE := 0.6 # a hearth's puffs per second, relative to a campfire's
 const SMOKE_COLORS := [Color(0.78, 0.76, 0.72), Color(0.62, 0.62, 0.6), Color(0.5, 0.5, 0.5)]
 
 var wind: Wind
@@ -28,15 +30,20 @@ func _ready() -> void:
 	z_index = 25 # above the y-sorted actors, so the light falls on them
 
 
-## `fires`: {pos: foot position, kind: "torch" | "campfire" | "campfire_big"}.
+## `fires`: {pos: foot position, kind: "torch" | "campfire" | "campfire_big" |
+## "chimney" (pos is where the smoke leaves the roof)}.
 func set_fires(fires: Array[Dictionary]) -> void:
 	for f in _fires:
-		f.glow.queue_free()
+		if f.glow:
+			f.glow.queue_free()
 	_fires.clear()
 	_puffs.clear()
 	var add := CanvasItemMaterial.new()
 	add.blend_mode = CanvasItemMaterial.BLEND_MODE_ADD
 	for f in fires:
+		if f.kind == "chimney":
+			_fires.append({"radius": 0, "glow": null, "phase": 0.0, "smoke": true, "flame": f.pos, "rate": 0.0, "puffs": CHIMNEY_SMOKE})
+			continue
 		var torch: bool = f.kind == "torch"
 		var radius := 22 if torch else (40 if f.kind == "campfire" else 52)
 		var flame: Vector2 = f.pos + (Vector2(0, -24) if torch else Vector2(0, -8))
@@ -46,13 +53,15 @@ func set_fires(fires: Array[Dictionary]) -> void:
 		glow.position = flame.floor()
 		add_child(glow)
 		_fires.append({"radius": radius, "glow": glow, "phase": _rng.randf() * TAU,
-			"smoke": not torch, "flame": flame, "rate": _rng.randf_range(7.0, 11.0)})
+			"smoke": not torch, "flame": flame, "rate": _rng.randf_range(7.0, 11.0), "puffs": 1.0})
 	queue_redraw()
 
 
 func _process(delta: float) -> void:
 	_time += delta
 	for f in _fires:
+		if f.glow == null:
+			continue
 		# Flicker: two out-of-step waves plus a little noise, never dark.
 		var fl: float = 0.78 + 0.12 * sin(_time * f.rate + f.phase) + 0.07 * sin(_time * f.rate * 2.3 + f.phase * 1.7) + _rng.randf_range(-0.03, 0.03)
 		f.glow.modulate = Color(fl, fl, fl, 1.0)
@@ -61,10 +70,20 @@ func _process(delta: float) -> void:
 	if wind == null:
 		return
 	var smokers := _fires.filter(func(f): return f.smoke)
-	_smoke_acc += delta * SMOKE_RATE * smokers.size()
+	var total := 0.0
+	for f in smokers:
+		total += f.puffs
+	_smoke_acc += delta * SMOKE_RATE * total
 	while _smoke_acc >= 1.0 and not smokers.is_empty():
 		_smoke_acc -= 1.0
-		var f: Dictionary = smokers[_rng.randi() % smokers.size()]
+		# Each smoker's share of the puffs is its rate.
+		var pick := _rng.randf() * total
+		var f: Dictionary = smokers[0]
+		for s in smokers:
+			pick -= s.puffs
+			f = s
+			if pick <= 0.0:
+				break
 		_puffs.append({"pos": f.flame + Vector2(_rng.randf_range(-2, 2), -4), "t": 0.0,
 			"life": _rng.randf_range(SMOKE_LIFE.x, SMOKE_LIFE.y), "wobble": _rng.randf() * TAU})
 	var bend := wind.carry(SMOKE_BEND)

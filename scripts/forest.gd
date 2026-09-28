@@ -39,6 +39,8 @@ var water_life: WaterLife
 var critters: Critters
 var footsteps: Footsteps
 var wildlife: Wildlife
+var drifters: Drifters
+var grass_waves: GrassWaves
 var _plant_tops: Array[Sprite2D] = [] # top parts of reeds and water grass, which nod
 var _leaf_colors := {} # art name -> {light, dark}
 var tone_layers: Array[TileMapLayer] = []
@@ -104,6 +106,11 @@ func _add_ambience() -> void:
 	streaks.wind = wind
 	add_child(streaks)
 	move_child(streaks, actors.get_index()) # under the y-sorted actors
+	grass_waves = GrassWaves.new()
+	grass_waves.name = "GrassWaves"
+	grass_waves.wind = wind
+	add_child(grass_waves)
+	move_child(grass_waves, actors.get_index()) # light on the grass, under the y-sorted actors
 	water_life = WaterLife.new()
 	water_life.name = "WaterLife"
 	water_life.wind = wind
@@ -126,6 +133,10 @@ func _add_ambience() -> void:
 	leaves.name = "Leaves"
 	leaves.wind = wind
 	add_child(leaves)
+	drifters = Drifters.new()
+	drifters.name = "Drifters"
+	drifters.wind = wind
+	add_child(drifters)
 	wildlife = Wildlife.new()
 	wildlife.name = "Wildlife"
 	add_child(wildlife)
@@ -168,6 +179,9 @@ func _reset_ambience() -> void:
 			if n.begins_with(kind + "_") or n.begins_with(kind + "_b_") or n.begins_with(kind + "_c_"):
 				fires.append({"pos": body.position, "kind": kind})
 				break
+	for house in terrain.houses:
+		if PaintedTerrain.CHIMNEYS.has(house.id):
+			fires.append({"pos": Vector2(house.origin * TILE + PaintedTerrain.CHIMNEYS[house.id]), "kind": "chimney"})
 	fire.set_fires(fires)
 	var open: Array[Vector2i] = []
 	for cell in terrain.water:
@@ -196,6 +210,8 @@ func _reset_ambience() -> void:
 		ponds.append(Rect2(Vector2(r.position) * TILE + Vector2(8, 8), Vector2(r.size) * TILE - Vector2(16, 16)))
 	critters.setup(flowers, ponds, dark)
 	wildlife.setup(terrain, actors, walker, _pixels, water_life)
+	drifters.setup(map_rect, flowers)
+	grass_waves.setup(GrassWaves.grass_cells(terrain))
 
 
 # Leaf colors for a tree, from its sprite: `light` are the brightest common

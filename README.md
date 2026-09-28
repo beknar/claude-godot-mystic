@@ -96,7 +96,11 @@ edges that curve away from the path. Dirt islands inside a zone use the dirt til
 whose grass is that tone, deco follows the tone underneath, and flower
 carpets dot the open lawn. Some maps get hedgerows, and many ponds become
 lakes with a deep, sparkling center. A shifting wind carries falling leaves and
-petals, pale wind streaks, and drifting cloud shadows across every map. Campfires and torches
+petals, pale wind streaks, and drifting cloud shadows across every map,
+and gusts roll fronts of sunlit blade tips over the grass. Dandelion seeds
+and pollen drift through every view, and now and then a flock of birds
+crosses overhead with its shadow. Cottages and huts send smoke up from their
+roofs, and many land-only maps get a meandering brook. Campfires and torches
 flicker with warm light and smoke, ponds ripple, fish jump, and reeds nod
 in the wind. Butterflies drift between flowers, dragonflies dart over
 ponds, fireflies glow in the dark grass, and the ground reacts to the

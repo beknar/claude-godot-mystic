@@ -32,8 +32,8 @@ SHADE_TOL = 2.6
 
 # The proxy's features, and which observed counts each one stands for.
 FEATURES = ["leaves", "water_anim", "rings", "reeds", "sparkles", "flames", "glow", "smoke",
-            "butterflies", "dragonflies", "fireflies", "streak", "animals"]  # cloud shadows are a separate background
-STATIC = ["water_anim", "reeds", "sparkles", "flames", "glow"]  # deterministic: feature = what is there
+            "butterflies", "dragonflies", "fireflies", "streak", "animals", "drift", "grass"]  # cloud shadows are a separate background
+STATIC = ["water_anim", "reeds", "sparkles", "flames", "glow", "drift", "grass"]  # deterministic: feature = what is there
 OBSERVED = {  # observed count -> feature it is expected from
     "leaves_air": "leaves", "leaves_rest": "leaves", "streak_px": "streak", "rings": "rings",
     "drops": "rings", "butterflies": "butterflies", "dragonflies": "dragonflies",

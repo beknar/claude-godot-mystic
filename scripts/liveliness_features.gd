@@ -13,7 +13,8 @@ extends RefCounted
 ##   sparkles    animated sparkles on deep water
 ##   flames      campfire and torch flipbooks
 ##   glow        bright part of fire glows, in cells of area
-##   smoke       share of one campfire's smoke column
+##   smoke       share of one campfire's smoke column (a hearth's column
+##               from a house roof counts CHIMNEY_SMOKE of one)
 ##   butterflies expected butterflies over this cell
 ##   dragonflies expected dragonflies over this cell
 ##   fireflies   expected fireflies over this cell
@@ -21,14 +22,19 @@ extends RefCounted
 ##   cloud       cloud shadows (drift anywhere: 1 everywhere)
 ##   animals     sprite pixels of the map's animals (wildlife.gd), each
 ##               spread over its group's home range
+##   drift       drifters.gd seeds, pollen, and birds (in view anywhere: 1
+##               everywhere)
+##   grass       grass_waves.gd light on the grass (1 on grass cells)
 
 const Terrain := preload("res://scripts/forest_terrain.gd")
 const Wild := preload("res://scripts/wildlife.gd")
+const Waves := preload("res://scripts/grass_waves.gd")
 const TILE := 16
+const CHIMNEY_SMOKE := 0.6 # fire_ambience.gd CHIMNEY_SMOKE
 const W := Terrain.WIDTH
 const H := Terrain.HEIGHT
 const NAMES := ["leaves", "water_anim", "rings", "reeds", "sparkles", "flames", "glow", "smoke",
-	"butterflies", "dragonflies", "fireflies", "streak", "cloud", "animals"]
+	"butterflies", "dragonflies", "fireflies", "streak", "cloud", "animals", "drift", "grass"]
 
 
 static func grid(t) -> Dictionary:
@@ -40,6 +46,9 @@ static func grid(t) -> Dictionary:
 		g[n] = a
 	g.streak.fill(1.0)
 	g.cloud.fill(1.0)
+	g.drift.fill(1.0)
+	for c in Waves.grass_cells(t):
+		g.grass[c.y * W + c.x] = 1.0
 	# Leaves fall from each crown to the ground under it (and the canopy
 	# wall's lower edge sheds too); every source sheds at the same rate.
 	for prop in t.props:
@@ -68,6 +77,10 @@ static func grid(t) -> Dictionary:
 						_add(g.glow, flame + Vector2(x, y), 1.0 / (TILE * TILE))
 			if not torch:
 				_spread(g.smoke, Rect2(flame + Vector2(-8, -45), Vector2(16, 45)), 1.0)
+	for h in t.houses:
+		if Terrain.CHIMNEYS.has(h.id):
+			var vent := Vector2(h.origin * TILE + Terrain.CHIMNEYS[h.id])
+			_spread(g.smoke, Rect2(vent + Vector2(-8, -45), Vector2(16, 45)), CHIMNEY_SMOKE)
 	var canopy_cols := {}
 	for cell in t.canopy:
 		canopy_cols[cell.x / 4] = true

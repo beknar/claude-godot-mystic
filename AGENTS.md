@@ -726,7 +726,21 @@ Motion lives outside the tile art, in four scripts that `forest.gd` adds:
   additively over the scene) that flickers out of step with the others;
   big fires glow widest, torches smallest. Campfires send up a thin column
   of smoke puffs (2×2 knots loosening into 3×3) that rise, bend with the
-  wind, and fade.
+  wind, and fade. Every house with a hearth (the three cottages and the hut;
+  not the shed or barn) sends up a thinner column, 0.6 of a campfire's, from
+  its roof peak (`CHIMNEYS` in `forest_terrain.gd`; the sheet draws no
+  chimneys).
+- `scripts/drifters.gd` — what the wind carries through any view: dandelion
+  seeds (a pale core and a paler tuft, riding the wind, bobbing and lifting,
+  more in gusts), pollen specks hanging over flowers, and every 22–40 s a
+  flock of four to seven birds crossing the view in a loose V, flapping,
+  their shadows gliding 26 px below them. Spawned in and around the view.
+- `scripts/grass_waves.gd` — light passing over the grass: each gust sends
+  one or two fronts, and a faint one passes every 7–12 s; a front is a band
+  40 px across the wind rolling downwind at about 42 px/s, lighting a
+  dithered scatter of pale blade tips (leaning a pixel downwind) on grass
+  cells only, strongest in the band's middle. Nothing on the map moves (this
+  is not flower sway); it is drawn under the actors.
 - `scripts/water_life.gd` — ripple rings spread now and then on open water
   (water cells whose eight neighbors are water), drawn as flattened pixel
   circles in the deep-water teal with a pale inner highlight while young,
@@ -780,8 +794,8 @@ the finished map.
 ## Streams
 
 A recipe whose water is `S if room` (every land-only recipe but Open meadow,
-which the wilds scene pins dry) gets a brook three cells wide after the
-layout. It enters from a map edge and meanders in a staircase of straight
+which the wilds scene pins dry) gets, on 70 % of its maps, a brook three
+cells wide after the layout. It enters from a map edge and meanders in a staircase of straight
 runs, at least four cells between turns, turning sideways and back to its
 flow but never doubling back, 22–46 steps long. It runs off another edge, or
 rises from a spring: a 5 × 5 pool at the end inside the map. Three to six

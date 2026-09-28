@@ -227,6 +227,11 @@ const HOUSES := {
 
 # Props. `region` in cells, `cell` = region top-left relative to the anchor
 # tile, `base` = foot pixel inside the region (y-sort origin).
+# Where smoke leaves each house that has a hearth: the roof's peak, in pixels
+# from the prefab's top-left (the sheet draws no chimneys). The shed and the
+# barn are outbuildings and have none.
+const CHIMNEYS := {0: Vector2i(47, 2), 1: Vector2i(87, 2), 2: Vector2i(87, 2), 3: Vector2i(23, 14)}
+
 const PROPS := {
 	"tree_a": {"region": Rect2i(29, 11, 4, 5), "cell": Vector2i(-2, -4), "base": Vector2i(34, 78), "block": Vector2(12, 6)},
 	"tree_b": {"region": Rect2i(33, 11, 5, 6), "cell": Vector2i(-2, -5), "base": Vector2i(40, 91), "block": Vector2(14, 6)},
@@ -390,7 +395,7 @@ func generate(p_map_id: int, p_recipe := -1) -> String:
 		dropped.append("no layout fit after %d attempts" % ATTEMPTS)
 	elif recipe.water.begins_with("P if room"):
 		_optional_pond()
-	elif recipe.water.begins_with("S if room") and not _stream():
+	elif recipe.water.begins_with("S if room") and _rng.randf() < STREAM_CHANCE and not _stream():
 		dropped.append("stream (no room)")
 	_grass_zones()
 	_grow_patches()
@@ -428,6 +433,7 @@ func _optional_pond() -> void:
 # needs a bridge, and it is dropped if it would cut the spawn off from a goal.
 # Cells past the map edge count as water, so it flows off the map instead of
 # growing a shore there. Tiles, plants, and surfaces are the pond's.
+const STREAM_CHANCE := 0.7 # of maps on an "S if room" recipe that get a brook
 const STREAM_WIDTH := 3
 const STREAM_LENGTH := Vector2i(22, 46)
 
