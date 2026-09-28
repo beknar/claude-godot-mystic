@@ -1,12 +1,14 @@
 extends CanvasLayer
-## Escape menu for the randomizer: shows the current map id and recipe and
-## regenerates the map from a new seed with the same Painted Lands rules.
-## The recipe picker can pin the next seed to one of the 20 recipes.
+## Escape menu for a randomizer scene: shows the current map and regenerates
+## it from a new seed with the same rules. Works with any map script that
+## has build(id), map_summary() -> {id, name, checks}, and recipe_names();
+## when there are recipes, a picker can pin the next seed to one of them.
 
 const FONT_SIZE := 40
 const MAX_ID := 999_999
 
 @export var map_path: NodePath = ^".."
+@export var title := "Randomizer"
 
 @onready var map: Node = get_node(map_path)
 
@@ -42,9 +44,9 @@ func _set_open(open: bool) -> void:
 
 func _on_regenerate() -> void:
 	var id := _rng.randi_range(20, MAX_ID)
-	var pinned := _recipe.selected - 1
-	var count := PaintedTerrain.RECIPES.size()
-	if pinned >= 0:
+	var count: int = map.recipe_names().size()
+	var pinned := _recipe.selected - 1 if _recipe else -1
+	if pinned >= 0 and count > 0:
 		id = id - id % count + pinned
 	map.build(id)
 	_refresh()
@@ -52,13 +54,9 @@ func _on_regenerate() -> void:
 
 
 func _refresh() -> void:
-	var t: PaintedTerrain = map.terrain
-	var checks := "ok"
-	for line in map.report.split("\n"):
-		if line.begins_with("  checks:"):
-			checks = line.substr(10)
-	_info.text = "Map %d\nRecipe %d: %s\nChecks: %s" % [t.map_id, t.recipe_id, t.recipe.name, checks]
-	_hud.text = "Map %d · %s · Esc for menu" % [t.map_id, t.recipe.name]
+	var s: Dictionary = map.map_summary()
+	_info.text = "Map %d\n%s\nChecks: %s" % [s.id, s.name, s.checks]
+	_hud.text = "Map %d · %s · Esc for menu" % [s.id, s.name]
 
 
 func _build_ui() -> void:
@@ -84,11 +82,11 @@ func _build_ui() -> void:
 	box.add_theme_constant_override("separation", 24)
 	margin.add_child(box)
 
-	var title := Label.new()
-	title.text = "Randomizer"
-	title.add_theme_font_size_override("font_size", FONT_SIZE * 3 / 2)
-	title.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	box.add_child(title)
+	var heading := Label.new()
+	heading.text = title
+	heading.add_theme_font_size_override("font_size", FONT_SIZE * 3 / 2)
+	heading.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	box.add_child(heading)
 
 	_info = Label.new()
 	_info.add_theme_font_size_override("font_size", FONT_SIZE)
@@ -96,13 +94,15 @@ func _build_ui() -> void:
 	_info.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	box.add_child(_info)
 
-	_recipe = OptionButton.new()
-	_recipe.add_theme_font_size_override("font_size", FONT_SIZE)
-	_recipe.get_popup().add_theme_font_size_override("font_size", FONT_SIZE)
-	_recipe.add_item("Next recipe: any (seed %% %d)" % PaintedTerrain.RECIPES.size())
-	for i in PaintedTerrain.RECIPES.size():
-		_recipe.add_item("Next recipe: %d %s" % [i, PaintedTerrain.RECIPES[i].name])
-	box.add_child(_recipe)
+	var names: Array = map.recipe_names()
+	if not names.is_empty():
+		_recipe = OptionButton.new()
+		_recipe.add_theme_font_size_override("font_size", FONT_SIZE)
+		_recipe.get_popup().add_theme_font_size_override("font_size", FONT_SIZE)
+		_recipe.add_item("Next recipe: any (seed %% %d)" % names.size())
+		for i in names.size():
+			_recipe.add_item("Next recipe: %d %s" % [i, names[i]])
+		box.add_child(_recipe)
 
 	_regenerate = _button(box, "Regenerate with a new seed", _on_regenerate)
 	_button(box, "Resume", func(): _set_open(false))

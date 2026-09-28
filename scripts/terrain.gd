@@ -1,13 +1,16 @@
 class_name MysticTerrain
 extends RefCounted
 ## Tile-id grid for the Mystic Woods maps (AGENTS.md § Mystic Woods).
-## Output is plains.png / decor_16x16.png atlas coordinates plus prop
-## placements. Nothing here paints pixels.
+## Output is plains.png / decor_16x16.png atlas coordinates, pond rectangles,
+## fences, walled structures, and prop placements. Nothing here paints pixels.
+## A recipe (seed % RECIPES.size(), unless pinned) sets the terrain mix and
+## the set piece around the goal; recipe 0 is the original clearing.
 
 const GRASS := 0
 const DIRT := 1
 const CLIFF := 2
 const WATER := 3
+const COBBLE := 4 # plains.png rows 8-11: cobblestone ground, walkable
 
 const WIDTH := 70
 const HEIGHT := 46
@@ -36,7 +39,7 @@ const DIRT_TILES := {
 	8: Vector2i(3, 3), 9: Vector2i(3, 2), 10: Vector2i(2, 3), 11: Vector2i(2, 2),
 	12: Vector2i(3, 0), 13: Vector2i(3, 1), 14: Vector2i(2, 0), 15: Vector2i(2, 1),
 }
-const WATER_ROW := 8
+const COBBLE_ROW := 8 # plains.png rows 8-11 are cobblestone on grass, not water
 
 # Plateau in rows 4-7. Rows 6 and 7 carry the south-facing wall; the sheet
 # has no north wall, so the south rim is what reads as higher ground.
@@ -62,6 +65,58 @@ const PLATEAU_FILLS: Array[Vector2i] = [Vector2i(2, 5)]
 # decor_16x16.png cells. Their background is the meadow green.
 const TUFTS: Array[Vector2i] = [Vector2i(0, 0), Vector2i(1, 0), Vector2i(2, 0), Vector2i(3, 0), Vector2i(3, 1)]
 const FLOWERS: Array[Vector2i] = [Vector2i(0, 2), Vector2i(1, 2), Vector2i(2, 2), Vector2i(3, 2)]
+const MUSHROOMS: Array[Vector2i] = [Vector2i(0, 3), Vector2i(1, 3), Vector2i(3, 3)]
+const STONES: Array[Vector2i] = [Vector2i(0, 1), Vector2i(1, 1), Vector2i(2, 1)]
+# water_decorations.png: rocks in water (row 0), lily pads (row 1).
+const WATER_ROCKS: Array[Vector2i] = [Vector2i(0, 0), Vector2i(3, 0), Vector2i(4, 0), Vector2i(5, 0)]
+const LILIES: Array[Vector2i] = [Vector2i(0, 1), Vector2i(1, 1), Vector2i(2, 1), Vector2i(3, 1), Vector2i(4, 1), Vector2i(5, 1)]
+
+# Recipes. `cliff`: the height above which ground is cliff. `water`: "noise"
+# (the moisture field, cut to rectangles the pond art can draw), "ponds"
+# (one to three placed ponds), "lake" (one big lake with islands), or "none".
+# `arena`: the goal's flattened radius. `piece`: the set piece at the goal.
+# `road`: DIRT or COBBLE. Scatter: `tree_gap`, `trees`, `mushrooms` (share of
+# deco spots), `extras` ([arts, count, gap] groups scattered on the lawn).
+const RECIPES := [
+	{"name": "Clearing", "cliff": 0.64, "water": "noise", "arena": 4, "piece": "shrine"},
+	{"name": "Pond glade", "cliff": 0.72, "water": "ponds", "arena": 4, "piece": "shrine", "mushrooms": 0.1},
+	{"name": "Lake island", "cliff": 0.76, "water": "lake", "arena": 5, "piece": "lakeside"},
+	{"name": "Farmstead", "cliff": 0.7, "water": "noise", "arena": 7, "piece": "farm",
+		"extras": [[["stump_a", "stump_b"], 3, 6.0], [["log", "log_flower"], 2, 8.0]]},
+	{"name": "Stone ruins", "cliff": 0.62, "water": "none", "arena": 8, "piece": "ruins",
+		"extras": [[["pillar", "arch"], 3, 9.0], [["big_skull", "skull"], 3, 7.0]]},
+	{"name": "Cottage garden", "cliff": 0.72, "water": "none", "arena": 7, "piece": "cottage",
+		"extras": [[["bush"], 3, 7.0]]},
+	{"name": "Graveyard", "cliff": 0.68, "water": "none", "arena": 7, "piece": "graveyard", "mushrooms": 0.3,
+		"extras": [[["stump_a", "stump_b"], 3, 7.0], [["grave"], 2, 9.0]]},
+	{"name": "Cobble crossroads", "cliff": 0.76, "water": "none", "arena": 6, "piece": "plaza", "road": 4},
+	{"name": "Rocky highland", "cliff": 0.57, "water": "none", "arena": 4, "piece": "shrine", "cobble_fields": true,
+		"trees": ["cypress"], "tree_gap": 7.5, "extras": [[["rock_0", "rock_1", "rock_2"], 10, 5.0]]},
+	{"name": "Orchard", "cliff": 0.76, "water": "none", "arena": 11, "piece": "orchard", "trees": ["tree_b", "tree_d"],
+		"extras": [[["basket", "crate"], 3, 9.0]]},
+	{"name": "Woodcutter's glade", "cliff": 0.7, "water": "noise", "arena": 6, "piece": "woodcutter",
+		"extras": [[["stump_a", "stump_b"], 10, 5.0], [["log", "long_log", "log_flower"], 5, 7.0]]},
+	{"name": "Campsite", "cliff": 0.68, "water": "ponds", "arena": 6, "piece": "camp"},
+	{"name": "Mushroom hollow", "cliff": 0.7, "water": "none", "arena": 5, "piece": "hollow", "tree_gap": 4.6,
+		"trees": ["tree_a", "tree_c", "cypress"], "mushrooms": 0.55, "extras": [[["stump_a", "stump_b"], 4, 7.0], [["bush"], 4, 6.0]]},
+]
+
+# Cells a piece or extra covers, relative to its anchor (bottom-left cell),
+# and whether it blocks the walker.
+const PIECE_FOOT := {
+	"sign": [Rect2i(0, 0, 1, 1), true], "basket": [Rect2i(0, 0, 1, 1), true], "barrel": [Rect2i(0, 0, 1, 1), true],
+	"pot": [Rect2i(0, 0, 1, 1), true], "crate": [Rect2i(0, 0, 1, 1), true], "drawers": [Rect2i(0, 0, 1, 1), true],
+	"grave": [Rect2i(0, 0, 1, 1), true], "skull": [Rect2i(0, 0, 1, 1), false], "big_skull": [Rect2i(0, 0, 1, 1), true],
+	"pit": [Rect2i(0, 0, 1, 1), true], "pot_sprout": [Rect2i(0, 0, 1, 1), true], "potted_tree": [Rect2i(0, -1, 1, 2), true],
+	"bench": [Rect2i(0, 0, 2, 1), true], "table": [Rect2i(0, 0, 2, 1), true], "log": [Rect2i(0, 0, 2, 1), true],
+	"log_flower": [Rect2i(0, 0, 2, 1), true], "long_log": [Rect2i(0, 0, 3, 1), true], "bush": [Rect2i(0, -1, 2, 2), true],
+	"stump_a": [Rect2i(0, 0, 2, 1), true], "stump_b": [Rect2i(0, 0, 2, 1), true],
+	"rock_0": [Rect2i(0, 0, 1, 1), true], "rock_1": [Rect2i(0, 0, 1, 1), true], "rock_2": [Rect2i(0, 0, 1, 1), true],
+	"cypress": [Rect2i(-1, -2, 2, 3), true], "tree_a": [Rect2i(-1, -3, 3, 4), true], "tree_b": [Rect2i(-1, -3, 3, 4), true],
+	"tree_c": [Rect2i(-1, -3, 3, 4), true], "tree_d": [Rect2i(-1, -3, 3, 4), true],
+	# Roofless stone structures from walls.png: wall tops over a brick face.
+	"hut": [Rect2i(0, -4, 3, 5), true], "pillar": [Rect2i(0, -4, 1, 5), true], "arch": [Rect2i(0, -3, 1, 4), true],
+}
 
 const TREES: Array[String] = ["tree_a", "tree_b", "tree_c", "tree_d"]
 const ROCKS: Array[String] = ["rock_0", "rock_1", "rock_2"]
@@ -75,6 +130,19 @@ const FOOTPRINT := {
 
 var seed_value := 0
 var include_water := true
+var recipe_id := 0
+var recipe: Dictionary = RECIPES[0]
+var shrine_radius := SHRINE_RADIUS
+var cliff_above := CLIFF_ABOVE
+var ponds: Array[Rect2i] = []
+var islands: Array[Vector2i] = [] # top-left cell of each 2x2 island
+var water_deco := {} # cell -> water_decorations.png atlas
+var fence := {} # cell -> true
+var fires: Array[Vector2i] = [] # fire pit cells
+var blocked := {} # cells fences, structures, and set-piece props block
+var lane := {} # the route's cells inside the goal arena: kept clear
+var piece_notes := PackedStringArray()
+var piece_fails := PackedStringArray()
 
 var kind := PackedByteArray()
 var features := {} # Vector2i cell -> Vector2i plains.png atlas
@@ -99,15 +167,35 @@ static func plains_cells() -> Array[Vector2i]:
 	return cells
 
 
-func generate(p_seed: int, p_include_water := true) -> String:
+## `p_recipe`: a recipe index, or -1 for seed % RECIPES.size(). The fixed
+## scenes pin 0, the original clearing.
+func generate(p_seed: int, p_include_water := true, p_recipe := 0) -> String:
 	seed_value = p_seed
-	include_water = p_include_water
-	_rng.seed = p_seed
+	recipe_id = p_recipe if p_recipe >= 0 else posmod(p_seed, RECIPES.size())
+	recipe = RECIPES[recipe_id]
+	include_water = p_include_water and recipe.water == "noise"
+	shrine_radius = recipe.arena
+	cliff_above = recipe.cliff
+	# Recipe 0 is built once, exactly as the original clearing. The others
+	# retry with a new layout seed (new goal, ponds, and pieces on the same
+	# noise) while the goal cannot be reached.
+	var report := ""
+	for attempt in (1 if recipe_id == 0 else 8):
+		_rng.seed = p_seed + attempt * 7919
+		report = _build()
+		if _flood_reaches_shrine():
+			break
+	return report
+
+
+func _build() -> String:
 	kind.resize(WIDTH * HEIGHT)
-	features.clear()
-	deco.clear()
-	props.clear()
-	_occupied.clear()
+	for d in [features, deco, water_deco, fence, blocked, lane, _occupied]:
+		d.clear()
+	for a in [props, ponds, islands, fires]:
+		a.clear()
+	piece_notes.clear()
+	piece_fails.clear()
 
 	_sample_biomes()
 	for i in 3:
@@ -117,9 +205,13 @@ func generate(p_seed: int, p_include_water := true) -> String:
 	_cull(WATER, 12)
 	_place_arenas()
 	_autotile()
+	if recipe.water == "ponds" or recipe.water == "lake":
+		_lay_ponds(recipe.water == "lake")
+	if recipe.get("cobble_fields", false):
+		_cobble_fields()
 	_carve_route()
-	if include_water:
-		_stamp_water_link()
+	_shape_water()
+	_lay_piece()
 	_autotile()
 	var dirt_dups := _break_duplicates(DIRT, DIRT_FILLS)
 	var plateau_dups := _break_duplicates(CLIFF, PLATEAU_FILLS)
@@ -138,7 +230,7 @@ func _sample_biomes() -> void:
 			var h := _fbm(x * 0.055, y * 0.055, 0)
 			var m := _fbm(x * 0.05 + 40.0, y * 0.05 + 20.0, 100)
 			var k := GRASS
-			if h > CLIFF_ABOVE:
+			if h > cliff_above:
 				k = CLIFF
 			elif h < WATER_BELOW and m < DRY_ABOVE and include_water:
 				k = WATER
@@ -206,7 +298,7 @@ func _place_arenas() -> void:
 		if d > best:
 			best = d
 			shrine = c
-	_flatten(shrine, SHRINE_RADIUS)
+	_flatten(shrine, shrine_radius)
 
 
 func _flatten(center: Vector2i, radius: int) -> void:
@@ -229,8 +321,10 @@ func _autotile() -> void:
 			match k:
 				DIRT:
 					features[cell] = _pool_tile(mask, x, y, k, DIRT_FILLS, 0)
+				COBBLE:
+					features[cell] = _pool_tile(mask, x, y, k, [Vector2i(2, 1)], COBBLE_ROW)
 				WATER:
-					features[cell] = _pool_tile(mask, x, y, k, [Vector2i(2, 1)], WATER_ROW)
+					pass # ponds are drawn from water-sheet.png by the painter
 				CLIFF:
 					features[cell] = _pick(x, y, PLATEAU_FILLS) if mask == 15 else PLATEAU_TILES[mask]
 
@@ -255,26 +349,35 @@ func _carve_route() -> void:
 	grid.diagonal_mode = AStarGrid2D.DIAGONAL_MODE_NEVER
 	grid.default_compute_heuristic = AStarGrid2D.HEURISTIC_MANHATTAN
 	grid.update()
+	var placed_water: bool = recipe.water == "ponds" or recipe.water == "lake"
 	for y in HEIGHT:
 		for x in WIDTH:
 			match kind[_i(x, y)]:
 				CLIFF:
 					grid.set_point_weight_scale(Vector2i(x, y), CLIFF_COST)
 				WATER:
-					grid.set_point_weight_scale(Vector2i(x, y), WATER_COST)
+					if placed_water:
+						grid.set_point_solid(Vector2i(x, y)) # placed ponds are kept whole
+					else:
+						grid.set_point_weight_scale(Vector2i(x, y), WATER_COST)
 	var path := grid.get_id_path(spawn, shrine)
 	route_length = path.size()
+	var road: int = recipe.get("road", DIRT)
 	for p in path:
-		_stamp_dirt(p)
-		_stamp_dirt(p + Vector2i.RIGHT)
+		_stamp_dirt(p, road)
+		_stamp_dirt(p + Vector2i.RIGHT, road)
+		# Inside the goal arena the route stays lawn, and set pieces keep off it.
+		for q in [p, p + Vector2i.RIGHT]:
+			if _in_disk(q, shrine, shrine_radius) and _inside(q.x, q.y):
+				lane[q] = true
 
 
-func _stamp_dirt(c: Vector2i) -> void:
+func _stamp_dirt(c: Vector2i, road := DIRT) -> void:
 	if c.x <= 0 or c.y <= 0 or c.x >= WIDTH - 1 or c.y >= HEIGHT - 1:
 		return
 	if _in_arena(c):
 		return
-	kind[_i(c.x, c.y)] = DIRT
+	kind[_i(c.x, c.y)] = road
 
 
 func _stamp_water_link() -> void:
@@ -345,10 +448,11 @@ func _window_key(x: int, y: int) -> String:
 
 # 9. Poisson scatter on open grass, then the shrine prefab.
 func _scatter() -> void:
-	var trees := _poisson(TREE_GAP, 2000, func(c): return _clear(c, FOOTPRINT["tree"], 2))
+	var trees := _poisson(recipe.get("tree_gap", TREE_GAP), 2000, func(c): return _clear(c, FOOTPRINT["tree"], 2))
+	var tree_arts: Array = recipe.get("trees", TREES)
 	for c in trees:
 		_claim(c, FOOTPRINT["tree"])
-		props.append({"art": TREES[_rng.randi() % TREES.size()], "cell": c})
+		props.append({"art": tree_arts[_rng.randi() % tree_arts.size()], "cell": c})
 	var rocks := _poisson(ROCK_GAP, 800, func(c): return _clear(c, FOOTPRINT["rock"], 1))
 	for c in rocks:
 		_claim(c, FOOTPRINT["rock"])
@@ -357,8 +461,22 @@ func _scatter() -> void:
 	for c in spots:
 		_claim(c, FOOTPRINT["rock"])
 		var pool := FLOWERS if _rng.randf() < 0.45 else TUFTS
+		if recipe.has("mushrooms") and _rng.randf() < recipe.mushrooms:
+			pool = MUSHROOMS
 		deco[c] = pool[_rng.randi() % pool.size()]
-	_shrine_prefab()
+	if recipe.piece == "shrine":
+		_shrine_prefab()
+	for group in recipe.get("extras", []):
+		var arts: Array = group[0]
+		var spots2 := _poisson(group[2], 1200, func(c): return _piece_fits(arts[0], c, 1, false))
+		var added := 0
+		for c in spots2:
+			if added >= group[1]:
+				break
+			var art: String = arts[_rng.randi() % arts.size()]
+			if _piece_fits(art, c, 1, false):
+				_put(art, c)
+				added += 1
 
 
 func _shrine_prefab() -> void:
@@ -387,7 +505,7 @@ func _poisson(gap: float, budget: int, allow: Callable) -> Array[Vector2i]:
 # Every covered cell is unclaimed grass inside the map, and the anchor keeps
 # `margin` cells of extra room from both arenas.
 func _clear(anchor: Vector2i, foot: Rect2i, margin: int) -> bool:
-	if _in_disk(anchor, spawn, SPAWN_RADIUS + margin) or _in_disk(anchor, shrine, SHRINE_RADIUS + margin):
+	if _in_disk(anchor, spawn, SPAWN_RADIUS + margin) or _in_disk(anchor, shrine, shrine_radius + margin):
 		return false
 	for y in range(foot.position.y, foot.end.y):
 		for x in range(foot.position.x, foot.end.x):
@@ -413,15 +531,18 @@ func _verify(dirt_dups: int, plateau_dups: int) -> String:
 		if not valid.has(features[c]):
 			bad_ids += 1
 	for c in deco:
-		if not (deco[c] in TUFTS or deco[c] in FLOWERS):
+		if not (deco[c] in TUFTS or deco[c] in FLOWERS or deco[c] in MUSHROOMS or deco[c] in STONES):
 			bad_ids += 1
-	var counts := [0, 0, 0, 0]
+	var counts := [0, 0, 0, 0, 0]
 	for k in kind:
 		counts[k] += 1
 	var reach := _flood_reaches_shrine()
 	var lines := PackedStringArray([
 		"Mystic Woods seed %d, %dx%d" % [seed_value, WIDTH, HEIGHT],
-		"  cells: grass %d, dirt %d, cliff %d, water %d" % counts,
+		"  recipe %d: %s" % [recipe_id, recipe.name],
+		"  cells: grass %d, dirt %d, cliff %d, water %d, cobble %d" % counts,
+		"  ponds %d, islands %d, fence %d cells, fires %d%s" % [ponds.size(), islands.size(), fence.size(), fires.size(),
+			(", " + ", ".join(piece_notes)) if not piece_notes.is_empty() else ""],
 		"  spawn %s, shrine %s, route %d, water link %d" % [spawn, shrine, route_length, water_link],
 		"  props %d, deco %d" % [props.size(), deco.size()],
 		"  ids in pack: %s" % ("ok" if bad_ids == 0 else "%d bad" % bad_ids),
@@ -429,6 +550,14 @@ func _verify(dirt_dups: int, plateau_dups: int) -> String:
 		"  dirt 3x3 repeats: %d" % dirt_dups,
 		"  plateau 3x3 repeats: %d%s" % [plateau_dups, " (plains.png has one clean plateau fill)" if plateau_dups > 0 else ""],
 	])
+	var fails := piece_fails.duplicate()
+	if bad_ids > 0:
+		fails.append("%d ids not in the pack" % bad_ids)
+	if not reach:
+		fails.append("spawn does not reach the goal")
+	if (recipe.water == "ponds" or recipe.water == "lake") and ponds.is_empty():
+		fails.append("no pond")
+	lines.append("  checks: %s" % ("ok" if fails.is_empty() else "; ".join(fails)))
 	return "\n".join(lines)
 
 
@@ -441,7 +570,7 @@ func _flood_reaches_shrine() -> bool:
 			return true
 		for d in [Vector2i.UP, Vector2i.RIGHT, Vector2i.DOWN, Vector2i.LEFT]:
 			var n: Vector2i = c + d
-			if _inside(n.x, n.y) and not seen.has(n) and kind[_i(n.x, n.y)] in [GRASS, DIRT]:
+			if _inside(n.x, n.y) and not seen.has(n) and kind[_i(n.x, n.y)] in [GRASS, DIRT, COBBLE] and not blocked.has(n):
 				seen[n] = true
 				queue.append(n)
 	return false
@@ -502,7 +631,7 @@ func _pick(x: int, y: int, options: Array) -> Vector2i:
 
 
 func _in_arena(c: Vector2i) -> bool:
-	return _in_disk(c, spawn, SPAWN_RADIUS) or _in_disk(c, shrine, SHRINE_RADIUS)
+	return _in_disk(c, spawn, SPAWN_RADIUS) or _in_disk(c, shrine, shrine_radius)
 
 
 func _in_disk(c: Vector2i, center: Vector2i, radius: int) -> bool:
@@ -553,3 +682,376 @@ func _hash(x: int, y: int, salt: int) -> float:
 	h = ((h ^ (h >> 13)) * 1274126177) & 0xFFFFFFFF
 	h = h ^ (h >> 16)
 	return float(h & 0xFFFFFF) / float(0xFFFFFF)
+
+
+# ---------------------------------------------------------------- recipes
+
+# Placed ponds: rectangles the pond art draws (a bank on all four sides, open
+# water inside), on plain grass two cells clear of cliffs, both arenas, and
+# each other. A lake is one big rectangle with one or two 2x2 islands.
+func _lay_ponds(lake: bool) -> void:
+	var want := 1 if lake else _rng.randi_range(1, 3)
+	for attempt in 400:
+		if ponds.size() >= want:
+			break
+		var size := Vector2i(_rng.randi_range(12, 17), _rng.randi_range(8, 11)) if lake \
+			else Vector2i(_rng.randi_range(4, 7), _rng.randi_range(3, 5))
+		var r := Rect2i(Vector2i(_rng.randi_range(2, WIDTH - size.x - 2), _rng.randi_range(2, HEIGHT - size.y - 2)), size)
+		if not _rect_is(r.grow(2), GRASS) or _rect_near_arena(r, 2):
+			continue
+		var clash := false
+		for o in ponds:
+			if o.grow(3).intersects(r):
+				clash = true
+		if clash:
+			continue
+		_fill_rect(r, WATER)
+		ponds.append(r)
+		if lake:
+			_lay_islands(r)
+		_dress_pond(r)
+
+
+func _lay_islands(r: Rect2i) -> void:
+	var inner := r.grow(-2) # open water with at least one water cell around
+	for i in 40:
+		if islands.size() >= 2 or inner.size.x < 2 or inner.size.y < 2:
+			return
+		var at := Vector2i(_rng.randi_range(inner.position.x, inner.end.x - 2), _rng.randi_range(inner.position.y, inner.end.y - 2))
+		var ok := true
+		for o in islands:
+			if Rect2i(o, Vector2i(2, 2)).grow(1).intersects(Rect2i(at, Vector2i(2, 2))):
+				ok = false
+		if ok:
+			islands.append(at)
+
+
+# Lily pads and rocks on some open-water cells (not the bank or islands).
+func _dress_pond(r: Rect2i) -> void:
+	var open := r.grow(-1)
+	for y in range(open.position.y, open.end.y):
+		for x in range(open.position.x, open.end.x):
+			var c := Vector2i(x, y)
+			if _on_island(c) or _rng.randf() > 0.16:
+				continue
+			water_deco[c] = LILIES[_rng.randi() % LILIES.size()] if _rng.randf() < 0.7 else WATER_ROCKS[_rng.randi() % WATER_ROCKS.size()]
+
+
+func _on_island(c: Vector2i) -> bool:
+	for o in islands:
+		if Rect2i(o, Vector2i(2, 2)).has_point(c):
+			return true
+	return false
+
+
+# "noise" water: each pool from the moisture field is cut to the largest
+# rectangle inside it at least 3x3 (the pond art has no inside corners);
+# the rest turns back to grass.
+func _shape_water() -> void:
+	if recipe.water != "noise":
+		return
+	var seen := {}
+	for y in HEIGHT:
+		for x in WIDTH:
+			var c := Vector2i(x, y)
+			if seen.has(c) or kind[_i(x, y)] != WATER:
+				continue
+			var comp := {c: true}
+			var queue: Array[Vector2i] = [c]
+			seen[c] = true
+			while not queue.is_empty():
+				var q: Vector2i = queue.pop_back()
+				for d in [Vector2i.UP, Vector2i.RIGHT, Vector2i.DOWN, Vector2i.LEFT]:
+					var n: Vector2i = q + d
+					if _inside(n.x, n.y) and not seen.has(n) and kind[_i(n.x, n.y)] == WATER:
+						seen[n] = true
+						comp[n] = true
+						queue.append(n)
+			var best := _largest_rect(comp)
+			for k in comp:
+				if not best.has_point(k):
+					kind[_i(k.x, k.y)] = GRASS
+			if best.size.x >= 3 and best.size.y >= 3:
+				ponds.append(best)
+				_dress_pond(best)
+			else:
+				for k in comp:
+					kind[_i(k.x, k.y)] = GRASS
+
+
+# Largest axis-aligned rectangle inside `cells` (histogram method).
+func _largest_rect(cells: Dictionary) -> Rect2i:
+	var lo := Vector2i(WIDTH, HEIGHT)
+	var hi := Vector2i(-1, -1)
+	for c in cells:
+		lo = Vector2i(mini(lo.x, c.x), mini(lo.y, c.y))
+		hi = Vector2i(maxi(hi.x, c.x), maxi(hi.y, c.y))
+	var w := hi.x - lo.x + 1
+	var heights := PackedInt32Array()
+	heights.resize(w)
+	heights.fill(0)
+	var best := Rect2i()
+	for y in range(lo.y, hi.y + 1):
+		for i in w:
+			heights[i] = heights[i] + 1 if cells.has(Vector2i(lo.x + i, y)) else 0
+		for i in w:
+			var h := heights[i]
+			var j := i
+			var run_h := h
+			while j < w and heights[j] > 0:
+				run_h = mini(run_h, heights[j])
+				var r := Rect2i(lo.x + i, y - run_h + 1, j - i + 1, run_h)
+				if r.size.x >= 3 and r.size.y >= 3 and r.get_area() > best.get_area():
+					best = r
+				j += 1
+	return best
+
+
+# Rocky highland: patches of cobblestone from a separate noise, off the arenas.
+func _cobble_fields() -> void:
+	for y in HEIGHT:
+		for x in WIDTH:
+			var c := Vector2i(x, y)
+			if kind[_i(x, y)] == GRASS and not _in_arena(c) and _fbm(x * 0.09 + 7.0, y * 0.09 + 3.0, 300) > 0.6:
+				kind[_i(x, y)] = COBBLE
+	_cull(COBBLE, 8)
+
+
+# The set piece around the goal. Everything keeps off the lane (the route's
+# last stretch to the goal) and stays inside the goal arena.
+func _lay_piece() -> void:
+	match recipe.piece:
+		"lakeside":
+			_near_goal(["bench"], 2)
+			_near_goal(["sign"], 1)
+			_near_goal(["pot_sprout", "potted_tree"], 2)
+		"farm":
+			if _fenced_yard(Vector2i(9, 7)):
+				var inside := _yard.grow(-1)
+				_near_goal(["crate", "barrel", "basket", "pot", "drawers"], _rng.randi_range(5, 7), inside)
+			else:
+				piece_fails.append("no yard")
+		"graveyard":
+			if _fenced_yard(Vector2i(9, 7)):
+				var graves := 0
+				var inside := _yard.grow(-1)
+				for y in range(inside.position.y, inside.end.y, 2):
+					for x in range(inside.position.x, inside.end.x, 2):
+						var c := Vector2i(x, y)
+						if not _near_lane(c) and _piece_fits("grave", c, 0, true):
+							_put("grave", c)
+							graves += 1
+				_near_goal(["skull", "big_skull"], 2, inside)
+				piece_notes.append("%d graves" % graves)
+				if graves < 3:
+					piece_fails.append("only %d graves" % graves)
+			else:
+				piece_fails.append("no yard")
+		"ruins":
+			_cobble_disk(shrine, 3)
+			var walls := _near_goal(["hut"], 1) + _near_goal(["pillar", "arch"], _rng.randi_range(2, 3))
+			_near_goal(["skull", "big_skull", "rock_0", "rock_2"], 3)
+			piece_notes.append("%d walls" % walls)
+			if walls < 2:
+				piece_fails.append("no ruin walls")
+		"cottage":
+			# North of the goal if it fits there, else anywhere in the arena.
+			if _near_goal(["hut"], 1, Rect2i(shrine - Vector2i(4, 5), Vector2i(9, 5))) == 0 and _near_goal(["hut"], 1) == 0:
+				piece_fails.append("no cottage")
+			_near_goal(["pot_sprout", "potted_tree", "pot", "basket"], 4)
+			_near_goal(["bench"], 1)
+			_fence_runs(2)
+		"plaza":
+			_cobble_disk(shrine, 4)
+			_near_goal(["bench"], 2)
+			_near_goal(["sign"], 2)
+			_near_goal(["barrel", "crate", "potted_tree"], 3)
+		"orchard":
+			var planted := 0
+			# Rows of fruit trees on a loose grid, a few tries per slot.
+			for gy in range(-1, 2):
+				for gx in range(-2, 3):
+					var art := "tree_b" if _rng.randf() < 0.5 else "tree_d"
+					for t in 4:
+						var c := shrine + Vector2i(gx * 4 + _rng.randi_range(-1, 1), gy * 5 + 1 + _rng.randi_range(-1, 1))
+						if not _near_lane(c) and _piece_fits(art, c, 0, true):
+							_put(art, c)
+							planted += 1
+							break
+			_near_goal(["basket", "crate"], 3)
+			piece_notes.append("%d orchard trees" % planted)
+			if planted < 3:
+				piece_fails.append("only %d orchard trees" % planted)
+		"woodcutter", "camp":
+			if _near_goal(["pit"], 1, Rect2i(shrine - Vector2i(2, 2), Vector2i(5, 5))) == 0:
+				piece_fails.append("no fire pit")
+			else:
+				var pit: Vector2i = fires[0]
+				_near_goal(["log", "long_log"] if recipe.piece == "woodcutter" else ["log", "log_flower"], 3,
+					Rect2i(pit - Vector2i(4, 3), Vector2i(9, 7)))
+			_near_goal(["crate", "barrel"], 2)
+			if recipe.piece == "camp":
+				_near_goal(["bench"], 1)
+				_near_goal(["sign"], 1)
+		"hollow":
+			_near_goal(["stump_b"], 1, Rect2i(shrine - Vector2i(2, 2), Vector2i(5, 5)))
+			for i in 30:
+				var c := shrine + Vector2i(_rng.randi_range(-3, 3), _rng.randi_range(-3, 3))
+				if _in_disk(c, shrine, shrine_radius - 1) and not lane.has(c) and not _occupied.has(c) and kind[_i(c.x, c.y)] == GRASS:
+					deco[c] = MUSHROOMS[_rng.randi() % MUSHROOMS.size()]
+					_occupied[c] = true
+
+
+var _yard := Rect2i()
+
+
+# A fence around a rectangle centred on the goal, with a gate where the lane
+# crosses it (at least two cells wide). Returns false if it does not fit.
+func _fenced_yard(size: Vector2i) -> bool:
+	var r := Rect2i(shrine - size / 2, size)
+	for y in range(r.position.y, r.end.y):
+		for x in range(r.position.x, r.end.x):
+			if not _inside(x, y) or kind[_i(x, y)] != GRASS or not _in_disk(Vector2i(x, y), shrine, shrine_radius):
+				return false
+	var border: Array[Vector2i] = []
+	for x in range(r.position.x, r.end.x):
+		border.append(Vector2i(x, r.position.y))
+		border.append(Vector2i(x, r.end.y - 1))
+	for y in range(r.position.y + 1, r.end.y - 1):
+		border.append(Vector2i(r.position.x, y))
+		border.append(Vector2i(r.end.x - 1, y))
+	var gate := {}
+	for c in border:
+		if lane.has(c):
+			gate[c] = true
+			for d in [Vector2i.UP, Vector2i.RIGHT, Vector2i.DOWN, Vector2i.LEFT]:
+				if c + d in border:
+					gate[c + d] = true
+	if gate.is_empty():
+		return false
+	for c in border:
+		if gate.has(c):
+			continue
+		fence[c] = true
+		blocked[c] = true
+		_occupied[c] = true
+	_yard = r
+	# A sign outside the gate.
+	for c in gate:
+		for d in [Vector2i.UP, Vector2i.RIGHT, Vector2i.DOWN, Vector2i.LEFT]:
+			var o: Vector2i = c + d
+			if not r.has_point(o) and not lane.has(o) and _piece_fits("sign", o, 0, true):
+				_put("sign", o)
+				return true
+	return true
+
+
+# One or two short fence runs flanking the goal (a garden edge).
+func _fence_runs(count: int) -> void:
+	for i in count:
+		for attempt in 20:
+			var horizontal := _rng.randf() < 0.5
+			var length := _rng.randi_range(3, 5)
+			var start := shrine + Vector2i(_rng.randi_range(-5, 2), _rng.randi_range(-1, 4))
+			var cells: Array[Vector2i] = []
+			for k in length:
+				cells.append(start + (Vector2i(k, 0) if horizontal else Vector2i(0, k)))
+			var ok := true
+			for c in cells:
+				if not _piece_fits("sign", c, 0, true) or _near_lane(c):
+					ok = false
+			if ok:
+				for c in cells:
+					fence[c] = true
+					blocked[c] = true
+					_occupied[c] = true
+				break
+
+
+func _cobble_disk(center: Vector2i, radius: int) -> void:
+	for y in range(center.y - radius, center.y + radius + 1):
+		for x in range(center.x - radius, center.x + radius + 1):
+			if _inside(x, y) and _in_disk(Vector2i(x, y), center, radius) and kind[_i(x, y)] == GRASS:
+				kind[_i(x, y)] = COBBLE
+
+
+# Up to `count` pieces from `arts` on free cells in `area` (default: the goal
+# arena), off the lane and not right beside it. Returns how many were placed.
+func _near_goal(arts: Array, count: int, area := Rect2i()) -> int:
+	if area.size == Vector2i.ZERO:
+		area = Rect2i(shrine - Vector2i(shrine_radius, shrine_radius), Vector2i(shrine_radius * 2 + 1, shrine_radius * 2 + 1))
+	var placed := 0
+	for i in 150:
+		if placed >= count:
+			break
+		var art: String = arts[_rng.randi() % arts.size()]
+		var c := Vector2i(_rng.randi_range(area.position.x, area.end.x - 1), _rng.randi_range(area.position.y, area.end.y - 1))
+		if c == shrine or _near_lane(c) or not _piece_fits(art, c, 0, true):
+			continue
+		_put(art, c)
+		placed += 1
+	return placed
+
+
+func _near_lane(c: Vector2i) -> bool:
+	for d in [Vector2i.ZERO, Vector2i.UP, Vector2i.RIGHT, Vector2i.DOWN, Vector2i.LEFT]:
+		if lane.has(c + d) or c + d == shrine:
+			return true
+	return false
+
+
+# Every cell the piece covers is free ground. `in_arena`: inside the goal
+# arena; otherwise out on the lawn, clear of both arenas by `margin`.
+func _piece_fits(art: String, anchor: Vector2i, margin: int, in_arena: bool) -> bool:
+	var foot: Rect2i = PIECE_FOOT[art][0]
+	if not in_arena and (_in_disk(anchor, spawn, SPAWN_RADIUS + margin) or _in_disk(anchor, shrine, shrine_radius + margin)):
+		return false
+	for y in range(foot.position.y, foot.end.y):
+		for x in range(foot.position.x, foot.end.x):
+			var c := anchor + Vector2i(x, y)
+			if not _inside(c.x, c.y) or _occupied.has(c) or lane.has(c) or blocked.has(c):
+				return false
+			var k := kind[_i(c.x, c.y)]
+			if k != GRASS and k != COBBLE:
+				return false
+			if in_arena and not _in_disk(c, shrine, shrine_radius):
+				return false
+	return true
+
+
+func _put(art: String, anchor: Vector2i) -> void:
+	props.append({"art": art, "cell": anchor})
+	var foot: Rect2i = PIECE_FOOT[art][0]
+	var walls: bool = art in ["hut", "pillar", "arch"]
+	for y in range(foot.position.y, foot.end.y):
+		for x in range(foot.position.x, foot.end.x):
+			var c := anchor + Vector2i(x, y)
+			_occupied[c] = true
+			# Walls block their whole footprint; other pieces their foot row.
+			if PIECE_FOOT[art][1] and (walls or y == foot.end.y - 1):
+				blocked[c] = true
+	if art == "pit":
+		fires.append(anchor)
+
+
+func _rect_is(r: Rect2i, k: int) -> bool:
+	for y in range(r.position.y, r.end.y):
+		for x in range(r.position.x, r.end.x):
+			if not _inside(x, y) or kind[_i(x, y)] != k:
+				return false
+	return true
+
+
+func _rect_near_arena(r: Rect2i, margin: int) -> bool:
+	for y in range(r.position.y, r.end.y):
+		for x in range(r.position.x, r.end.x):
+			var c := Vector2i(x, y)
+			if _in_disk(c, spawn, SPAWN_RADIUS + margin) or _in_disk(c, shrine, shrine_radius + margin):
+				return true
+	return false
+
+
+func _fill_rect(r: Rect2i, k: int) -> void:
+	for y in range(r.position.y, r.end.y):
+		for x in range(r.position.x, r.end.x):
+			kind[_i(x, y)] = k

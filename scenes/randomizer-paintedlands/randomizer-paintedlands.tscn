@@ -3,7 +3,7 @@
 [ext_resource type="Script" uid="uid://bl7x3ivnab0xe" path="res://scripts/forest.gd" id="1_script"]
 [ext_resource type="Script" uid="uid://bur3cxtn52dtl" path="res://scripts/randomizer_menu.gd" id="2_menu"]
 
-[node name="Randomizer" type="Node2D" unique_id=1440325705]
+[node name="RandomizerPaintedLands" type="Node2D" unique_id=1440325705]
 texture_filter = 1
 script = ExtResource("1_script")
 map_id = 75125
@@ -26,3 +26,4 @@ collision_mask = 0
 [node name="Menu" type="CanvasLayer" parent="." unique_id=606037921]
 layer = 10
 script = ExtResource("2_menu")
+title = "Painted Lands randomizer"

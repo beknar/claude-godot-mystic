@@ -104,9 +104,20 @@ Painted Lands map (pipeline: § Painted Lands):
   (pinned: `recipe = 5`).
   No house. A straight cobble road runs from edge to edge. Round dirt
   blobs, bushes, and land rocks. No pond and no signs.
-- `scenes/randomizer/randomizer.tscn` — the wilds settings (starts at map
-  id `75125`) plus an Esc menu that regenerates from a random new id with
-  the same generator. Any of the 30 recipes can come up, or be pinned. Its first map is pinned to recipe 5.
+- `scenes/randomizer-paintedlands/randomizer-paintedlands.tscn` — the wilds
+  settings (starts at map id `75125`) plus an Esc menu that regenerates from a
+  random new id with the same generator. Any of the 30 recipes can come up, or
+  be pinned. Its first map is pinned to recipe 5.
+
+Mystic Woods randomizer:
+
+- `scenes/randomizer-mysticwoods/randomizer-mysticwoods.tscn` — the Mystic
+  Woods pipeline (`terrain.gd` + `clearing.gd`, `player.png`), starting at the
+  clearing's seed `21021` (`recipe = -1`: seed % 13), with the same Esc menu
+  (`randomizer_menu.gd`): it shows the map id, recipe, and checks, regenerates
+  from a random new seed, and can pin any of the 13 Mystic Woods recipes. The
+  menu works with any map script that has `build(id)`, `map_summary()`, and
+  `recipe_names()`.
 
 There is no health, enemy, or save. The editor addon
 `addons/godot_mcp` is how this repo is driven from the Godot MCP server.
@@ -140,8 +151,9 @@ seed. Output is atlas coordinates, never a painted bitmap.
 - Rows 4–6: cliff top and the south-facing wall. The sheet has no
   north-facing wall. A plateau reads as higher ground because the
   south rim uses the wall tiles.
-- Rows 8–11: water. Same corner layout as the dirt block, eight rows
-  down.
+- Rows 8–11: cobblestone on grass (not water: the pack's water is
+  `water-sheet.png`). Same corner layout as the dirt block, eight rows
+  down; used for plazas, cobbled roads, and rocky fields.
 - Meadow fill is the single cell in `grass.png`, color `(80, 155, 102)`.
   Cliff-top green `(83, 160, 59)` stays on the plateau and is not
   mixed into that fill.
@@ -171,8 +183,8 @@ Pipeline, in order:
 7. Carve, then autotile again. A* from spawn to shrine treats cliff
    cost as 12 and water cost as 8. The route and the cell to its east
    become dirt, two tiles wide, and the arenas and the map edge stay
-   grass. A short water link is stamped from the nearest water toward
-   the west column, skipping both arenas.
+   grass. (The old one-cell water link toward the west column is gone:
+   the pond art cannot draw a channel, and water is cut to rectangles.)
 8. If two fully interior 3×3 dirt windows or plateau windows share
    the same nine ids, the center cell of the later window changes
    variant.
@@ -193,6 +205,44 @@ a ring outside the map. Grass and dirt stay open.
 When extending Mystic Woods, add biomes as more ids from `plains.png`
 or another *Mystic Woods* sheet. Keep this pipeline: noise, thresholds,
 smooth, carve, re-autotile, scatter, then the three checks above.
+
+### Mystic Woods recipes
+
+`terrain.gd` `RECIPES`; `recipe = seed % 13` unless pinned. Recipe 0 is the
+pipeline above, built exactly as before (clearing and grove pin it). The
+others tune the cliff threshold, the water, the goal arena's radius, and
+the scatter, add a set piece around the goal, and retry with a new layout
+seed (same noise) until the walker reaches the goal. Set pieces keep off the
+lane (the route's last stretch inside the arena, and the cells beside it);
+fences, walls, and blocking pieces count as solid in the reach check.
+
+| # | Recipe | Water | Set piece and scatter |
+|---|---|---|---|
+| 0 | Clearing | noise | shrine prefab (the original) |
+| 1 | Pond glade | 1–3 ponds | shrine prefab, some mushrooms |
+| 2 | Lake island | one lake, 1–2 islands | benches, sign, potted plants on the shore |
+| 3 | Farmstead | noise | fenced 9 × 7 yard with a gate on the lane and a sign; crates, barrels, baskets, pots, drawers inside; stumps and logs |
+| 4 | Stone ruins | none | cobble patch, a roofless stone hut, pillars and arches, skulls, rocks |
+| 5 | Cottage garden | none | stone hut with its door, potted plants, pots, basket, bench, short fence runs, bushes |
+| 6 | Graveyard | none | fenced yard with rows of gravestones and skulls; stumps, mushrooms |
+| 7 | Cobble crossroads | none | cobblestone road and a plaza with benches, signs, barrels, potted trees |
+| 8 | Rocky highland | none | more cliffs, cobblestone rock fields, cypresses, many rocks |
+| 9 | Orchard | none | fruit trees on a loose grid around the goal and across the map; baskets, crates |
+| 10 | Woodcutter's glade | noise | fire pit ringed with logs; many stumps and logs |
+| 11 | Campsite | 1–3 ponds | fire pit with log seats, bench, crates, sign |
+| 12 | Mushroom hollow | none | dense trees and cypresses, mushrooms everywhere, a stump at the goal |
+
+Water uses `water-sheet.png`: a 3 × 3 bank-and-water autotile and a 2 × 2
+island, six frames five cells apart (tile animation). The art has no inner
+corners, so every pond is a rectangle: noise water is cut to the largest
+rectangle at least 3 × 3 inside each pool, and placed ponds are rectangles
+two cells clear of cliffs and arenas, which the route goes around. Lily pads
+and water rocks (`water_decorations.png`) dot the open water. Fences use
+`fences.png` as a 4 × 4 autotile (column: the rail sideways, row: the rail up
+and down) on a y-sorted layer. Roofless stone structures come from
+`walls.png` (wall tops over a brick face, `wooden_door.png` on a hut). Fire
+pits glow and smoke through `fire_ambience.gd`. `tools/check_mystic.gd`
+sweeps recipes headless.
 
 ---
 

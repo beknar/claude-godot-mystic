@@ -1,0 +1,26 @@
+[gd_scene format=3 uid="uid://dgng0t6wpa2il"]
+
+[ext_resource type="Script" uid="uid://bajogt5w6bya0" path="res://scripts/clearing.gd" id="1_script"]
+[ext_resource type="Script" uid="uid://bur3cxtn52dtl" path="res://scripts/randomizer_menu.gd" id="2_menu"]
+
+[node name="RandomizerMysticWoods" type="Node2D" unique_id=683646404]
+texture_filter = 1
+script = ExtResource("1_script")
+recipe = -1
+
+[node name="Ground" type="TileMapLayer" parent="." unique_id=336229624]
+
+[node name="Features" type="TileMapLayer" parent="." unique_id=75443124]
+
+[node name="Deco" type="TileMapLayer" parent="." unique_id=1381009234]
+
+[node name="Actors" type="Node2D" parent="." unique_id=1741058848]
+y_sort_enabled = true
+
+[node name="Collision" type="StaticBody2D" parent="." unique_id=2026662153]
+collision_mask = 0
+
+[node name="Menu" type="CanvasLayer" parent="." unique_id=1916779473]
+layer = 10
+script = ExtResource("2_menu")
+title = "Mystic Woods randomizer"

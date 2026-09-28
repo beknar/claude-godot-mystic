@@ -10,7 +10,8 @@ overview; when the two disagree, `AGENTS.md` wins.
 
 > **Status:** built so far: `scenes/clearing/clearing.tscn` (the main scene),
 > `scenes/grove/grove.tscn`, `scenes/forest/forest.tscn`,
-> `scenes/wilds/wilds.tscn`, `scenes/randomizer/randomizer.tscn`, the
+> `scenes/wilds/wilds.tscn`, `scenes/randomizer-paintedlands/randomizer-paintedlands.tscn`,
+> `scenes/randomizer-mysticwoods/randomizer-mysticwoods.tscn`, the
 > player and walker scenes, the Mystic Woods and Painted Lands generators,
 > both art packs, the AI character sheets, and `addons/godot_mcp`. Hollow,
 > ford, and heath are not built yet. The Painted Lands generator draws all
@@ -51,9 +52,15 @@ generator.
 | `scenes/heath/heath.tscn` | 91003, no water | Lineup of all five Mystic Woods sheets, no control |
 | `scenes/forest/forest.tscn` | 91003 | `character_sprite_sheet.png` (3×4 of 32px) |
 | `scenes/wilds/wilds.tscn` | 75125 (recipe 5, Open meadow) | `character_sprite_sheet.png` |
-| `scenes/randomizer/randomizer.tscn` | starts at 75125, then any | `character_sprite_sheet.png` |
+| `scenes/randomizer-paintedlands/randomizer-paintedlands.tscn` | starts at 75125, then any | `character_sprite_sheet.png` |
+| `scenes/randomizer-mysticwoods/randomizer-mysticwoods.tscn` | starts at 21021, then any | `player.png` |
 
-The randomizer runs the Painted Lands generator with the wilds settings.
+The Painted Lands randomizer runs the Painted Lands generator with the wilds
+settings; the Mystic Woods randomizer runs the Mystic Woods generator the
+same way, with its own 13 recipes (clearing, pond glade, lake island,
+farmstead, stone ruins, cottage garden, graveyard, cobble crossroads, rocky
+highland, orchard, woodcutter's glade, campsite, mushroom hollow) in the
+recipe picker. `tools/check_mystic.gd` sweeps them headless.
 Press Esc for its menu: it shows the current map id, recipe, and check
 result, and **Regenerate with a new seed** builds a fresh map from a random
 id with the same rules (`recipe = id % 30`). The recipe picker can pin the

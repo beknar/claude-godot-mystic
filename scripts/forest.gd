@@ -97,6 +97,23 @@ func build(id: int, pinned := -1) -> void:
 	print(report)
 
 
+## For the randomizer menu: the recipe names, in recipe-id order.
+func recipe_names() -> Array[String]:
+	var out: Array[String] = []
+	for r in PaintedTerrain.RECIPES:
+		out.append(r.name)
+	return out
+
+
+## For the randomizer menu: {id, name, checks}.
+func map_summary() -> Dictionary:
+	var checks := "ok"
+	for line in report.split("\n"):
+		if line.begins_with("  checks:"):
+			checks = line.substr(10)
+	return {"id": terrain.map_id, "name": "Recipe %d: %s" % [terrain.recipe_id, terrain.recipe.name], "checks": checks}
+
+
 func _add_ambience() -> void:
 	wind = Wind.new()
 	wind.name = "Wind"
