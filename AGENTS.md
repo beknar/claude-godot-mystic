@@ -1,5 +1,13 @@
 ## Which pack (read this first)
 
+**Official asset packs.** The only official asset packs for development at
+this point are **The Painted Lands** (Forest, Green Caves, Cozy Cottage, and
+the other antarcticbees packs) and **Pixel Crawler** (Anokolisa). They are
+used in separate maps and never combined. The **Mana Seed** packs are not to
+be used in future development in this project. **Mystic Woods** is now
+deprecated. (Time Fantasy was already ruled unsuitable.) Their existing
+scenes and sections stay as a record only.
+
 This repo has six map languages. Do not mix their pipelines, sheets,
 or “done” checks.
 
@@ -195,6 +203,8 @@ matches the player grid: 48×48, 6 columns, 10 rows, attack columns
 ---
 
 # Mystic Woods
+
+**Deprecated.** Do not use Mystic Woods in new development.
 
 Do not apply this section to `forest.tscn` or `TILESET_brighter.png`.
 
@@ -1386,6 +1396,9 @@ still reaches.
 ---
 
 # Mana Seed
+
+**Not to be used in future development in this project.** This section
+records how the existing scene was built.
 
 Do not apply this section to the other maps, and do not use their sheets
 here. Pack: Seliel the Shaper's Mana Seed collection (the "complete rpg

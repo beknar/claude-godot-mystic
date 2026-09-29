@@ -66,6 +66,16 @@ Godot_v4.6.1-stable_win64.exe --path E:\code\claude-godot-mystic
 Display: window 3440×1440, camera zoom 5, nearest filtering. Each 16px tile
 is 80 screen pixels.
 
+## Official asset packs
+
+> **Official asset packs.** The only official asset packs for development at
+> this point are **The Painted Lands** (Forest, Green Caves, Cozy Cottage, and
+> the other antarcticbees packs) and **Pixel Crawler** (Anokolisa). They are
+> used in separate maps and never combined. The **Mana Seed** packs are not to
+> be used in future development in this project. **Mystic Woods** is now
+> deprecated. (Time Fantasy was already ruled unsuitable.) Their existing
+> scenes and sections stay as a record only.
+
 ## Two map languages
 
 Each map belongs to one pack. Don't mix pipelines, sheets, or "done" checks
