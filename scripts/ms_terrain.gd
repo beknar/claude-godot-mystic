@@ -206,23 +206,34 @@ const RECIPES := [
 	{"name": "Forest glade", "seasons": ["spring", "summer", "autumn", "winter"], "wall": "edges", "zones": 0.32, "trees": ["mixed", 22], "ponds": [0, 1], "plateaus": [0, 0], "path": ["trail", DIRT, 1], "tall": 3, "piece": "glade", "flowers": 50},
 	{"name": "Lakeside", "seasons": ["spring", "summer", "autumn", "winter"], "wall": "none", "zones": 0.2, "trees": ["mixed", 16], "ponds": [0, 0], "lake": true, "plateaus": [0, 0], "path": ["shore", DIRT, 1], "tall": 4, "piece": "shore", "flowers": 50},
 	{"name": "Brookside", "seasons": ["spring", "summer", "autumn", "winter"], "wall": "none", "zones": 0.22, "trees": ["mixed", 18], "ponds": [0, 0], "stream": true, "plateaus": [0, 0], "path": ["cross", DIRT, 2], "tall": 4, "piece": "flowers", "flowers": 60},
-	{"name": "Cliffside", "seasons": ["spring", "summer", "autumn", "winter"], "wall": "none", "zones": 0.2, "trees": ["mixed", 16], "ponds": [0, 1], "plateaus": [1, 1], "path": ["to_plateau", DIRT, 1], "tall": 3, "piece": "rocks", "flowers": 40},
+	{"name": "Cliffside", "seasons": ["spring", "summer", "autumn", "winter"], "wall": "none", "zones": 0.2, "trees": ["mixed", 16], "ponds": [0, 1], "plateaus": [1, 1], "path": ["to_plateau", DIRT, 1], "tall": 3, "piece": "rocks", "flowers": 40, "ground": {"dark": 0.6, "dirt": 0.15, "rock": 0.25}},
 	{"name": "Terraces", "seasons": ["spring", "summer", "autumn", "winter"], "wall": "none", "zones": 0.2, "trees": ["mixed", 14], "ponds": [0, 1], "plateaus": [2, 2], "path": ["to_plateau", DIRT, 1], "tall": 3, "piece": "flowers", "flowers": 50},
-	{"name": "Old road", "seasons": ["spring", "summer", "autumn", "winter"], "wall": "none", "zones": 0.2, "trees": ["oaks", 16], "ponds": [0, 1], "plateaus": [0, 0], "path": ["road", COBBLE, 2], "tall": 4, "piece": "wayside", "flowers": 40},
-	{"name": "Woodcutter's camp", "seasons": ["spring", "summer", "autumn", "winter"], "wall": "edges", "zones": 0.22, "trees": ["oaks", 18], "ponds": [0, 1], "plateaus": [0, 0], "path": ["trail", DIRT, 2], "tall": 2, "piece": "woodcut", "flowers": 30},
-	{"name": "Village well", "seasons": ["spring", "summer", "autumn", "winter"], "wall": "none", "zones": 0.14, "trees": ["mixed", 12], "ponds": [0, 0], "plateaus": [0, 0], "path": ["plaza", COBBLE, 2], "tall": 2, "piece": "well", "flowers": 40},
-	{"name": "Paddock", "seasons": ["spring", "summer", "autumn", "winter"], "wall": "none", "zones": 0.16, "trees": ["mixed", 12], "ponds": [0, 1], "plateaus": [0, 0], "path": ["road", DIRT, 2], "tall": 5, "piece": "paddock", "flowers": 50},
-	{"name": "Marsh", "seasons": ["spring", "summer", "autumn"], "wall": "none", "zones": 0.4, "trees": ["birches", 12], "ponds": [5, 7], "plateaus": [0, 0], "path": ["trail", DIRT, 1], "tall": 8, "piece": "reeds", "flowers": 20},
+	{"name": "Old road", "seasons": ["spring", "summer", "autumn", "winter"], "wall": "none", "zones": 0.2, "trees": ["oaks", 16], "ponds": [0, 1], "plateaus": [0, 0], "path": ["road", COBBLE, 2], "tall": 4, "piece": "wayside", "flowers": 40, "ground": {"dark": 0.6, "dirt": 0.2, "rock": 0.2}},
+	{"name": "Woodcutter's camp", "seasons": ["spring", "summer", "autumn", "winter"], "wall": "edges", "zones": 0.22, "trees": ["oaks", 18], "ponds": [0, 1], "plateaus": [0, 0], "path": ["trail", DIRT, 2], "tall": 2, "piece": "woodcut", "flowers": 30, "ground": {"dark": 0.6, "dirt": 0.35, "rock": 0.05}},
+	{"name": "Village well", "seasons": ["spring", "summer", "autumn", "winter"], "wall": "none", "zones": 0.14, "trees": ["mixed", 12], "ponds": [0, 0], "plateaus": [0, 0], "path": ["plaza", COBBLE, 2], "tall": 2, "piece": "well", "flowers": 40, "ground": {"dark": 0.6, "dirt": 0.2, "rock": 0.2}},
+	{"name": "Paddock", "seasons": ["spring", "summer", "autumn", "winter"], "wall": "none", "zones": 0.16, "trees": ["mixed", 12], "ponds": [0, 1], "plateaus": [0, 0], "path": ["road", DIRT, 2], "tall": 5, "piece": "paddock", "flowers": 50, "ground": {"dark": 0.6, "dirt": 0.35, "rock": 0.05}},
+	{"name": "Marsh", "seasons": ["spring", "summer", "autumn"], "wall": "none", "zones": 0.4, "trees": ["birches", 12], "ponds": [5, 7], "plateaus": [0, 0], "path": ["trail", DIRT, 1], "tall": 8, "piece": "reeds", "flowers": 20, "ground": {"dark": 0.95, "dirt": 0.05, "rock": 0.0}},
 	{"name": "Deep woods", "seasons": ["spring", "summer", "autumn", "winter"], "wall": "heavy", "zones": 0.4, "trees": ["mixed", 20], "ponds": [0, 1], "plateaus": [0, 0], "path": ["trail", DIRT, 1], "tall": 2, "piece": "glade", "flowers": 25},
 	{"name": "Berry thicket", "seasons": ["spring", "summer", "autumn"], "wall": "edges", "zones": 0.26, "trees": ["round", 14], "ponds": [0, 1], "plateaus": [0, 0], "path": ["trail", DIRT, 1], "tall": 3, "piece": "berries", "flowers": 60},
-	{"name": "Rocky rise", "seasons": ["spring", "summer", "autumn", "winter"], "wall": "none", "zones": 0.16, "trees": ["birches", 12], "ponds": [0, 1], "plateaus": [1, 2], "path": ["to_plateau", DIRT, 1], "tall": 2, "piece": "rocks", "flowers": 30},
+	{"name": "Rocky rise", "seasons": ["spring", "summer", "autumn", "winter"], "wall": "none", "zones": 0.16, "trees": ["birches", 12], "ponds": [0, 1], "plateaus": [1, 2], "path": ["to_plateau", DIRT, 1], "tall": 2, "piece": "rocks", "flowers": 30, "ground": {"dark": 0.4, "dirt": 0.2, "rock": 0.4}},
 	{"name": "Pond garden", "seasons": ["spring", "summer", "autumn", "winter"], "wall": "edges", "zones": 0.18, "trees": ["mixed", 12], "ponds": [2, 3], "plateaus": [0, 0], "path": ["trail", COBBLE, 1], "tall": 3, "piece": "flowers", "flowers": 80},
-	{"name": "Crossroads", "seasons": ["spring", "summer", "autumn", "winter"], "wall": "none", "zones": 0.2, "trees": ["oaks", 14], "ponds": [0, 1], "plateaus": [0, 0], "path": ["cross", COBBLE, 2], "tall": 4, "piece": "wayside", "flowers": 40},
+	{"name": "Crossroads", "seasons": ["spring", "summer", "autumn", "winter"], "wall": "none", "zones": 0.2, "trees": ["oaks", 14], "ponds": [0, 1], "plateaus": [0, 0], "path": ["cross", COBBLE, 2], "tall": 4, "piece": "wayside", "flowers": 40, "ground": {"dark": 0.6, "dirt": 0.2, "rock": 0.2}},
 	# Splat-led maps: the grass itself is the feature.
-	{"name": "Wildflower meadow", "seasons": ["spring", "summer", "autumn"], "wall": "none", "zones": 0.1, "trees": ["mixed", 8], "ponds": [0, 1], "plateaus": [0, 0], "path": ["trail", DIRT, 1], "tall": 3, "piece": "flowers", "flowers": 60, "splat": {"lush": 1.2, "flowers": 3.5, "dry": 0.5, "moss": 0.5}},
-	{"name": "Sunlit heath", "seasons": ["spring", "summer", "autumn", "winter"], "wall": "none", "zones": 0.08, "trees": ["birches", 8], "ponds": [0, 0], "plateaus": [0, 1], "path": ["road", DIRT, 1], "tall": 7, "piece": "rocks", "flowers": 20, "splat": {"lush": 0.5, "flowers": 0.5, "dry": 2.8, "moss": 0.4}},
-	{"name": "Mossy hollow", "seasons": ["spring", "summer", "autumn", "winter"], "wall": "edges", "zones": 0.24, "trees": ["mixed", 18], "ponds": [1, 2], "plateaus": [0, 0], "path": ["trail", DIRT, 1], "tall": 2, "piece": "glade", "flowers": 20, "splat": {"lush": 1.6, "flowers": 0.3, "dry": 0.3, "moss": 2.6}},
+	{"name": "Wildflower meadow", "seasons": ["spring", "summer", "autumn"], "wall": "none", "zones": 0.1, "trees": ["mixed", 8], "ponds": [0, 1], "plateaus": [0, 0], "path": ["trail", DIRT, 1], "tall": 3, "piece": "flowers", "flowers": 60, "splat": {"lush": 1.2, "flowers": 3.5, "dry": 0.5, "moss": 0.5}, "ground": {"dark": 0.9, "dirt": 0.08, "rock": 0.02}},
+	{"name": "Sunlit heath", "seasons": ["spring", "summer", "autumn", "winter"], "wall": "none", "zones": 0.08, "trees": ["birches", 8], "ponds": [0, 0], "plateaus": [0, 1], "path": ["road", DIRT, 1], "tall": 7, "piece": "rocks", "flowers": 20, "splat": {"lush": 0.5, "flowers": 0.5, "dry": 2.8, "moss": 0.4}, "ground": {"dark": 0.3, "dirt": 0.5, "rock": 0.2}},
+	{"name": "Mossy hollow", "seasons": ["spring", "summer", "autumn", "winter"], "wall": "edges", "zones": 0.24, "trees": ["mixed", 18], "ponds": [1, 2], "plateaus": [0, 0], "path": ["trail", DIRT, 1], "tall": 2, "piece": "glade", "flowers": 20, "splat": {"lush": 1.6, "flowers": 0.3, "dry": 0.3, "moss": 2.6}, "ground": {"dark": 0.95, "dirt": 0.05, "rock": 0.0}},
+	# From the light-grass limit: ground that is mostly not grass, and ground
+	# that is all shade.
+	{"name": "Stony barrens", "seasons": ["spring", "summer", "autumn", "winter"], "wall": "none", "zones": 0.12, "trees": ["birches", 6], "ponds": [0, 1], "plateaus": [0, 1], "path": ["trail", DIRT, 1], "tall": 3, "piece": "rocks", "flowers": 10, "splat": {"lush": 0.4, "flowers": 0.3, "dry": 1.8, "moss": 0.6}, "ground": {"dark": 0.2, "dirt": 0.3, "rock": 0.5}},
+	{"name": "Dusky woodland", "seasons": ["spring", "summer", "autumn", "winter"], "wall": "edges", "zones": 0.5, "trees": ["mixed", 28], "ponds": [0, 1], "plateaus": [0, 0], "path": ["trail", DIRT, 1], "tall": 2, "piece": "glade", "flowers": 10, "splat": {"lush": 0.6, "flowers": 0.4, "dry": 0.5, "moss": 2.2}, "ground": {"dark": 1.0, "dirt": 0.0, "rock": 0.0}},
 ]
+
+# Light grass shows on at most this share of the visible map (the wall's
+# ground is hidden under trees); the rest becomes the recipe's mix of dark
+# grass, dirt, and rocky ground (cobblestone). Not in winter: its light
+# terrain is snow.
+const LIGHT_LIMIT := 0.3
+const DEFAULT_GROUND := {"dark": 0.75, "dirt": 0.15, "rock": 0.1}
 
 # Grass splat layers (manaseed.gd draws them): the share of eligible light
 # grass each covers, by season; a recipe's "splat" scales them.
@@ -261,6 +272,7 @@ var fails: Array[String] = []
 var floor_notes: Array[String] = []
 var splat: Array[PackedFloat32Array] = [] # per layer, per corner weight 0..1
 var splat_fade := PackedFloat32Array() # per corner: 1 deep in pure light grass, 0 at other terrain
+var splat_fade_dark := PackedFloat32Array() # the same for dark grass (its own layer set)
 var _taken := {}
 var _rng := RandomNumberGenerator.new()
 
@@ -313,6 +325,8 @@ func _layout() -> bool:
 		_pond(Vector2i(_rng.randi_range(5, 9), _rng.randi_range(4, 6)), false)
 	_zones()
 	_lay_paths()
+	_settle_kinds()
+	_limit_light()
 	_settle_kinds()
 	_piece()
 	_settle_kinds()
@@ -629,10 +643,10 @@ var _stream_line: Array[Vector2i] = []
 
 ## Dark grass: a noise field on the corners cut at the recipe's share, only
 ## on light grass away from water, paths come later and cut through.
+var _zone_vals := PackedFloat32Array()
+
 func _zones() -> void:
 	var share: float = recipe.zones
-	if share <= 0.0:
-		return
 	var noise := FastNoiseLite.new()
 	noise.seed = map_id * 13 + attempt
 	noise.frequency = 0.045
@@ -642,6 +656,9 @@ func _zones() -> void:
 	for y in H + 1:
 		for x in W + 1:
 			vals[_ci(x, y)] = noise.get_noise_2d(x, y)
+	_zone_vals = vals
+	if share <= 0.0:
+		return
 	var sorted := Array(vals)
 	sorted.sort()
 	var cut: float = sorted[int((1.0 - share) * sorted.size())]
@@ -848,6 +865,109 @@ func _settle_kinds() -> void:
 			elif _count_corners(c, [DIRT, COBBLE]) >= 2 or paths.has(c):
 				kind[_i(c)] = GROUND
 				_taken[c] = true
+
+
+# ---------------------------------------------------------------- light limit
+
+## Light grass on at most LIGHT_LIMIT of the visible cells (a little under,
+## as later ponds only take more). The excess goes first to dirt and rocky
+## ground by the recipe's mix, each where its own noise peaks, so they come as
+## patches; then the dark-grass zones grow, highest zone noise first, so the
+## dark spreads out of the zones already there.
+var light_share := 0.0
+
+func _limit_light() -> void:
+	light_share = _light_share()
+	if season == "winter" or light_share <= LIGHT_LIMIT - 0.02:
+		return
+	var visible := _visible_cells()
+	var target := int((LIGHT_LIMIT - 0.02) * visible)
+	var excess := int((light_share - (LIGHT_LIMIT - 0.02)) * visible)
+	var mix: Dictionary = recipe.get("ground", DEFAULT_GROUND)
+	_grow_patches(DIRT, int(excess * mix.dirt * 0.8), 0.06, 17)
+	_grow_patches(COBBLE, int(excess * mix.rock * 0.8), 0.07, 29)
+	var cands: Array[Vector2i] = _light_corners()
+	cands.sort_custom(func(a: Vector2i, b: Vector2i) -> bool: return _zone_vals[_ci(a.x, a.y)] > _zone_vals[_ci(b.x, b.y)])
+	var k := 0
+	while _light_cells() > target and k < cands.size():
+		for n in 24:
+			if k >= cands.size():
+				break
+			var v := cands[k]
+			k += 1
+			if corner[_ci(v.x, v.y)] == LIGHT:
+				corner[_ci(v.x, v.y)] = DARK
+	light_share = _light_share()
+	notes.append("light %.0f%%" % (light_share * 100.0))
+
+
+## Converts the `count` free light corners where a fresh noise peaks.
+func _grow_patches(t: int, count: int, freq: float, salt: int) -> void:
+	if count <= 0:
+		return
+	var noise := FastNoiseLite.new()
+	noise.seed = map_id * salt + attempt
+	noise.frequency = freq
+	# Two corners off any path, so a patch never frays a road's edge.
+	var cands: Array[Vector2i] = []
+	for v in _light_corners():
+		var clear := true
+		for dy in range(-2, 3):
+			for dx in range(-2, 3):
+				var c := Vector2i(v.x + dx, v.y + dy)
+				if paths.has(c) or paths.has(c - Vector2i(1, 1)):
+					clear = false
+		if clear:
+			cands.append(v)
+	cands.sort_custom(func(a: Vector2i, b: Vector2i) -> bool: return noise.get_noise_2d(a.x, a.y) > noise.get_noise_2d(b.x, b.y))
+	var made := {}
+	for v in cands.slice(0, count):
+		corner[_ci(v.x, v.y)] = t
+		made[v] = true
+	# Trim spurs: a corner of the patch with fewer than four of its eight
+	# neighbors in the patch goes back to grass (twice), so outlines are round.
+	for pass_i in 2:
+		var drop: Array[Vector2i] = []
+		for v: Vector2i in made:
+			var n := 0
+			for o in [Vector2i(-1, -1), Vector2i(0, -1), Vector2i(1, -1), Vector2i(-1, 0), Vector2i(1, 0), Vector2i(-1, 1), Vector2i(0, 1), Vector2i(1, 1)]:
+				if corner_at(v.x + o.x, v.y + o.y) == t:
+					n += 1
+			if n < 4:
+				drop.append(v)
+		for v in drop:
+			corner[_ci(v.x, v.y)] = LIGHT
+			made.erase(v)
+
+
+## Light corners that may change: off the plateaus and the forest wall (their
+## art bakes the light grass) and off the spawn.
+func _light_corners() -> Array[Vector2i]:
+	var out: Array[Vector2i] = []
+	for y in H + 1:
+		for x in W + 1:
+			if corner[_ci(x, y)] == LIGHT and not _near_plateau(x, y) and not _near_wall(x, y) \
+					and absi(x - spawn.x) + absi(y - spawn.y) > 2:
+				out.append(Vector2i(x, y))
+	return out
+
+
+func _visible_cells() -> int:
+	return W * H - wall_area.size()
+
+
+func _light_cells() -> int:
+	var n := 0
+	for y in H:
+		for x in W:
+			var c := Vector2i(x, y)
+			if not wall_area.has(c) and wang_key(c) == 2222:
+				n += 1
+	return n
+
+
+func _light_share() -> float:
+	return _light_cells() / float(maxi(1, _visible_cells()))
 
 
 # ---------------------------------------------------------------- set pieces
@@ -1069,6 +1189,12 @@ func _scatter_small() -> void:
 					by_wall = true
 			if by_wall and _undergrowth(c):
 				break
+	# Pebbles and stones on the rocky ground.
+	for y in H:
+		for x in W:
+			var c := Vector2i(x, y)
+			if kind[_i(c)] == GROUND and not paths.has(c) and _count_corners(c, [COBBLE]) >= 3 and _hash(x * 7, y * 5) < 0.12:
+				props.append({"art": ["pebbles", "stone_a", "rock_s"][int(_hash(x, y * 3) * 3.0)], "cell": c})
 	var extra := 30 if recipe.piece == "glade" else 22
 	_near(["bush", "berry_bush", "boulder", "stone_b", "stone_c", "stump", "log", "big_log", "birch_log"], extra / 2, Vector2i(W / 2, H / 2), W / 2)
 	_near(SMALL, extra * 2, Vector2i(W / 2, H / 2), W / 2)
@@ -1127,30 +1253,8 @@ func _ground_deco() -> void:
 ## eligible corners, with a soft band round the cut.
 func _splat() -> void:
 	var n := (W + 1) * (H + 1)
-	splat_fade = PackedFloat32Array()
-	splat_fade.resize(n)
-	# Euclidean distance (in corners, up to 4) to anything that is not free
-	# light grass, so the splat's edge round a pond or path is round too.
-	var blockers: Array[Vector2i] = []
-	for y in H + 1:
-		for x in W + 1:
-			if corner[_ci(x, y)] != LIGHT or _plateau_corner(x, y) or _near_wall_corner(x, y):
-				blockers.append(Vector2i(x, y))
-	var dist := PackedFloat32Array()
-	dist.resize(n)
-	dist.fill(5.0)
-	for b: Vector2i in blockers:
-		for dy in range(-4, 5):
-			for dx in range(-4, 5):
-				var x := b.x + dx
-				var y := b.y + dy
-				if x < 0 or y < 0 or x > W or y > H:
-					continue
-				var d := Vector2(dx, dy).length()
-				if d < dist[_ci(x, y)]:
-					dist[_ci(x, y)] = d
-	for i in n:
-		splat_fade[i] = clampf((dist[i] - 1.0) / 2.0, 0.0, 1.0)
+	splat_fade = _eligible(LIGHT)
+	splat_fade_dark = _eligible(DARK)
 	# Context sources in corners.
 	var wet: Array[Vector2i] = []
 	var bare: Array[Vector2i] = []
@@ -1203,7 +1307,7 @@ func _splat() -> void:
 					"dry": v += near_bare[i] * 0.3
 					"moss": v += near_shade[i] * 0.3
 				vals[i] = v
-				if splat_fade[i] > 0.0:
+				if splat_fade[i] > 0.0 or splat_fade_dark[i] > 0.0:
 					eligible.append(v)
 		if eligible.is_empty():
 			splat.append(field)
@@ -1213,6 +1317,35 @@ func _splat() -> void:
 		for i in n:
 			field[i] = clampf((vals[i] - cut) / 0.08 + 0.5, 0.0, 1.0)
 		splat.append(field)
+
+
+## Per corner: how deep inside pure terrain `t` it lies, by Euclidean distance
+## (up to 4 corners) to any other terrain, the plateaus, or the forest wall,
+## ramping from 0 at one corner to 1 at three; so the splat's edge round a
+## pond or path is round.
+func _eligible(t: int) -> PackedFloat32Array:
+	var n := (W + 1) * (H + 1)
+	var dist := PackedFloat32Array()
+	dist.resize(n)
+	dist.fill(5.0)
+	for y in H + 1:
+		for x in W + 1:
+			if corner[_ci(x, y)] == t and not _plateau_corner(x, y) and not _near_wall_corner(x, y):
+				continue
+			for dy in range(-4, 5):
+				for dx in range(-4, 5):
+					var qx := x + dx
+					var qy := y + dy
+					if qx < 0 or qy < 0 or qx > W or qy > H:
+						continue
+					var d := Vector2(dx, dy).length()
+					if d < dist[_ci(qx, qy)]:
+						dist[_ci(qx, qy)] = d
+	var out := PackedFloat32Array()
+	out.resize(n)
+	for i in n:
+		out[i] = clampf((dist[i] - 1.0) / 2.0, 0.0, 1.0)
+	return out
 
 
 func _near_wall_corner(x: int, y: int) -> bool:
@@ -1586,11 +1719,14 @@ func _report() -> String:
 		fails.append("spawn does not reach every goal")
 	if recipe.plateaus[0] > plateaus.size():
 		fails.append("plateaus %d of %d" % [plateaus.size(), recipe.plateaus[0]])
+	light_share = _light_share()
+	if season != "winter" and light_share > LIGHT_LIMIT:
+		fails.append("light grass %.0f%% over %.0f%%" % [light_share * 100.0, LIGHT_LIMIT * 100.0])
 	var trees := trunks().size()
 	var lines := PackedStringArray([
 		"Mana Seed map %d: recipe %d %s, %s, %dx%d (layout attempt %d)" % [map_id, recipe_id, recipe.name, season, W, H, attempt],
-		"  plateaus %d, ponds %d, water %d cells, path %d cells, trees %d, props %d, tall grass %d, fires %d" % [
-			plateaus.size(), ponds.size(), water.size(), paths.size(), trees, props.size(), tall.size(), fires.size()],
+		"  plateaus %d, ponds %d, water %d cells, path %d cells, trees %d, props %d, tall grass %d, fires %d, light grass %.0f%%" % [
+			plateaus.size(), ponds.size(), water.size(), paths.size(), trees, props.size(), tall.size(), fires.size(), light_share * 100.0],
 		"  %s" % ", ".join(notes),
 		"  floor: %s" % " ".join(floor_notes),
 		"  checks: %s" % ("ok" if fails.is_empty() else "; ".join(fails)),

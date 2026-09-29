@@ -8,8 +8,8 @@ shader_type canvas_item;
 // baked-grass art stay exactly as drawn.
 
 uniform sampler2D weights : filter_linear, repeat_disable; // RGBA = lush, dry, flowers, moss
-uniform sampler2D fade : filter_linear, repeat_disable; // R
-uniform sampler2D layers : filter_nearest, repeat_disable; // 4 variants x 4 layers of 16 px
+uniform sampler2D fade : filter_linear, repeat_disable; // R light grass, G dark grass
+uniform sampler2D layers : filter_nearest, repeat_disable; // 4 variants x (4 light + 4 dark) layers of 16 px
 uniform vec2 corners = vec2(65.0, 41.0); // map corners (W + 1, H + 1)
 uniform float seed = 0.0;
 uniform float dither = 0.3; // width of the dithered rim (narrower where the layers contrast hard)
@@ -36,7 +36,7 @@ float bayer(ivec2 p) {
 void fragment() {
 	vec4 base = COLOR; // the tile texel, already times the modulate
 	vec2 uvc = (world / 16.0 + 0.5) / corners;
-	float f = texture(fade, uvc).r;
+	vec2 fl = texture(fade, uvc).rg;
 	COLOR = base;
 	vec2 px = floor(world);
 	float d = (bayer(ivec2(px)) - 0.5) * dither
@@ -44,7 +44,14 @@ void fragment() {
 		+ sin(px.x * 0.31 + px.y * 0.17) * 0.04;
 	// The fade is an edge, not a dimmer: a pixel is eligible past its
 	// (dithered) half-way line, so the splat stops in a narrow band.
-	if (f + d * 0.5 > 0.5) {
+	// Light grass takes the upper layer set, dark grass the lower.
+	float set = -1.0;
+	if (fl.r + d * 0.5 > 0.5) {
+		set = 0.0;
+	} else if (fl.g + d * 0.5 > 0.5) {
+		set = 1.0;
+	}
+	if (set >= 0.0) {
 		vec4 w = texture(weights, uvc);
 		float best = 0.5;
 		int pick = -1;
@@ -59,7 +66,7 @@ void fragment() {
 			vec2 cell = floor(world / 16.0);
 			float variant = floor(hash(cell + float(pick) * 17.0) * 4.0);
 			vec2 in_tile = mod(px, 16.0);
-			vec2 luv = (vec2(variant * 16.0, float(pick) * 16.0) + in_tile + 0.5) / 64.0;
+			vec2 luv = (vec2(variant * 16.0, (set * 4.0 + float(pick)) * 16.0) + in_tile + 0.5) / vec2(64.0, 128.0);
 			COLOR = texture(layers, luv) * vec4(1.0, 1.0, 1.0, base.a);
 		}
 	}

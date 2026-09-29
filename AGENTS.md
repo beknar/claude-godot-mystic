@@ -135,7 +135,7 @@ Mana Seed randomizer:
 
 - `scenes/randomizer-manaseed/randomizer-manaseed.tscn` — the Mana Seed
   pipeline (`ms_terrain.gd` + `manaseed.gd`), starting at map id `160000`
-  (`recipe = -1`: id % 19; the season from the id), with the Painted Lands
+  (`recipe = -1`: id % 21; the season from the id), with the Painted Lands
   walker and the same Esc menu, titled "Mana Seed randomizer".
 
 Time Fantasy randomizer:
@@ -1440,14 +1440,15 @@ sample maps were the reference for how pieces combine.
 
 ## Pipeline
 
-Recipe (`id % 19`) and season (`(id / 19) % seasons`), then: forest wall,
+Recipe (`id % 21`) and season (`(id / 21) % seasons`), then: forest wall,
 spawn (inside the clearing when there is a wall), plateaus, lake or brook
 (three corners wide, meandering, off the spawn), ponds (lumpy ellipses:
 shallow rim, deep inside; a lake may carry grass islands), dark-grass zones
 (corner noise cut at the recipe's share, two majority passes, kept off the
 plateaus and the wall), paths (A* with a wander cost; roads two cells wide,
 trails one corner wide swelling to two; the wall, cliffs, and ponds are
-solid, a brook is crossed by the bridge), cell kinds, the set piece, trees,
+solid, a brook is crossed by the bridge), cell kinds, the light-grass limit,
+cell kinds again, the set piece, trees,
 undergrowth, tall grass, small props, water props, ground deco, the
 liveliness floor, the grass splat fields, then the reach check (plateau tops
 only by their stairs).
@@ -1459,12 +1460,32 @@ no winter), 11 Deep woods (heavy wall), 12 Berry thicket (no winter), 13
 Rocky rise, 14 Pond garden, 15 Crossroads, and three where the grass itself
 is the feature: 16 Wildflower meadow (flower splat heavy, no winter), 17
 Sunlit heath (straw splat heavy, tall grass, open), 18 Mossy hollow (moss and
-lush splat, wall, ponds). A recipe's `splat` scales the season's shares.
+lush splat, wall, ponds), and two from the light-grass limit: 19 Stony
+barrens (rocky ground half the replaced grass, boulders, straw splat) and
+20 Dusky woodland (all shade: dark grass, many trees, moss splat). A recipe's
+`splat` scales the season's shares, `ground` sets its light-grass
+replacement mix.
+
+## Light-grass limit
+
+Plain light grass (a cell whose four corners are light grass) shows on at
+most 30 % of the visible map (`LIGHT_LIMIT`; the cells under the forest
+wall do not count). After the paths, `_limit_light()` takes the excess down
+to about 28 %: first dirt and rocky ground (the Wang cobblestone) by the
+recipe's `ground` mix (default dark 0.75, dirt 0.15, rock 0.1; Sunlit heath
+dirt-heavy, Rocky rise and Stony barrens rock-heavy, Marsh, Mossy hollow,
+Dusky woodland nearly all dark), each where its own low-frequency noise
+peaks, two corners off any path, spurs trimmed so the patches are round;
+then the dark-grass zones grow, highest zone noise first. Corners by the
+plateaus, the wall, and the spawn stay. Rocky ground gets pebbles and
+stones. The report line shows `light grass N%` and the check fails a map
+over the limit. Winter is exempt: its light terrain is snow.
 
 ## Grass splat
 
-So the light grass is not one repeating green across the view, the Ground
-layer runs `shaders/ms_grass_splat.gdshader`. Over pure light grass each
+So no grass is one repeating green across the view, the Ground layer runs
+`shaders/ms_grass_splat.gdshader`. Over pure light grass, and with a second
+layer set over pure dark grass (the fade texture's green channel), each
 pixel takes one of four grass textures, or keeps the base:
 
 - **lush**, **dry**, **moss**: the season's own light-grass fill with its four
@@ -1475,6 +1496,10 @@ pixel takes one of four grass textures, or keeps the base:
   shifts. Importing another season's grass as drawn was too strong (autumn
   gold read as dirt, spring dark as blue-grey).
 - **flowers**: forest.png's flower grass (5-8, 6) as drawn.
+- Dark set (`SPLAT_DARK`): the season's dark fill moved toward the light
+  grass (lush), toward dirt (dry), and toward itself darkened (moss); flowers
+  are the flower tiles' blossoms laid on the dark fill. Winter's dark is bare
+  earth, with snowless grass, snow, and earth patches on it as drawn.
 - Winter: lush and dry are the snowless winter sheet's grass and bare earth
   as drawn (`winter/wang_clean.png`), grass and earth showing through snow;
   each capped at 14 % and drawn with a tighter dither.
