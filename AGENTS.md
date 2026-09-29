@@ -12,6 +12,9 @@ changing its generator, painter, or scenes.
   Green Caves, Cozy Cottage, and the rest) and **Pixel Crawler** (Anokolisa).
 - They are used in **separate maps** and never combined, on the ground, in
   props, or in palettes.
+- **Cozy Farm** (shubibubi) is used for its **animals only**, in
+  `randomizer-painted-cozyfarm` (by request): they replace the drawn animals
+  that have a pack counterpart. Its other art is not used.
 - **Mana Seed** is not to be used in future development. **Mystic Woods** is
   deprecated. **Time Fantasy** is not suitable (its ground clashes and
   strains the eyes). Their scenes and docs stay as a record only.
@@ -20,7 +23,7 @@ changing its generator, painter, or scenes.
 
 | Pack | Scenes | Code | Doc |
 |---|---|---|---|
-| Painted Lands, Forest | `forest`, `wilds`, `randomizer-paintedlands` | `forest_terrain.gd`, `forest.gd` | `docs/painted-lands.md` |
+| Painted Lands, Forest | `forest`, `wilds`, `randomizer-paintedlands`, `randomizer-painted-cozyfarm` | `forest_terrain.gd`, `forest.gd` | `docs/painted-lands.md` |
 | Painted Lands, Green Caves | `randomizer-greencaves` | `cave_terrain.gd`, `caves.gd`, `cave_life.gd` | `docs/green-caves.md` |
 | Painted Lands, Cozy Cottage | homes in both randomizers above | `interior_*.gd`, `house_interiors.gd` | `docs/interiors.md` |
 | Pixel Crawler | `randomizer-pixelcrawler` | `pc_terrain.gd`, `pixelcrawler.gd`, `pc_tiles.gd` | `docs/pixel-crawler.md` |

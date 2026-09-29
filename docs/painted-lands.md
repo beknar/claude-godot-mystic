@@ -740,3 +740,28 @@ dark-green square/rectangle of baked grass; a lone dark-green grass
 tile shows its 16×16 edge; a dirt blob is an L or stair of square
 cells; land rocks sit in water or water rocks on lawn; a crate
 stands in for a sign.
+
+## Cozy farm randomizer
+
+`scenes/randomizer-painted-cozyfarm/randomizer-painted-cozyfarm.tscn` is the
+Painted Lands randomizer (same generator, recipes, interiors, and ambience;
+`forest.gd` with `interiors = true`), starting at map id `180003` pinned to
+recipe 3 Garden, with `cozy_animals = true`: `wildlife.gd` runs its cozy
+table (`Wildlife.cozy`, `COZY_SPECIES`, `COZY_SHEETS`).
+
+- Animals from the Cozy Farm art pack (shubibubi,
+  `assets/pack/cozy_farm/animals/`, git-ignored): bunny (grey and brown)
+  in place of the drawn rabbit, and chicken, turkey, sheep, goat, pig, and
+  cow, about a third of each herd young (the pack's baby sheets), one coat
+  per herd. Sheets are 4 frames x 5 rows (walk down, walk up, walk left,
+  walk right, sleep); cells 16-24 px (`info.txt` in the pack).
+- Kept as drawn: vole, mouse, frog, lizard (too small for the pack's
+  animals), duck and sparrow (birds), and every insect in `critters.gd`.
+  Squirrel, hedgehog, and fox have no pack counterpart and are left out.
+- Habitats: chickens and turkeys on open ground near paths and houses,
+  sheep, goats, and cows on the lawn, pigs by clutter, bunnies on the lawn.
+  Two to four farm species on every map, six to nine species in all.
+- Behavior: bunnies hop and bolt like the rabbit; farm animals graze, amble
+  18-40 px away from the walker instead of bolting, and doze now and then
+  on the pack's sleep row, waking when the walker comes near.
+

@@ -46,6 +46,8 @@ project, copy them in locally:
   sheets, winter from the "snowy" ones), plus Village Accessories to
   `village/`, Fences & Walls to `fences/`, Weather Effects to `weather/`, and
   `_extras` to `extras/` (see docs/deprecated/mana-seed.md)
+- Cozy Farm art pack (shubibubi): its `animals/` folder to
+  `assets/pack/cozy_farm/animals/`
 - Pixel Crawler (Anokolisa): the environment sheets to
   `assets/pack/pixel_crawler/`: Fairy Forest `Assets/*.png` to
   `fairy_forest/`, the Farm Game Assets forest (`Tiles.png`,
@@ -111,6 +113,7 @@ generator.
 | `scenes/randomizer-mysticwoods/randomizer-mysticwoods.tscn` | starts at 21021, then any | `player.png` |
 | `scenes/randomizer-greencaves/randomizer-greencaves.tscn` | starts at 130021, then any | `character_sprite_sheet.png` (the Painted Lands walker) |
 | `scenes/randomizer-manaseed/randomizer-manaseed.tscn` | starts at 160000, then any | `character_sprite_sheet.png` (the Painted Lands walker) |
+| `scenes/randomizer-painted-cozyfarm/randomizer-painted-cozyfarm.tscn` | starts at 180003 (recipe 3), then any | `character_sprite_sheet.png` |
 | `scenes/randomizer-pixelcrawler/randomizer-pixelcrawler.tscn` | starts at 170000, then any | `character_sprite_sheet.png` (the Painted Lands walker) |
 | `scenes/randomizer-timefantasy/randomizer-timefantasy.tscn` | starts at 150000, then any | `character_sprite_sheet.png` (the Painted Lands walker) |
 
@@ -133,6 +136,13 @@ rustles as you walk through it, ranch fences, and village props. It runs the
 Painted Lands and Green Caves ambience plus the pack's water sparkles and
 snow and rain. `tools/check_ms.gd` sweeps it headless. Its liveliness has
 not been measured yet.
+
+The Painted Lands cozy farm randomizer is the Painted Lands randomizer
+(same terrain, recipes, homes, and ambience) with its animals drawn from the
+Cozy Farm art pack: bunnies, and herds of chickens, turkeys, sheep, goats,
+pigs, and cows with their young, grazing, ambling off from the walker, and
+dozing. The tiny animals (voles, mice, frogs, lizards), the birds, and the
+insects stay as drawn.
 
 The Pixel Crawler randomizer builds outdoor maps in four biomes from
 Anokolisa's Pixel Crawler sheets, 17 recipes in all: Fairy Forest (glade,
@@ -440,6 +450,9 @@ Art (purchased; not included in this repository, see "Art packs" above):
   Walls, Weather Effects, and the collection's extras), from the complete
   rpg creator bundle. License: see the pack's readme and itch.io pages;
   purchased, not redistributed here.
+- **Cozy Farm** art pack by shubibubi: the farm animals (bunny, chicken,
+  turkey, sheep, goat, pig, cow) in the cozy farm randomizer. Purchased;
+  not redistributed here.
 - **Pixel Crawler** by Anokolisa ([Patreon](https://www.patreon.com/Anokolisa)):
   Fairy Forest, Farm Game Assets, Green Woods (Pixel Crawler FREE),
   Cemetery, and Desert environment sheets. License (the packs' Terms.txt):

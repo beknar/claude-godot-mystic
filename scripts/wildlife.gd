@@ -104,6 +104,34 @@ const SPECIES := {
 	"lizard": {"habitat": "rocky", "groups": Vector2i(1, 3), "size": Vector2i(1, 2), "speed": 30.0, "flee": 70.0, "scare": 28.0, "home": 24.0, "gait": "dart", "react": "hide", "idle": Vector2(2.0, 6.0), "fps": 12.0},
 	"fox": {"habitat": "roam", "groups": Vector2i(1, 1), "size": Vector2i(1, 1), "speed": 20.0, "flee": 55.0, "scare": 64.0, "home": 140.0, "gait": "walk", "react": "run", "idle": Vector2(2.0, 5.0), "fps": 8.0},
 }
+# The cozy farm table (randomizer-painted-cozyfarm, `cozy = true`): the
+# larger animals drawn from the Cozy Farm art pack's sheets (4 frames x 5
+# rows: walk down, walk up, walk left, walk right, sleep), the tiny ones and
+# the birds kept as drawn above. Squirrel, hedgehog, and fox have no pack
+# counterpart and give way to the farm animals. Farm animals amble a short
+# way from the walker instead of bolting, and doze now and then.
+const COZY_DIR := "res://assets/pack/cozy_farm/animals/"
+const COZY_SHEETS := {
+	"bunny": {"cell": 17, "files": ["bunny_animations", "bunny_grey animation"], "baby": {"cell": 16, "files": ["bunny_baby animation", "bunny_baby_grey animation"]}},
+	"chicken": {"cell": 16, "files": ["chicken animation", "chicken_brown animation"], "baby": {"cell": 16, "files": ["chicken_baby animation"]}},
+	"turkey": {"cell": 17, "files": ["turkey animation"]},
+	"sheep": {"cell": 17, "files": ["sheep animation"], "baby": {"cell": 16, "files": ["sheep_baby animation"]}},
+	"goat": {"cell": 19, "files": ["goat animation", "goat_stripe animation"], "baby": {"cell": 16, "files": ["goat_baby animation", "goat_baby_stripe animation"]}},
+	"pig": {"cell": 20, "files": ["pig animation", "pig_stripe animation"], "baby": {"cell": 16, "files": ["pig_baby animation", "pig_baby_stripe animation"]}},
+	"cow": {"cell": 24, "files": ["cow animation", "cow_black animation", "cow_brown animation"], "baby": {"cell": 21, "files": ["cow_baby animation", "cow_baby_black animation", "cow_baby_brown animation"]}},
+}
+const COZY_SPECIES := {
+	"bunny": {"habitat": "lawn", "groups": Vector2i(1, 2), "size": Vector2i(2, 4), "speed": 18.0, "flee": 70.0, "scare": 44.0, "home": 56.0, "gait": "hop", "react": "run", "idle": Vector2(1.5, 4.0), "fps": 8.0},
+	"chicken": {"habitat": "open", "groups": Vector2i(1, 2), "size": Vector2i(3, 6), "speed": 9.0, "flee": 34.0, "scare": 26.0, "home": 40.0, "gait": "walk", "react": "amble", "idle": Vector2(0.8, 2.5), "fps": 5.0},
+	"turkey": {"habitat": "open", "groups": Vector2i(1, 1), "size": Vector2i(2, 3), "speed": 8.0, "flee": 28.0, "scare": 28.0, "home": 44.0, "gait": "walk", "react": "amble", "idle": Vector2(1.5, 4.0), "fps": 5.0, "sleep": 0.1},
+	"sheep": {"habitat": "lawn", "groups": Vector2i(1, 2), "size": Vector2i(3, 5), "speed": 7.0, "flee": 20.0, "scare": 30.0, "home": 60.0, "gait": "walk", "react": "amble", "idle": Vector2(2.0, 5.0), "fps": 5.0, "sleep": 0.2},
+	"goat": {"habitat": "lawn", "groups": Vector2i(1, 2), "size": Vector2i(2, 4), "speed": 10.0, "flee": 26.0, "scare": 28.0, "home": 56.0, "gait": "walk", "react": "amble", "idle": Vector2(1.5, 4.0), "fps": 5.0, "sleep": 0.12},
+	"pig": {"habitat": "clutter", "groups": Vector2i(1, 1), "size": Vector2i(1, 3), "speed": 7.0, "flee": 20.0, "scare": 26.0, "home": 44.0, "gait": "walk", "react": "amble", "idle": Vector2(2.0, 5.0), "fps": 5.0, "sleep": 0.25},
+	"cow": {"habitat": "lawn", "groups": Vector2i(1, 1), "size": Vector2i(2, 3), "speed": 6.0, "flee": 16.0, "scare": 34.0, "home": 72.0, "gait": "walk", "react": "amble", "idle": Vector2(2.5, 6.0), "fps": 4.0, "sleep": 0.18},
+	"vole": SPECIES.vole, "mouse": SPECIES.mouse, "frog": SPECIES.frog, "duck": SPECIES.duck, "sparrow": SPECIES.sparrow, "lizard": SPECIES.lizard,
+}
+const COZY_PER_MAP := Vector2i(6, 9)
+const COZY_FARM := ["chicken", "turkey", "sheep", "goat", "pig", "cow"]
 const FOX_CHANCE := 0.35
 const SPECIES_PER_MAP := Vector2i(4, 7)
 const MIN_HABITAT := 6 # cells a species needs before it can live on a map
@@ -115,6 +143,9 @@ static var _sheet_colors := {} # sheet instance id -> Array[Color]
 
 var walker: Node2D
 var water_life: WaterLife
+## The cozy farm table and the pack's sheets instead of the drawn animals
+## that have a pack counterpart (set before setup).
+var cozy := false
 var summary := ""
 var scared := {} # species -> times an animal reacted to the walker, for tools/walker_test.gd
 var _animals: Array[Animal] = []
@@ -141,12 +172,18 @@ class Animal extends Node2D:
 	var facing := 1
 	var height := 0.0
 	var flock: Array = [] # sparrows: the birds that fly together
+	var sheet: Texture2D # cozy farm: the pack sheet (4 x 5 cells) instead of `frames`
+	var cell := 16
+	var dir := Vector2.RIGHT # last direction of travel (picks the sheet row)
 	var fly_from := Vector2.ZERO
 	var fly_k := 0.0
 	var fly_time := 1.0
 	var arc := 10.0
 
 	func _draw() -> void:
+		if sheet:
+			_draw_sheet()
+			return
 		var rows: Array = frames[anim][frame % frames[anim].size()]
 		var h: int = rows.size()
 		var w: int = rows[0].length()
@@ -169,6 +206,27 @@ class Animal extends Node2D:
 				draw_rect(Rect2(ox + dx, y - h - lift, 1, 1), colors[key])
 
 
+	# A pack animal: walk rows by direction of travel (down, up, left, right),
+	# the side row's first frame when still, the sleep row dozing; its feet
+	# (the cell's bottom) on the ground line, with the drawn shadow.
+	func _draw_sheet() -> void:
+		var row := 3 if facing > 0 else 2
+		var col := 0
+		if state == "sleep":
+			row = 4
+			col = int(t * 1.6) % 4
+		elif anim == "move":
+			if absf(dir.y) > absf(dir.x) * 1.4:
+				row = 0 if dir.y > 0.0 else 1
+			col = int(t * spec.fps) % 4
+		elif anim == "idle":
+			col = frame % 2
+		var w := cell
+		if state != "hidden":
+			draw_rect(Rect2(-w / 2 + 3, 0, w - 6, 1), SHADOW)
+		draw_texture_rect_region(sheet, Rect2(-w / 2, -w + 1 - roundi(height), w, w), Rect2(col * w, row * w, w, w))
+
+
 func _ready() -> void:
 	_rng.randomize()
 
@@ -184,13 +242,14 @@ static func plan(t: PaintedTerrain) -> Dictionary:
 ## The plan for any map: `habitats` as habitat_cells() returns them (plus
 ## "_w", the map width), the map id, the walker's spawn cell, and quiet_from()
 ## over the things that already move.
-static func plan_from(habitats: Dictionary, map_id: int, spawn: Vector2i, quiet: PackedFloat32Array) -> Dictionary:
+static func plan_from(habitats: Dictionary, map_id: int, spawn: Vector2i, quiet: PackedFloat32Array, cozy_table := false) -> Dictionary:
 	var rng := RandomNumberGenerator.new()
 	rng.seed = hash([map_id, "wildlife"])
 	var w: int = habitats.get("_w", W)
+	var table: Dictionary = COZY_SPECIES if cozy_table else SPECIES
 	var eligible: Array[String] = []
-	for kind in SPECIES:
-		if habitats[SPECIES[kind].habitat].size() < (12 if kind == "duck" else MIN_HABITAT):
+	for kind in table:
+		if habitats[table[kind].habitat].size() < (12 if kind == "duck" else MIN_HABITAT):
 			continue
 		if kind == "fox" and rng.randf() >= FOX_CHANCE:
 			continue
@@ -200,11 +259,17 @@ static func plan_from(habitats: Dictionary, map_id: int, spawn: Vector2i, quiet:
 		var tmp := eligible[i]
 		eligible[i] = eligible[j]
 		eligible[j] = tmp
-	var chosen := eligible.slice(0, rng.randi_range(SPECIES_PER_MAP.x, SPECIES_PER_MAP.y))
+	var per: Vector2i = COZY_PER_MAP if cozy_table else SPECIES_PER_MAP
+	if cozy_table:
+		# A farm always has farm animals: two to four kinds lead the list.
+		var farm := eligible.filter(func(k): return k in COZY_FARM)
+		var rest := eligible.filter(func(k): return not k in COZY_FARM)
+		eligible = farm.slice(0, rng.randi_range(2, 4)) + rest + farm.slice(4)
+	var chosen := eligible.slice(0, rng.randi_range(per.x, per.y))
 	var placed: Array[Vector2i] = [] # group centers of every species so far
 	var groups: Array[Dictionary] = []
 	for kind in chosen:
-		var spec: Dictionary = SPECIES[kind]
+		var spec: Dictionary = table[kind]
 		var cells: Array = habitats[spec.habitat].keys()
 		cells.sort() # dictionary order is not part of the seed
 		var centers: Array[Vector2i] = []
@@ -381,7 +446,8 @@ static func _near(c: Vector2i, cells: Dictionary, r: int) -> bool:
 
 ## Places the map's animals as y-sorted children of `actors`.
 func setup(t: PaintedTerrain, actors: Node2D, p_walker: Node2D, sheet: Image, p_water_life: WaterLife) -> void:
-	setup_from(plan(t), t.water, actors, p_walker, sheet, p_water_life)
+	var p := plan(t) if not cozy else plan_from(habitat_cells(t), t.map_id, t.spawn, quiet_field(t), true)
+	setup_from(p, t.water, actors, p_walker, sheet, p_water_life)
 
 
 ## Any map: a plan from plan_from(), its water cells, and the sheet whose
@@ -399,16 +465,27 @@ func setup_from(p: Dictionary, water: Dictionary, actors: Node2D, p_walker: Node
 	var counts := {}
 	for g in p.groups:
 		var flock: Array = []
-		var spec: Dictionary = SPECIES[g.kind]
+		var spec: Dictionary = (COZY_SPECIES if cozy else SPECIES)[g.kind]
 		var colors := {}
-		for key in SPRITES[g.kind].palette:
-			colors[key] = _snap(SPRITES[g.kind].palette[key], sheet)
+		if SPRITES.has(g.kind):
+			for key in SPRITES[g.kind].palette:
+				colors[key] = _snap(SPRITES[g.kind].palette[key], sheet)
+		var coat := _rng.randi() # one coat per group, so a herd matches
 		for cell in g.cells:
 			var a := Animal.new()
 			a.name = "%s_%d_%d" % [g.kind, cell.x, cell.y]
 			a.kind = g.kind
 			a.spec = spec
-			a.frames = SPRITES[g.kind]
+			if cozy and COZY_SHEETS.has(g.kind):
+				# About a third of a herd are young, when the pack has them.
+				var set_: Dictionary = COZY_SHEETS[g.kind]
+				if set_.has("baby") and _rng.randf() < 0.33:
+					set_ = set_.baby
+				var files: Array = set_.files
+				a.sheet = load(COZY_DIR + files[coat % files.size()] + ".png")
+				a.cell = set_.cell
+			else:
+				a.frames = SPRITES[g.kind]
 			a.colors = colors
 			a.pos = Vector2(cell * TILE) + Vector2(_rng.randf_range(3, 13), _rng.randf_range(6, 14))
 			a.home = Vector2(g.center * TILE) + Vector2(8, 8)
@@ -452,6 +529,9 @@ func _update(a: Animal, delta: float, feet: Vector2) -> void:
 			a.timer -= delta
 			if near:
 				_scare(a, feet)
+			elif a.timer <= 0.0 and a.sheet and _rng.randf() < spec.get("sleep", 0.0):
+				a.state = "sleep"
+				a.timer = _rng.randf_range(6.0, 16.0)
 			elif a.timer <= 0.0:
 				var to := _wander_target(a)
 				if to != Vector2.INF:
@@ -479,6 +559,12 @@ func _update(a: Animal, delta: float, feet: Vector2) -> void:
 					_:
 						a.state = "idle"
 						a.timer = _rng.randf_range(3.0, 6.0) # stays wary a while
+		"sleep":
+			# Dozing; wakes when the walker comes close or in its own time.
+			a.timer -= delta
+			if near or a.timer <= 0.0:
+				a.state = "idle"
+				a.timer = _rng.randf_range(spec.idle.x, spec.idle.y)
 		"curl":
 			a.anim = "curl"
 			a.frame = 0
@@ -519,6 +605,8 @@ func _step(a: Animal, speed: float, delta: float) -> bool:
 	var to := a.target - a.pos
 	if absf(to.x) > 0.5:
 		a.facing = 1 if to.x > 0.0 else -1
+	if to.length() > 0.5:
+		a.dir = to.normalized()
 	var v := speed
 	match a.spec.gait:
 		"hop":
@@ -570,6 +658,9 @@ func _scare(a: Animal, feet: Vector2) -> void:
 				_flee_away(a, feet, 10.0, 24.0)
 		"hide":
 			_flee_away(a, feet, 10.0, 24.0)
+		"amble":
+			# Farm animals just move a little way off.
+			_flee_away(a, feet, 18.0, 40.0)
 		_:
 			_flee_away(a, feet, 50.0, 110.0)
 

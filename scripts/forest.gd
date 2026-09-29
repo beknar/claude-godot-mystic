@@ -22,6 +22,9 @@ const RIDGE_FRONT := 8
 @export var recipe := -1
 ## Houses open onto generated interiors (house_interiors.gd): the randomizer.
 @export var interiors := false
+## The Cozy Farm art pack's animals instead of the drawn ones that have a
+## pack counterpart (wildlife.gd `cozy`): randomizer-painted-cozyfarm.
+@export var cozy_animals := false
 
 @onready var ground: TileMapLayer = $Ground
 @onready var features_layer: TileMapLayer = $Features
@@ -166,6 +169,7 @@ func _add_ambience() -> void:
 	add_child(drifters)
 	wildlife = Wildlife.new()
 	wildlife.name = "Wildlife"
+	wildlife.cozy = cozy_animals
 	add_child(wildlife)
 	clouds = CloudShadows.new()
 	clouds.name = "CloudShadows"
