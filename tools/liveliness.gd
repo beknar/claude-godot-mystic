@@ -27,6 +27,8 @@ func _init() -> void:
 	var heat := "heat" in args
 	var caves := "caves" in args
 	var Features = CaveFeatures if caves else PaintedFeatures
+	if "cozy" in args:
+		PaintedFeatures.cozy = true # the cozy farm animals (randomizer-painted-cozyfarm)
 	var Terrain = CaveMaps if caves else PaintedMaps
 	var coef = JSON.parse_string(FileAccess.get_file_as_string("res://tools/liveliness_coef_caves.json" if caves else "res://tools/liveliness_coef.json"))
 	if coef == null:

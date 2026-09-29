@@ -764,4 +764,7 @@ table (`Wildlife.cozy`, `COZY_SPECIES`, `COZY_SHEETS`).
 - Behavior: bunnies hop and bolt like the rabbit; farm animals graze, amble
   18-40 px away from the walker instead of bolting, and doze now and then
   on the pack's sleep row, waking when the walker comes near.
+- Measured against the drawn animals (slow capture, exhaustive walker, and
+  fast estimate): `docs/liveliness-cozyfarm.md`. The tools take `cozy` and
+  `out=<dir>` for these runs.
 

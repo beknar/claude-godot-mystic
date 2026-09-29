@@ -132,9 +132,9 @@ static func grid(t) -> Dictionary:
 		for p in dark:
 			_add(g.fireflies, p, each)
 	# Animals: each one's sprite size, spread over its group's home range.
-	var plan: Dictionary = Wild.plan(t)
+	var plan: Dictionary = Wild.plan(t) if not cozy else Wild.plan_from(Wild.habitat_cells(t), t.map_id, t.spawn, Wild.quiet_field(t), true)
 	for grp in plan.groups:
-		var spec: Dictionary = Wild.SPECIES[grp.kind]
+		var spec: Dictionary = (Wild.COZY_SPECIES if cozy else Wild.SPECIES)[grp.kind]
 		var home := Vector2(grp.center * TILE) + Vector2(8, 8)
 		var r: float = minf(spec.home, 80.0)
 		var total: float = sprite_area(grp.kind) * grp.cells.size()
@@ -142,12 +142,40 @@ static func grid(t) -> Dictionary:
 	return g
 
 
-## Opaque pixels in a species' first idle frame.
+## The cozy farm animal table and sprite sizes (randomizer-painted-cozyfarm);
+## set by the tools' `cozy` option.
+static var cozy := false
+static var _pack_area := {}
+
+
+## Opaque pixels in a species' first idle frame (for a Cozy Farm pack
+## animal: the first frame of its right-facing walk row, adult and young
+## weighted two to one as the herds are).
 static func sprite_area(kind: String) -> float:
+	if cozy and Wild.COZY_SHEETS.has(kind):
+		if not _pack_area.has(kind):
+			var set_: Dictionary = Wild.COZY_SHEETS[kind]
+			var a := _sheet_area(set_.files[0], set_.cell)
+			if set_.has("baby"):
+				a = a * 0.67 + _sheet_area(set_.baby.files[0], set_.baby.cell) * 0.33
+			_pack_area[kind] = a
+		return _pack_area[kind]
 	var n := 0
 	for row in Wild.SPRITES[kind].idle[0]:
 		for ch in row:
 			if ch != ".":
+				n += 1
+	return float(n)
+
+
+static func _sheet_area(file: String, cell: int) -> float:
+	var img: Image = load(Wild.COZY_DIR + file + ".png").get_image()
+	if img.is_compressed():
+		img.decompress()
+	var n := 0
+	for y in cell:
+		for x in cell:
+			if img.get_pixel(x, 3 * cell + y).a > 0.5:
 				n += 1
 	return float(n)
 

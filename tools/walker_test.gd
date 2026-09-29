@@ -65,9 +65,17 @@ var _out := ""
 
 func _ready() -> void:
 	_headless = DisplayServer.get_name() == "headless"
+	# `cozy`: the Cozy Farm animals (randomizer-painted-cozyfarm); `out=<dir>`:
+	# write to res://<dir> instead.
+	var cozy := false
+	var out_dir := ""
 	for a in OS.get_cmdline_user_args():
 		if a == "caves":
 			_caves = true
+		elif a == "cozy":
+			cozy = true
+		elif a.begins_with("out="):
+			out_dir = a.substr(4)
 		else:
 			_plan.append(int(a))
 	if _plan.is_empty():
@@ -77,9 +85,13 @@ func _ready() -> void:
 		else:
 			_plan = CAVE_RENDERED_MAPS.duplicate() if _caves else RENDERED_MAPS.duplicate()
 	_out = ProjectSettings.globalize_path("res://.liveliness_walk_caves" if _caves else "res://.liveliness_walk")
+	if out_dir != "":
+		_out = ProjectSettings.globalize_path("res://" + out_dir)
 	DirAccess.make_dir_recursive_absolute(_out + "/raw")
 	DirAccess.remove_absolute(_out + "/raw/ALL_DONE")
 	_forest = (CAVE_SCENE if _caves else MAP_SCENE).instantiate()
+	if cozy:
+		_forest.cozy_animals = true
 	add_child(_forest)
 	_camera = Camera2D.new()
 	_camera.zoom = Vector2(ZOOM, ZOOM)

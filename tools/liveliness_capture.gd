@@ -73,14 +73,25 @@ func _ready() -> void:
 		elif a == "caves":
 			_caves = true
 			Features = CaveFeatures
+		elif a == "cozy" or a.begins_with("out="):
+			pass
 		else:
 			_plan.append(int(a))
 	if _plan.is_empty():
 		_plan = CAVE_CALIBRATE + CAVE_HOLDOUT if _caves else CALIBRATE + HOLDOUT
 	_out = ProjectSettings.globalize_path("res://.liveliness_caves/raw" if _caves else "res://.liveliness/raw")
+	# `cozy`: the Cozy Farm animals (randomizer-painted-cozyfarm); `out=<dir>`:
+	# film into res://<dir>/raw instead.
+	var cozy := "cozy" in args
+	for a in args:
+		if a.begins_with("out="):
+			_out = ProjectSettings.globalize_path("res://%s/raw" % a.substr(4))
 	DirAccess.make_dir_recursive_absolute(_out)
 	DirAccess.remove_absolute(_out + "/ALL_DONE")
 	_forest = (CAVE_SCENE if _caves else MAP_SCENE).instantiate()
+	if cozy:
+		_forest.cozy_animals = true
+		PaintedFeatures.cozy = true
 	add_child(_forest)
 	_camera = Camera2D.new()
 	_camera.zoom = Vector2(ZOOM, ZOOM)
