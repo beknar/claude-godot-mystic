@@ -6,8 +6,8 @@ The one reference for combining the antarcticbees tilesets in
 by the same artist, on a 16 px grid, with the same outline weight and
 shading, so style is never the problem; **ground color, baked-in ground, and
 brightness** are. Read this before putting art from one pack on another's
-maps. Pack-specific drawing rules stay in AGENTS.md (§ Painted Lands,
-§ Green Caves, § Interiors).
+maps. Pack-specific drawing rules stay in `docs/painted-lands.md`,
+`docs/green-caves.md`, and `docs/interiors.md`.
 
 Assessed 2026-09-28 by measuring every sheet's colors against every other
 sheet and by test compositions on each ground (grass, cave floor, interior
@@ -234,7 +234,7 @@ farm.
   copies are for layered shadows only (use one or the other).
 - **Cozy wood tones:** five furniture tones; a home keeps one tone
   (`InteriorPlan.style.wood`). Wallpaper groups match wall-top frames by trim
-  color (§ Interiors in AGENTS.md).
+  color (docs/interiors.md).
 
 ## Combinations of three or more
 

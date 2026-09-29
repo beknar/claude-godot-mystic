@@ -1,7 +1,7 @@
 # Scene assembly
 
-Shared inventory and QC. Map-specific generators live in `AGENTS.md`:
-§ Mystic Woods vs § Painted Lands. Do not run one pack’s pipeline on
+Shared inventory and QC. Map-specific generators live in the pack docs
+(`docs/painted-lands.md`, `docs/deprecated/mystic-woods.md`, ...). Do not run one pack’s pipeline on
 the other’s scenes.
 
 ## 0. Inventory the pack (required first step)
@@ -22,8 +22,8 @@ Slice rule: `tileId = row * cols + col`. Record GID / firstgid if using Tiled.
 
 | Scenes | Pack | Generator |
 |---|---|---|
-| clearing, grove, hollow, ford, heath | Mystic Woods | `scripts/terrain.gd` — `AGENTS.md` § Mystic Woods |
-| forest | Painted Lands | `scripts/forest_terrain.gd` — `AGENTS.md` § Painted Lands and §6 below |
+| clearing, grove, hollow, ford, heath | Mystic Woods | `scripts/terrain.gd` — `docs/deprecated/mystic-woods.md` |
+| forest | Painted Lands | `scripts/forest_terrain.gd` — `docs/painted-lands.md` and §6 below |
 
 Heath and forest may share a numeric seed. They do not share a generator.
 
@@ -110,7 +110,7 @@ Painted Lands only:
 ## 6. Painted Lands forest generator
 
 Atlas numbers, house counts, PATCH blob autotile, and the 20-row
-table: `AGENTS.md` § Painted Lands. `recipe = seed % 30` (the forest and
+table: `docs/painted-lands.md`. `recipe = seed % 30` (the forest and
 wilds scenes pin theirs). Houses default to 0 or 1. Two houses only on
 recipes 10 and 23, three on 26.
 
@@ -172,6 +172,6 @@ A darker grass patch with no dirt uses the same Mode A/B. A raw
 
 ### Recipes 0–19
 
-Full flags in `AGENTS.md`. Houses: 0 on 5/12/18, **2 on 10 only**,
+Full flags in `docs/painted-lands.md`. Houses: 0 on 5/12/18, **2 on 10 only**,
 1 on every other recipe. Patch column is blob count after autotile,
 not raw square stamps.

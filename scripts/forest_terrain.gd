@@ -1,6 +1,6 @@
 class_name PaintedTerrain
 extends RefCounted
-## Painted Lands map grid (AGENTS.md § Painted Lands) on TILESET_brighter.png.
+## Painted Lands map grid (docs/painted-lands.md) on TILESET_brighter.png.
 ## Output is atlas coordinates, dirt-blob descriptions, and prop placements.
 ## Never calls terrain.gd and never uses plains.png.
 
@@ -94,7 +94,7 @@ const ROLES := {
 }
 const NONE := Vector2i(-1, -1)
 
-# Cobble PATH, AGENTS.md table. Open-diagonal bits NE=1 SE=2 SW=4 NW=8.
+# Cobble PATH, docs/painted-lands.md table. Open-diagonal bits NE=1 SE=2 SW=4 NW=8.
 const PATH_SET := Vector2i(21, 0)
 const PATH_FILL := Vector2i(22, 1)
 # Sand fills for wide paved areas (a plaza's interior).

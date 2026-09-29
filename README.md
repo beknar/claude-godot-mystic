@@ -4,7 +4,10 @@ A top-down pixel-art action RPG prototype in Godot 4.6 (GL Compatibility).
 Maps are assembled on a 16px grid from four hand-painted tile families and
 seeded procedural generators. They are never painted as one backdrop.
 
-`AGENTS.md` holds the binding rules. `docs/scene-assembly.md` holds the
+`AGENTS.md` holds the binding rules for every session, and each pack's
+drawing rules live in its doc (`docs/painted-lands.md`,
+`docs/green-caves.md`, `docs/interiors.md`, `docs/pixel-crawler.md`;
+deprecated packs in `docs/deprecated/`). `docs/scene-assembly.md` holds the
 shared inventory, composition steps, and QC checklist. This README gives an
 overview; when the two disagree, `AGENTS.md` wins.
 
@@ -42,7 +45,7 @@ project, copy them in locally:
   `waterfall.png`, `treewall.png`, `canopy.png`; autumn from the "leaves"
   sheets, winter from the "snowy" ones), plus Village Accessories to
   `village/`, Fences & Walls to `fences/`, Weather Effects to `weather/`, and
-  `_extras` to `extras/` (see AGENTS.md § Mana Seed)
+  `_extras` to `extras/` (see docs/deprecated/mana-seed.md)
 - Pixel Crawler (Anokolisa): the environment sheets to
   `assets/pack/pixel_crawler/`: Fairy Forest `Assets/*.png` to
   `fairy_forest/`, the Farm Game Assets forest (`Tiles.png`,
@@ -360,7 +363,7 @@ camp, Rock garden, Deep forest, Village square, Hedge garden, Ridgeline,
 Walled mesa). The forest and wilds scenes pin recipes 3 and 5. The
 recipe sets houses (0, 1, 2 on recipes 10 and 23, 3 on 26
 only), water, fences, gates, plateau, path shape, dirt-patch blobs, and
-props. The full table is in `AGENTS.md`.
+props. The full table is in `docs/painted-lands.md`.
 
 Systems:
 
@@ -378,7 +381,7 @@ Systems:
 
 Layers: Ground → Features → Patches (Mode B halo sprites) → Deco → Actors.
 
-Where the sheet differs from the `AGENTS.md` atlas notes, the code follows
+Where the sheet differs from the `docs/painted-lands.md` atlas notes, the code follows
 the sheet:
 
 - `(18–20, 0–2)` is darker grass on mid green, not dirt. Dirt islands use

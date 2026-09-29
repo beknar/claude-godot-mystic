@@ -1,6 +1,6 @@
 class_name MysticTerrain
 extends RefCounted
-## Tile-id grid for the Mystic Woods maps (AGENTS.md § Mystic Woods).
+## Tile-id grid for the Mystic Woods maps (docs/deprecated/mystic-woods.md).
 ## Output is plains.png / decor_16x16.png atlas coordinates, pond rectangles,
 ## fences, walled structures, and prop placements. Nothing here paints pixels.
 ## A recipe (seed % RECIPES.size(), unless pinned) sets the terrain mix and
