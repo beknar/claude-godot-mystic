@@ -218,7 +218,21 @@ const RECIPES := [
 	{"name": "Rocky rise", "seasons": ["spring", "summer", "autumn", "winter"], "wall": "none", "zones": 0.16, "trees": ["birches", 12], "ponds": [0, 1], "plateaus": [1, 2], "path": ["to_plateau", DIRT, 1], "tall": 2, "piece": "rocks", "flowers": 30},
 	{"name": "Pond garden", "seasons": ["spring", "summer", "autumn", "winter"], "wall": "edges", "zones": 0.18, "trees": ["mixed", 12], "ponds": [2, 3], "plateaus": [0, 0], "path": ["trail", COBBLE, 1], "tall": 3, "piece": "flowers", "flowers": 80},
 	{"name": "Crossroads", "seasons": ["spring", "summer", "autumn", "winter"], "wall": "none", "zones": 0.2, "trees": ["oaks", 14], "ponds": [0, 1], "plateaus": [0, 0], "path": ["cross", COBBLE, 2], "tall": 4, "piece": "wayside", "flowers": 40},
+	# Splat-led maps: the grass itself is the feature.
+	{"name": "Wildflower meadow", "seasons": ["spring", "summer", "autumn"], "wall": "none", "zones": 0.1, "trees": ["mixed", 8], "ponds": [0, 1], "plateaus": [0, 0], "path": ["trail", DIRT, 1], "tall": 3, "piece": "flowers", "flowers": 60, "splat": {"lush": 1.2, "flowers": 3.5, "dry": 0.5, "moss": 0.5}},
+	{"name": "Sunlit heath", "seasons": ["spring", "summer", "autumn", "winter"], "wall": "none", "zones": 0.08, "trees": ["birches", 8], "ponds": [0, 0], "plateaus": [0, 1], "path": ["road", DIRT, 1], "tall": 7, "piece": "rocks", "flowers": 20, "splat": {"lush": 0.5, "flowers": 0.5, "dry": 2.8, "moss": 0.4}},
+	{"name": "Mossy hollow", "seasons": ["spring", "summer", "autumn", "winter"], "wall": "edges", "zones": 0.24, "trees": ["mixed", 18], "ponds": [1, 2], "plateaus": [0, 0], "path": ["trail", DIRT, 1], "tall": 2, "piece": "glade", "flowers": 20, "splat": {"lush": 1.6, "flowers": 0.3, "dry": 0.3, "moss": 2.6}},
 ]
+
+# Grass splat layers (manaseed.gd draws them): the share of eligible light
+# grass each covers, by season; a recipe's "splat" scales them.
+const SPLAT_LAYERS: Array[String] = ["lush", "dry", "flowers", "moss"]
+const SPLAT_SHARE := {
+	"spring": {"lush": 0.2, "dry": 0.04, "flowers": 0.1, "moss": 0.14},
+	"summer": {"lush": 0.18, "dry": 0.1, "flowers": 0.06, "moss": 0.14},
+	"autumn": {"lush": 0.12, "dry": 0.16, "flowers": 0.05, "moss": 0.1},
+	"winter": {"lush": 0.18, "dry": 0.12, "flowers": 0.0, "moss": 0.0},
+}
 
 var map_id := 0
 var recipe_id := 0
@@ -245,6 +259,8 @@ var spawn := Vector2i.ZERO
 var notes: Array[String] = []
 var fails: Array[String] = []
 var floor_notes: Array[String] = []
+var splat: Array[PackedFloat32Array] = [] # per layer, per corner weight 0..1
+var splat_fade := PackedFloat32Array() # per corner: 1 deep in pure light grass, 0 at other terrain
 var _taken := {}
 var _rng := RandomNumberGenerator.new()
 
@@ -306,6 +322,7 @@ func _layout() -> bool:
 	_water_props()
 	_ground_deco()
 	_liveliness_floor()
+	_splat()
 	return true
 
 
@@ -1097,6 +1114,131 @@ func _ground_deco() -> void:
 				deco[c] = FLOWER_TILES[int(h * 9973.0) % FLOWER_TILES.size()]
 			elif h > 1.0 - rate * 0.6:
 				deco[c] = TUFT_TILES[int(h * 7919.0) % TUFT_TILES.size()]
+
+
+# ---------------------------------------------------------------- grass splat
+
+## Weight fields for the grass splat. Only pure light grass is eligible: the
+## fade is the corner distance to any other terrain, the plateaus, and the
+## forest wall (their art bakes the plain light grass), ramping in over two
+## corners, so nothing meets a transition tile or baked grass at a seam.
+## Each layer is value noise shaped by the map (lush by water, dry by paths,
+## dirt and rocks, moss by trunks and the wall), cut at its share of the
+## eligible corners, with a soft band round the cut.
+func _splat() -> void:
+	var n := (W + 1) * (H + 1)
+	splat_fade = PackedFloat32Array()
+	splat_fade.resize(n)
+	# Euclidean distance (in corners, up to 4) to anything that is not free
+	# light grass, so the splat's edge round a pond or path is round too.
+	var blockers: Array[Vector2i] = []
+	for y in H + 1:
+		for x in W + 1:
+			if corner[_ci(x, y)] != LIGHT or _plateau_corner(x, y) or _near_wall_corner(x, y):
+				blockers.append(Vector2i(x, y))
+	var dist := PackedFloat32Array()
+	dist.resize(n)
+	dist.fill(5.0)
+	for b: Vector2i in blockers:
+		for dy in range(-4, 5):
+			for dx in range(-4, 5):
+				var x := b.x + dx
+				var y := b.y + dy
+				if x < 0 or y < 0 or x > W or y > H:
+					continue
+				var d := Vector2(dx, dy).length()
+				if d < dist[_ci(x, y)]:
+					dist[_ci(x, y)] = d
+	for i in n:
+		splat_fade[i] = clampf((dist[i] - 1.0) / 2.0, 0.0, 1.0)
+	# Context sources in corners.
+	var wet: Array[Vector2i] = []
+	var bare: Array[Vector2i] = []
+	var shade: Array[Vector2i] = []
+	for y in H + 1:
+		for x in W + 1:
+			var t := corner[_ci(x, y)]
+			if t == SHALLOW or t == DEEP:
+				wet.append(Vector2i(x, y))
+			elif t == DIRT or t == COBBLE:
+				bare.append(Vector2i(x, y))
+	for p in props:
+		var tag: String = PROPS[p.art].tag
+		if tag == "tree":
+			shade.append(p.cell + Vector2i(1, 1))
+		elif tag == "stone":
+			bare.append(p.cell + Vector2i(1, 1))
+	for c: Vector2i in wall_area:
+		if (c.x + c.y) % 3 == 0:
+			shade.append(c)
+	var near_wet := _corner_near(wet, 5)
+	var near_bare := _corner_near(bare, 4)
+	var near_shade := _corner_near(shade, 4)
+	var shares: Dictionary = SPLAT_SHARE[season]
+	var scale: Dictionary = recipe.get("splat", {})
+	splat.clear()
+	for li in SPLAT_LAYERS.size():
+		var name := SPLAT_LAYERS[li]
+		# Winter's grass and earth through the snow stay patches, not the ground.
+		var share: float = minf(0.14 if season == "winter" else 0.6, shares[name] * scale.get(name, 1.0))
+		var field := PackedFloat32Array()
+		field.resize(n)
+		field.fill(0.0)
+		if share <= 0.0:
+			splat.append(field)
+			continue
+		var noise := FastNoiseLite.new()
+		noise.seed = map_id * 101 + li * 7919 + attempt
+		noise.frequency = 0.16 if name == "flowers" else 0.07
+		noise.fractal_octaves = 2
+		var vals := PackedFloat32Array()
+		vals.resize(n)
+		var eligible: Array[float] = []
+		for y in H + 1:
+			for x in W + 1:
+				var i := _ci(x, y)
+				var v := noise.get_noise_2d(x * 1.0, y * 1.0) * 0.5 + 0.5
+				match name:
+					"lush": v += near_wet[i] * 0.35
+					"dry": v += near_bare[i] * 0.3
+					"moss": v += near_shade[i] * 0.3
+				vals[i] = v
+				if splat_fade[i] > 0.0:
+					eligible.append(v)
+		if eligible.is_empty():
+			splat.append(field)
+			continue
+		eligible.sort()
+		var cut: float = eligible[clampi(int((1.0 - share) * eligible.size()), 0, eligible.size() - 1)]
+		for i in n:
+			field[i] = clampf((vals[i] - cut) / 0.08 + 0.5, 0.0, 1.0)
+		splat.append(field)
+
+
+func _near_wall_corner(x: int, y: int) -> bool:
+	for dy in range(-1, 1):
+		for dx in range(-1, 1):
+			if wall_area.has(Vector2i(x + dx, y + dy)):
+				return true
+	return false
+
+
+## 1 at the sources, falling to 0 at `radius` corners (per corner).
+func _corner_near(sources: Array[Vector2i], radius: int) -> PackedFloat32Array:
+	var out := PackedFloat32Array()
+	out.resize((W + 1) * (H + 1))
+	out.fill(0.0)
+	for s: Vector2i in sources:
+		for dy in range(-radius, radius + 1):
+			for dx in range(-radius, radius + 1):
+				var x := s.x + dx
+				var y := s.y + dy
+				if x < 0 or y < 0 or x > W or y > H:
+					continue
+				var v := 1.0 - Vector2(dx, dy).length() / float(radius + 1)
+				if v > out[_ci(x, y)]:
+					out[_ci(x, y)] = v
+	return out
 
 
 # ---------------------------------------------------------------- liveliness

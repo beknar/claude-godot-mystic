@@ -15,6 +15,23 @@ const WANG_SRC := 0
 const FOREST_SRC := 1
 const SPARKLE_SRC := 2
 const WALL_SRC := 0 # on the 128 px wall and canopy tile sets
+const DECO_SRC := 3 # forest.png with the baked light grass cut out of the flower tiles
+const SPLAT_SHADER := preload("res://shaders/ms_grass_splat.gdshader")
+# Splat layer textures per season. Each layer is this season's light-grass
+# fill with its colors moved part of the way (t) toward a partner palette,
+# rank for rank (the fills share one structure: a base, two blade colors, and
+# a shadow): lush toward a greener grass, dry toward straw, moss toward the
+# season's own dark grass. Flowers are forest.png's flower grass as drawn.
+# Winter's lush and dry are the snowless winter sheet's grass and bare earth
+# as drawn: grass showing through the snow.
+const SPLAT_SOURCES := {
+	"spring": {"lush": ["spring", "dark", 0.3], "dry": ["summer", "light", 0.55], "flowers": ["spring", "flowers", 0.0], "moss": ["spring", "dark", 0.6]},
+	"summer": {"lush": ["spring", "light", 0.5], "dry": ["autumn", "light", 0.3], "flowers": ["summer", "flowers", 0.0], "moss": ["summer", "dark", 0.5]},
+	"autumn": {"lush": ["summer", "light", 0.45], "dry": ["autumn", "dark", 0.5], "flowers": ["autumn", "flowers", 0.0], "moss": ["summer", "dark", 0.3]},
+	"winter": {"lush": ["winter_clean", "light", 1.0], "dry": ["winter_clean", "dark", 1.0], "flowers": ["winter", "flowers", 0.0], "moss": ["winter", "dark", 0.0]},
+}
+const LIGHT_FILLS: Array[int] = [129, 193, 257, 321]
+const DARK_FILLS: Array[int] = [130, 194, 258, 322]
 
 @export var map_id := 160000
 @export var recipe := -1
@@ -88,6 +105,7 @@ func build(id: int, pinned := -1) -> void:
 			child.queue_free()
 	_build_tilesets()
 	_paint()
+	_apply_splat()
 	_build_collision()
 	_place_props()
 	_place_tall_grass()
@@ -158,6 +176,10 @@ func _build_tilesets() -> void:
 		sp.set_tile_animation_frames_count(Vector2i(0, row), 4)
 		for f in 4:
 			sp.set_tile_animation_frame_duration(Vector2i(0, row), f, 0.6)
+	var deco := TileSetAtlasSource.new()
+	deco.texture = _deco_texture()
+	deco.texture_region_size = Vector2i(TILE, TILE)
+	_tiles.add_source(deco, DECO_SRC)
 	for layer in [ground_layer, deco_layer, cliff_layer, cliff2_layer, sparkle_layer, shade_layer]:
 		layer.tile_set = _tiles
 	_wall_tiles = _big_tileset(_open_wall(terrain.season))
@@ -230,7 +252,7 @@ func _paint() -> void:
 					id = ids[1 + int((h - plain) / (1.0 - plain) * (ids.size() - 1)) % (ids.size() - 1)]
 			_put(ground_layer, WANG_SRC, c, Vector2i(id % 64, id / 64))
 	for c in terrain.deco:
-		_put(deco_layer, FOREST_SRC, c, terrain.deco[c])
+		_put(deco_layer, DECO_SRC, c, terrain.deco[c])
 	for c in terrain.hedges:
 		_put(cliff2_layer, FOREST_SRC, c, terrain.hedges[c])
 	# Plateaus: the stamp's two layers and its cast shadow.
@@ -246,6 +268,123 @@ func _paint() -> void:
 	for st: Vector2i in terrain.wall_atlas:
 		_put(wall_layer, WALL_SRC, st, terrain.wall_atlas[st])
 		_put(canopy_layer, WALL_SRC, st, terrain.wall_atlas[st])
+
+
+## forest.png with the light-grass pixels of the flower deco tiles cut out, so
+## the flowers sit on whatever grass the splat draws under them.
+func _deco_texture() -> Texture2D:
+	var img := _image("forest").duplicate()
+	var grass := _palette(_image("wang"), LIGHT_FILLS)
+	for a: Vector2i in MSTerrain.FLOWER_TILES:
+		for y in TILE:
+			for x in TILE:
+				var p: Color = img.get_pixel(a.x * TILE + x, a.y * TILE + y)
+				if grass.has(p.to_rgba32()):
+					img.set_pixel(a.x * TILE + x, a.y * TILE + y, Color(0, 0, 0, 0))
+	return ImageTexture.create_from_image(img)
+
+
+func _palette(img: Image, ids: Array[int]) -> Dictionary:
+	var out := {}
+	for id in ids:
+		for y in TILE:
+			for x in TILE:
+				out[img.get_pixel((id % 64) * TILE + x, (id / 64) * TILE + y).to_rgba32()] = true
+	return out
+
+
+# ---------------------------------------------------------------- grass splat
+
+var _season_images := {}
+
+func _season_image(s: String, name: String) -> Image:
+	var key := s + "/" + name
+	if not _season_images.has(key):
+		var path := PACK + ("winter/wang_clean" if s == "winter_clean" and name == "wang" else s + "/" + name) + ".png"
+		var img: Image = load(path).get_image()
+		if img.is_compressed():
+			img.decompress()
+		img.convert(Image.FORMAT_RGBA8)
+		_season_images[key] = img
+	return _season_images[key]
+
+
+## A fill's colors, most common first.
+func _ranked(img: Image, ids: Array[int]) -> Array[Color]:
+	var counts := {}
+	for id in ids:
+		for y in TILE:
+			for x in TILE:
+				var k := img.get_pixel((id % 64) * TILE + x, (id / 64) * TILE + y).to_rgba32()
+				counts[k] = counts.get(k, 0) + 1
+	var keys := counts.keys()
+	keys.sort_custom(func(a, b): return counts[a] > counts[b])
+	var out: Array[Color] = []
+	for k in keys:
+		out.append(Color.hex(k))
+	return out
+
+
+## Moves each pixel of `tile` whose color is in `from` toward the color of the
+## same rank in `to`.
+func _shift(tile: Image, from: Array[Color], to: Array[Color], t: float) -> void:
+	var map := {}
+	for i in from.size():
+		var target: Color = to[mini(i, to.size() - 1)]
+		map[from[i].to_rgba32()] = from[i].lerp(target, t)
+	for y in tile.get_height():
+		for x in tile.get_width():
+			var k := tile.get_pixel(x, y).to_rgba32()
+			if map.has(k):
+				tile.set_pixel(x, y, map[k])
+
+
+## The splat: a 64 x 64 atlas of four fill variants per layer, the layers'
+## weight fields and the eligibility fade as corner-sized textures, and the
+## shader on the Ground layer (see shaders/ms_grass_splat.gdshader).
+func _apply_splat() -> void:
+	var sources: Dictionary = SPLAT_SOURCES[terrain.season]
+	var atlas := Image.create(64, 64, false, Image.FORMAT_RGBA8)
+	var own := _season_image(terrain.season, "wang")
+	for li in MSTerrain.SPLAT_LAYERS.size():
+		var src: Array = sources[MSTerrain.SPLAT_LAYERS[li]]
+		var s: String = src[0]
+		var t: float = src[2]
+		for v in 4:
+			var tile: Image
+			if src[1] == "flowers":
+				var a: Vector2i = MSTerrain.FLOWER_TILES[v]
+				tile = _season_image(s, "forest").get_region(Rect2i(a * TILE, Vector2i(TILE, TILE)))
+			elif t >= 1.0:
+				# As drawn (winter's grass and earth under the snow).
+				var id: int = (LIGHT_FILLS if src[1] == "light" else DARK_FILLS)[v]
+				tile = _season_image(s, "wang").get_region(Rect2i((id % 64) * TILE, (id / 64) * TILE, TILE, TILE))
+			else:
+				var id: int = LIGHT_FILLS[v]
+				tile = own.get_region(Rect2i((id % 64) * TILE, (id / 64) * TILE, TILE, TILE))
+				_shift(tile, _ranked(own, LIGHT_FILLS), _ranked(_season_image(s, "wang"), LIGHT_FILLS if src[1] == "light" else DARK_FILLS), t)
+			atlas.blit_rect(tile, Rect2i(0, 0, TILE, TILE), Vector2i(v * TILE, li * TILE))
+	var weights := Image.create(W + 1, H + 1, false, Image.FORMAT_RGBA8)
+	var fade := Image.create(W + 1, H + 1, false, Image.FORMAT_RGBA8)
+	for y in H + 1:
+		for x in W + 1:
+			var i := y * (W + 1) + x
+			var c := Color(0, 0, 0, 0)
+			for li in terrain.splat.size():
+				c[li] = terrain.splat[li][i]
+			weights.set_pixel(x, y, c)
+			var f := terrain.splat_fade[i]
+			fade.set_pixel(x, y, Color(f, f, f, 1))
+	var mat := ShaderMaterial.new()
+	mat.shader = SPLAT_SHADER
+	mat.set_shader_parameter("weights", ImageTexture.create_from_image(weights))
+	mat.set_shader_parameter("fade", ImageTexture.create_from_image(fade))
+	mat.set_shader_parameter("layers", ImageTexture.create_from_image(atlas))
+	mat.set_shader_parameter("corners", Vector2(W + 1, H + 1))
+	mat.set_shader_parameter("seed", float(map_id % 1000))
+	# Snow against grass and earth is a hard contrast: a tighter rim there.
+	mat.set_shader_parameter("dither", 0.1 if terrain.season == "winter" else 0.3)
+	ground_layer.material = mat
 
 
 func _hash(x: int, y: int) -> float:

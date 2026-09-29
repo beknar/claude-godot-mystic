@@ -94,10 +94,13 @@ generator.
 
 The Mana Seed randomizer builds outdoor maps from Seliel the Shaper's forest
 collection in all four seasons (the seasonal sheets share one layout, so the
-map id picks the season) with 16 recipes (meadow, forest glade, lakeside,
+map id picks the season) with 19 recipes (meadow, forest glade, lakeside,
 brookside, cliffside, terraces, old road, woodcutter's camp, village well,
 paddock, marsh, deep woods, berry thicket, rocky rise, pond garden,
-crossroads). The ground is the pack's corner-Wang sheet (every mix of dirt,
+crossroads, wildflower meadow, sunlit heath, mossy hollow). The grass is
+texture-splatted: a shader breaks the light grass into lush, straw, moss,
+and flower patches (the pack's own grass, retoned) with dithered pixel rims,
+so the view is never one wall of repeating green. The ground is the pack's corner-Wang sheet (every mix of dirt,
 light and dark grass, cobblestone, and shallow and deep water blends with the
 pack's own transitions), with plateaus built from the pack's usage guide,
 the 128 px forest wall with its canopy overlay, ponds, lakes with islands,

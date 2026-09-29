@@ -135,7 +135,7 @@ Mana Seed randomizer:
 
 - `scenes/randomizer-manaseed/randomizer-manaseed.tscn` — the Mana Seed
   pipeline (`ms_terrain.gd` + `manaseed.gd`), starting at map id `160000`
-  (`recipe = -1`: id % 16; the season from the id), with the Painted Lands
+  (`recipe = -1`: id % 19; the season from the id), with the Painted Lands
   walker and the same Esc menu, titled "Mana Seed randomizer".
 
 Time Fantasy randomizer:
@@ -1440,7 +1440,7 @@ sample maps were the reference for how pieces combine.
 
 ## Pipeline
 
-Recipe (`id % 16`) and season (`(id / 16) % seasons`), then: forest wall,
+Recipe (`id % 19`) and season (`(id / 19) % seasons`), then: forest wall,
 spawn (inside the clearing when there is a wall), plateaus, lake or brook
 (three corners wide, meandering, off the spawn), ponds (lumpy ellipses:
 shallow rim, deep inside; a lake may carry grass islands), dark-grass zones
@@ -1449,13 +1449,52 @@ plateaus and the wall), paths (A* with a wander cost; roads two cells wide,
 trails one corner wide swelling to two; the wall, cliffs, and ponds are
 solid, a brook is crossed by the bridge), cell kinds, the set piece, trees,
 undergrowth, tall grass, small props, water props, ground deco, the
-liveliness floor, then the reach check (plateau tops only by their stairs).
+liveliness floor, the grass splat fields, then the reach check (plateau tops
+only by their stairs).
 
 Recipes: 0 Meadow, 1 Forest glade (wall), 2 Lakeside, 3 Brookside, 4
 Cliffside, 5 Terraces, 6 Old road (cobble), 7 Woodcutter's camp (wall), 8
 Village well (cobble plaza), 9 Paddock (ranch fence), 10 Marsh (5-7 ponds,
 no winter), 11 Deep woods (heavy wall), 12 Berry thicket (no winter), 13
-Rocky rise, 14 Pond garden, 15 Crossroads.
+Rocky rise, 14 Pond garden, 15 Crossroads, and three where the grass itself
+is the feature: 16 Wildflower meadow (flower splat heavy, no winter), 17
+Sunlit heath (straw splat heavy, tall grass, open), 18 Mossy hollow (moss and
+lush splat, wall, ponds). A recipe's `splat` scales the season's shares.
+
+## Grass splat
+
+So the light grass is not one repeating green across the view, the Ground
+layer runs `shaders/ms_grass_splat.gdshader`. Over pure light grass each
+pixel takes one of four grass textures, or keeps the base:
+
+- **lush**, **dry**, **moss**: the season's own light-grass fill with its four
+  colors (base, two blades, shadow) moved rank for rank part of the way
+  toward a partner palette (`SPLAT_SOURCES` in `manaseed.gd`): lush toward a
+  greener grass, dry toward straw, moss toward the season's dark grass (a
+  true middle tone). The pack's pixels and shading stay; only the tone
+  shifts. Importing another season's grass as drawn was too strong (autumn
+  gold read as dirt, spring dark as blue-grey).
+- **flowers**: forest.png's flower grass (5-8, 6) as drawn.
+- Winter: lush and dry are the snowless winter sheet's grass and bare earth
+  as drawn (`winter/wang_clean.png`), grass and earth showing through snow;
+  each capped at 14 % and drawn with a tighter dither.
+
+Weights are per map corner (`MSTerrain._splat`): value noise per layer
+(flowers at a finer scale), raised by context (lush within five corners of
+water, dry within four of dirt, cobble, and rocks, moss within four of
+trunks and the forest wall), cut at the layer's share of the eligible
+corners (`SPLAT_SHARE` by season) with a soft band. Eligibility (`splat_fade`)
+is the Euclidean corner distance to anything that is not free light grass
+(other terrain, plateaus, the wall), ramping in over two corners, so the
+splat never meets a Wang transition tile or baked grass (plateau rims, wall
+trunk grass) at a seam, and its edge round a pond or path is round. The
+shader picks the strongest layer over 0.5 after an ordered dither and a small
+wobble, so layers meet in crisp dithered pixel rims, never blended colors;
+the fade acts as an edge, not a dimmer. The flower deco tiles have their
+baked light grass cut out (`DECO_SRC`), so they sit on whatever grass is
+under them. The shader's world position comes from the model matrix: the
+layer draws in quadrants whose VERTEX is local.
+
 
 ## Liveliness (not yet measured)
 
