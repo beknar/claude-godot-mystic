@@ -31,6 +31,7 @@ const BAT_SPEED := 46.0
 var wind: Wind
 var water_life: WaterLife
 var view_override := Rect2() # set by headless tools; otherwise the camera's view
+var bats := true # outdoor scenes may turn the bat flights off
 var parts := ["drips", "warm", "pale", "glints", "bats"] # what pixels() draws (headless tools measure one at a time)
 var _drip_spots: Array[Dictionary] = [] # {top: Vector2, floor: Vector2, water: bool}
 var _lights: Array[Vector2] = []
@@ -149,7 +150,7 @@ func _update_glints(delta: float, view: Rect2) -> void:
 # sideways wobble and small speed changes, wings flicking fast.
 func _update_bats(delta: float, view: Rect2) -> void:
 	_next_bats -= delta
-	if _next_bats <= 0.0 and _bats.is_empty():
+	if bats and _next_bats <= 0.0 and _bats.is_empty():
 		_next_bats = _rng.randf_range(BATS_EVERY.x, BATS_EVERY.y)
 		var heading := Vector2.RIGHT.rotated(_rng.randf() * TAU)
 		var start := view.get_center() - heading * (view.size.length() * 0.55) + heading.orthogonal() * _rng.randf_range(-view.size.y * 0.3, view.size.y * 0.3)

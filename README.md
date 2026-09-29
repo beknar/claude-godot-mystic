@@ -13,9 +13,10 @@ overview; when the two disagree, `AGENTS.md` wins.
 > `scenes/wilds/wilds.tscn`, `scenes/randomizer-paintedlands/randomizer-paintedlands.tscn`,
 > `scenes/randomizer-mysticwoods/randomizer-mysticwoods.tscn`,
 > `scenes/randomizer-greencaves/randomizer-greencaves.tscn`,
+> `scenes/randomizer-manaseed/randomizer-manaseed.tscn`,
 > `scenes/randomizer-timefantasy/randomizer-timefantasy.tscn`, the
-> player and walker scenes, the Mystic Woods, Painted Lands, Green Caves, and
-> Time Fantasy generators, the art packs, the AI character sheets, and `addons/godot_mcp`. Hollow,
+> player and walker scenes, the Mystic Woods, Painted Lands, Green Caves, Mana
+> Seed, and Time Fantasy generators, the art packs, the AI character sheets, and `addons/godot_mcp`. Hollow,
 > ford, and heath are not built yet. The Painted Lands generator draws all
 > 30 recipes.
 
@@ -32,6 +33,15 @@ project, copy them in locally:
 - Painted Lands – Interior Cozy Cottage: the pack folder to
   `assets/pack/cozy_cottage/` (`wallpapers_and_floors.png`, `furniture.png`,
   `decoration.png`)
+- Mana Seed (Seliel the Shaper, from the complete rpg creator bundle's
+  `mana seed pixel art tileset collection`): per season under
+  `assets/pack/mana_seed/<season>/` with the file names the painter expects
+  (`wang.png`, `forest.png`, `trees.png`, `16x16.png`, `16x32.png`,
+  `32x32.png`, `48x32.png`, `tallgrass.png`, `sparkles.png`,
+  `waterfall.png`, `treewall.png`, `canopy.png`; autumn from the "leaves"
+  sheets, winter from the "snowy" ones), plus Village Accessories to
+  `village/`, Fences & Walls to `fences/`, Weather Effects to `weather/`, and
+  `_extras` to `extras/` (see AGENTS.md § Mana Seed)
 - Time Fantasy tiles (finalbossblues, TimeFantasy_TILES_6.24.17): the
   `TILESETS` folder to `assets/pack/time_fantasy/` (`terrain.png`,
   `outside.png`, `water.png`, `house.png`, `animated/`, `guide.png`)
@@ -59,6 +69,7 @@ between them.
 | clearing, grove, hollow, ford, heath | Mystic Woods | `plains.png`, `grass.png` | `scripts/terrain.gd` + `scripts/clearing.gd` |
 | forest, wilds | Painted Lands | `TILESET_brighter.png` | `scripts/forest_terrain.gd` |
 | randomizer-greencaves | Green Caves | `green_caves/green_caves_tileset.png` | `scripts/cave_terrain.gd` + `scripts/caves.gd` |
+| randomizer-manaseed | Mana Seed | `mana_seed/` (four seasonal forests, village, fences, weather, extras) | `scripts/ms_terrain.gd` + `scripts/manaseed.gd` |
 | randomizer-timefantasy (experimental, not suitable) | Time Fantasy | `time_fantasy/` (terrain, outside, water, house, animated) | `scripts/tf_terrain.gd` + `scripts/timefantasy.gd` |
 
 Heath and forest share seed `91003` by coincidence only. They don't share a
@@ -78,7 +89,23 @@ generator.
 | `scenes/randomizer-paintedlands/randomizer-paintedlands.tscn` | starts at 75125, then any | `character_sprite_sheet.png` |
 | `scenes/randomizer-mysticwoods/randomizer-mysticwoods.tscn` | starts at 21021, then any | `player.png` |
 | `scenes/randomizer-greencaves/randomizer-greencaves.tscn` | starts at 130021, then any | `character_sprite_sheet.png` (the Painted Lands walker) |
+| `scenes/randomizer-manaseed/randomizer-manaseed.tscn` | starts at 160000, then any | `character_sprite_sheet.png` (the Painted Lands walker) |
 | `scenes/randomizer-timefantasy/randomizer-timefantasy.tscn` | starts at 150000, then any | `character_sprite_sheet.png` (the Painted Lands walker) |
+
+The Mana Seed randomizer builds outdoor maps from Seliel the Shaper's forest
+collection in all four seasons (the seasonal sheets share one layout, so the
+map id picks the season) with 16 recipes (meadow, forest glade, lakeside,
+brookside, cliffside, terraces, old road, woodcutter's camp, village well,
+paddock, marsh, deep woods, berry thicket, rocky rise, pond garden,
+crossroads). The ground is the pack's corner-Wang sheet (every mix of dirt,
+light and dark grass, cobblestone, and shallow and deep water blends with the
+pack's own transitions), with plateaus built from the pack's usage guide,
+the 128 px forest wall with its canopy overlay, ponds, lakes with islands,
+brooks with a stone bridge, tree clusters over undergrowth, tall grass that
+rustles as you walk through it, ranch fences, and village props. It runs the
+Painted Lands and Green Caves ambience plus the pack's water sparkles and
+snow and rain. `tools/check_ms.gd` sweeps it headless. Its liveliness has
+not been measured yet.
 
 > **Time Fantasy is not suitable for this project.** Consider the Time
 > Fantasy tilesets no longer suitable for any maps here: the prevalent ground
@@ -364,6 +391,11 @@ Art (purchased; not included in this repository, see "Art packs" above):
 - **The Painted Lands – Green Caves Tileset** by
   [antarcticbees](https://antarcticbees.itch.io). `green_caves_tileset.png`
   (the pack's slimes are not used). License: see the pack's itch.io page;
+  purchased, not redistributed here.
+- **Mana Seed** tilesets by [Seliel the Shaper](https://seliel-the-shaper.itch.io/)
+  (Summer, Spring, Autumn, and Winter Forest, Village Accessories, Fences &
+  Walls, Weather Effects, and the collection's extras), from the complete
+  rpg creator bundle. License: see the pack's readme and itch.io pages;
   purchased, not redistributed here.
 - **Time Fantasy tiles** (TimeFantasy_TILES_6.24.17) by
   [finalbossblues](https://finalbossblues.com) ([timefantasy.net](http://timefantasy.net)).

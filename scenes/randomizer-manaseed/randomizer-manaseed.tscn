@@ -1,0 +1,37 @@
+[gd_scene format=3]
+
+[ext_resource type="Script" path="res://scripts/manaseed.gd" id="1_script"]
+[ext_resource type="Script" path="res://scripts/randomizer_menu.gd" id="2_menu"]
+
+[node name="RandomizerManaSeed" type="Node2D"]
+texture_filter = 1
+script = ExtResource("1_script")
+
+[node name="Ground" type="TileMapLayer" parent="."]
+
+[node name="Deco" type="TileMapLayer" parent="."]
+
+[node name="Sparkles" type="TileMapLayer" parent="."]
+
+[node name="Under" type="Node2D" parent="."]
+
+[node name="Cliffs" type="TileMapLayer" parent="."]
+
+[node name="Cliffs2" type="TileMapLayer" parent="."]
+
+[node name="Wall" type="TileMapLayer" parent="."]
+
+[node name="Actors" type="Node2D" parent="."]
+y_sort_enabled = true
+
+[node name="Shade" type="TileMapLayer" parent="."]
+
+[node name="Canopy" type="TileMapLayer" parent="."]
+
+[node name="Collision" type="StaticBody2D" parent="."]
+collision_mask = 0
+
+[node name="Menu" type="CanvasLayer" parent="."]
+layer = 10
+script = ExtResource("2_menu")
+title = "Mana Seed randomizer"
