@@ -1,7 +1,7 @@
 # claude-godot-mystic
 
 A top-down pixel-art action RPG prototype in Godot 4.6 (GL Compatibility).
-Maps are assembled on a 16px grid from three hand-painted tile packs and
+Maps are assembled on a 16px grid from four hand-painted tile families and
 seeded procedural generators. They are never painted as one backdrop.
 
 `AGENTS.md` holds the binding rules. `docs/scene-assembly.md` holds the
@@ -12,9 +12,10 @@ overview; when the two disagree, `AGENTS.md` wins.
 > `scenes/grove/grove.tscn`, `scenes/forest/forest.tscn`,
 > `scenes/wilds/wilds.tscn`, `scenes/randomizer-paintedlands/randomizer-paintedlands.tscn`,
 > `scenes/randomizer-mysticwoods/randomizer-mysticwoods.tscn`,
-> `scenes/randomizer-greencaves/randomizer-greencaves.tscn`, the
-> player and walker scenes, the Mystic Woods, Painted Lands, and Green Caves
-> generators, the art packs, the AI character sheets, and `addons/godot_mcp`. Hollow,
+> `scenes/randomizer-greencaves/randomizer-greencaves.tscn`,
+> `scenes/randomizer-timefantasy/randomizer-timefantasy.tscn`, the
+> player and walker scenes, the Mystic Woods, Painted Lands, Green Caves, and
+> Time Fantasy generators, the art packs, the AI character sheets, and `addons/godot_mcp`. Hollow,
 > ford, and heath are not built yet. The Painted Lands generator draws all
 > 30 recipes.
 
@@ -31,6 +32,9 @@ project, copy them in locally:
 - Painted Lands – Interior Cozy Cottage: the pack folder to
   `assets/pack/cozy_cottage/` (`wallpapers_and_floors.png`, `furniture.png`,
   `decoration.png`)
+- Time Fantasy tiles (finalbossblues, TimeFantasy_TILES_6.24.17): the
+  `TILESETS` folder to `assets/pack/time_fantasy/` (`terrain.png`,
+  `outside.png`, `water.png`, `house.png`, `animated/`, `guide.png`)
 
 Then open the project in Godot so it imports them.
 
@@ -55,6 +59,7 @@ between them.
 | clearing, grove, hollow, ford, heath | Mystic Woods | `plains.png`, `grass.png` | `scripts/terrain.gd` + `scripts/clearing.gd` |
 | forest, wilds | Painted Lands | `TILESET_brighter.png` | `scripts/forest_terrain.gd` |
 | randomizer-greencaves | Green Caves | `green_caves/green_caves_tileset.png` | `scripts/cave_terrain.gd` + `scripts/caves.gd` |
+| randomizer-timefantasy (experimental, not suitable) | Time Fantasy | `time_fantasy/` (terrain, outside, water, house, animated) | `scripts/tf_terrain.gd` + `scripts/timefantasy.gd` |
 
 Heath and forest share seed `91003` by coincidence only. They don't share a
 generator.
@@ -73,6 +78,27 @@ generator.
 | `scenes/randomizer-paintedlands/randomizer-paintedlands.tscn` | starts at 75125, then any | `character_sprite_sheet.png` |
 | `scenes/randomizer-mysticwoods/randomizer-mysticwoods.tscn` | starts at 21021, then any | `player.png` |
 | `scenes/randomizer-greencaves/randomizer-greencaves.tscn` | starts at 130021, then any | `character_sprite_sheet.png` (the Painted Lands walker) |
+| `scenes/randomizer-timefantasy/randomizer-timefantasy.tscn` | starts at 150000, then any | `character_sprite_sheet.png` (the Painted Lands walker) |
+
+> **Time Fantasy is not suitable for this project.** Consider the Time
+> Fantasy tilesets no longer suitable for any maps here: the prevalent ground
+> tiles are incompatible with, or clash with, the current Painted Lands tiles,
+> and on their own they are too repetitive and a strain on the eyes. The
+> randomizer below stays as an experiment; don't build new maps from the pack.
+
+The Time Fantasy randomizer builds outdoor maps from the Time Fantasy tiles
+(never `world.png`, which is for a zoomed-out map) with 20 recipes (meadow,
+village green, hamlet road, lakeside, forest glade, pine woods, autumn woods,
+cliffside, terraces, stone quarry, campsite, graveyard, blossom grove,
+crystal hollow, farmstead, market square, riverside, marsh, autumn hamlet,
+giant tree). Each map has autotiled winding paths (dirt, gravel, paving),
+forest-floor zones in two nested tones with dithered organic rims, bare dirt patches, animated ponds with lily pads
+and reeds, a stream with a bridge, plateaus with stairs, gable houses
+composed from `house.png` (six roof colors, five wall materials), and green
+or autumn seasons. It runs the Painted Lands ambience (wind, leaves, streaks,
+cloud shadows, grass waves, water life, critters, wildlife, drifters,
+footsteps, firepit and brazier glow, chimney smoke) and the same liveliness
+floor. `tools/check_tf.gd` sweeps it headless.
 
 The Green Caves randomizer builds cave maps from its own generator with 30
 recipes (grotto, crystal cavern, flooded hall, mine shaft, miners' camp,
@@ -339,6 +365,11 @@ Art (purchased; not included in this repository, see "Art packs" above):
   [antarcticbees](https://antarcticbees.itch.io). `green_caves_tileset.png`
   (the pack's slimes are not used). License: see the pack's itch.io page;
   purchased, not redistributed here.
+- **Time Fantasy tiles** (TimeFantasy_TILES_6.24.17) by
+  [finalbossblues](https://finalbossblues.com) ([timefantasy.net](http://timefantasy.net)).
+  `terrain.png`, `outside.png`, `water.png`, `house.png`, and the animated
+  torch and fireplace. License: see the pack's readme; purchased, not
+  redistributed here.
 
 Other:
 
