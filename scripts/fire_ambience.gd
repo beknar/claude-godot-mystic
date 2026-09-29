@@ -19,7 +19,7 @@ const SMOKE_COLORS := [Color(0.78, 0.76, 0.72), Color(0.62, 0.62, 0.6), Color(0.
 var wind: Wind
 var _fires: Array[Dictionary] = [] # {pos, radius, glow: Sprite2D, phase, smoke: bool, flame: Vector2}
 var _puffs: Array[Dictionary] = []
-var _glow_cache := {} # radius -> texture
+var _glow_cache := {} # "radius:tint" -> texture
 var _rng := RandomNumberGenerator.new()
 var _smoke_acc := 0.0
 var _time := 0.0
@@ -33,7 +33,8 @@ func _ready() -> void:
 ## `fires`: {pos: foot position, kind: "torch" | "campfire" | "campfire_big" |
 ## "chimney" (pos is where the smoke leaves the roof) | "hearth" (a fireplace
 ## indoors: glow, no smoke) | "lamp"; optionally radius, smoke, and flame:
-## where the flame is, for sprites shorter than the Painted Lands ones}.
+## where the flame is, for sprites shorter than the Painted Lands ones; and
+## tint: the light's color, for cold lights such as glowing plants and stones}.
 func set_fires(fires: Array[Dictionary]) -> void:
 	for f in _fires:
 		if f.glow:
@@ -50,7 +51,7 @@ func set_fires(fires: Array[Dictionary]) -> void:
 		var radius: int = f.get("radius", 22 if torch else (40 if f.kind == "campfire" else 52))
 		var flame: Vector2 = f.get("flame", f.pos + (Vector2(0, -24) if torch else Vector2(0, -8)))
 		var glow := Sprite2D.new()
-		glow.texture = _glow(radius)
+		glow.texture = _glow(radius, f.get("tint", GLOW_TINT))
 		glow.material = add
 		glow.position = flame.floor()
 		add_child(glow)
@@ -115,9 +116,10 @@ func _draw() -> void:
 
 # A round light that brightens in steps toward the middle, the steps joined
 # by an ordered dither, so its edge is pixel art rather than a blur.
-func _glow(radius: int) -> ImageTexture:
-	if _glow_cache.has(radius):
-		return _glow_cache[radius]
+func _glow(radius: int, tint := GLOW_TINT) -> ImageTexture:
+	var key := "%d:%s" % [radius, tint.to_html()]
+	if _glow_cache.has(key):
+		return _glow_cache[key]
 	var size := radius * 2 + 1
 	var img := Image.create(size, size, false, Image.FORMAT_RGBA8)
 	for y in size:
@@ -133,7 +135,7 @@ func _glow(radius: int) -> ImageTexture:
 			var a := step / 4.0 * 0.42
 			if a <= 0.0:
 				continue
-			img.set_pixel(x, y, Color(GLOW_TINT.r * a, GLOW_TINT.g * a, GLOW_TINT.b * a, 1.0))
+			img.set_pixel(x, y, Color(tint.r * a, tint.g * a, tint.b * a, 1.0))
 	var tex := ImageTexture.create_from_image(img)
-	_glow_cache[radius] = tex
+	_glow_cache[key] = tex
 	return tex

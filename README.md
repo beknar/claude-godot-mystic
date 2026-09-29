@@ -14,9 +14,10 @@ overview; when the two disagree, `AGENTS.md` wins.
 > `scenes/randomizer-mysticwoods/randomizer-mysticwoods.tscn`,
 > `scenes/randomizer-greencaves/randomizer-greencaves.tscn`,
 > `scenes/randomizer-manaseed/randomizer-manaseed.tscn`,
+> `scenes/randomizer-pixelcrawler/randomizer-pixelcrawler.tscn`,
 > `scenes/randomizer-timefantasy/randomizer-timefantasy.tscn`, the
 > player and walker scenes, the Mystic Woods, Painted Lands, Green Caves, Mana
-> Seed, and Time Fantasy generators, the art packs, the AI character sheets, and `addons/godot_mcp`. Hollow,
+> Seed, Pixel Crawler, and Time Fantasy generators, the art packs, the AI character sheets, and `addons/godot_mcp`. Hollow,
 > ford, and heath are not built yet. The Painted Lands generator draws all
 > 30 recipes.
 
@@ -42,6 +43,12 @@ project, copy them in locally:
   sheets, winter from the "snowy" ones), plus Village Accessories to
   `village/`, Fences & Walls to `fences/`, Weather Effects to `weather/`, and
   `_extras` to `extras/` (see AGENTS.md § Mana Seed)
+- Pixel Crawler (Anokolisa): the environment sheets to
+  `assets/pack/pixel_crawler/`: Fairy Forest `Assets/*.png` to
+  `fairy_forest/`, the Farm Game Assets forest (`Tiles.png`,
+  `Vegetation_01.png` as `Vegetation.png`, `Tree_Model_01/Size_0N.png` as
+  `Tree_0N.png`) to `farm/`, Green Woods `Assets/*.png` to `green_woods/`,
+  Cemetery and Desert `Assets/*.png` to `cemetery/` and `desert/`
 - Time Fantasy tiles (finalbossblues, TimeFantasy_TILES_6.24.17): the
   `TILESETS` folder to `assets/pack/time_fantasy/` (`terrain.png`,
   `outside.png`, `water.png`, `house.png`, `animated/`, `guide.png`)
@@ -70,6 +77,7 @@ between them.
 | forest, wilds | Painted Lands | `TILESET_brighter.png` | `scripts/forest_terrain.gd` |
 | randomizer-greencaves | Green Caves | `green_caves/green_caves_tileset.png` | `scripts/cave_terrain.gd` + `scripts/caves.gd` |
 | randomizer-manaseed | Mana Seed | `mana_seed/` (four seasonal forests, village, fences, weather, extras) | `scripts/ms_terrain.gd` + `scripts/manaseed.gd` |
+| randomizer-pixelcrawler | Pixel Crawler | `pixel_crawler/` (Fairy Forest, Farm forest, Green Woods, Cemetery, Desert) | `scripts/pc_terrain.gd` + `scripts/pixelcrawler.gd` |
 | randomizer-timefantasy (experimental, not suitable) | Time Fantasy | `time_fantasy/` (terrain, outside, water, house, animated) | `scripts/tf_terrain.gd` + `scripts/timefantasy.gd` |
 
 Heath and forest share seed `91003` by coincidence only. They don't share a
@@ -90,6 +98,7 @@ generator.
 | `scenes/randomizer-mysticwoods/randomizer-mysticwoods.tscn` | starts at 21021, then any | `player.png` |
 | `scenes/randomizer-greencaves/randomizer-greencaves.tscn` | starts at 130021, then any | `character_sprite_sheet.png` (the Painted Lands walker) |
 | `scenes/randomizer-manaseed/randomizer-manaseed.tscn` | starts at 160000, then any | `character_sprite_sheet.png` (the Painted Lands walker) |
+| `scenes/randomizer-pixelcrawler/randomizer-pixelcrawler.tscn` | starts at 170000, then any | `character_sprite_sheet.png` (the Painted Lands walker) |
 | `scenes/randomizer-timefantasy/randomizer-timefantasy.tscn` | starts at 150000, then any | `character_sprite_sheet.png` (the Painted Lands walker) |
 
 The Mana Seed randomizer builds outdoor maps from Seliel the Shaper's forest
@@ -111,6 +120,22 @@ rustles as you walk through it, ranch fences, and village props. It runs the
 Painted Lands and Green Caves ambience plus the pack's water sparkles and
 snow and rain. `tools/check_ms.gd` sweeps it headless. Its liveliness has
 not been measured yet.
+
+The Pixel Crawler randomizer builds outdoor maps in four biomes from
+Anokolisa's Pixel Crawler sheets, 17 recipes in all: Fairy Forest (glade,
+runestone circle, glowbell hollow, twilight stream, root ledges, deep fairy
+wood), the Farm forest (greenwood, forest trail, island lake, autumn grove,
+crystal thicket; its near-pure greens toned down), Cemetery (old cemetery,
+dead wood, red pine hill), and Desert (dune sea, bone field, mesa). The
+ground blends through each sheet's own transitions (corner tables read from
+the sheets), with stretched plateau stamps, ponds and streams drawn in the
+sheets' water colors, island stamps in lakes, layered tree clusters, light
+and dark ground varied by a splat (sunlit, dry, tufted, and shaded patches;
+the tufts are Painted Lands sprout shapes recolored into the biome's
+palette), the pack's own canopy shadows and light discs, and the
+Painted Lands and Green Caves ambience (glowing bells and runestones shed a
+cold light). `tools/check_pc.gd` sweeps it headless. Its liveliness has not
+been measured yet.
 
 > **Time Fantasy is not suitable for this project.** Consider the Time
 > Fantasy tilesets no longer suitable for any maps here: the prevalent ground
@@ -402,6 +427,11 @@ Art (purchased; not included in this repository, see "Art packs" above):
   Walls, Weather Effects, and the collection's extras), from the complete
   rpg creator bundle. License: see the pack's readme and itch.io pages;
   purchased, not redistributed here.
+- **Pixel Crawler** by Anokolisa ([Patreon](https://www.patreon.com/Anokolisa)):
+  Fairy Forest, Farm Game Assets, Green Woods (Pixel Crawler FREE),
+  Cemetery, and Desert environment sheets. License (the packs' Terms.txt):
+  credit not required but appreciated; use in commercial projects allowed;
+  may be altered; not to be resold or redistributed.
 - **Time Fantasy tiles** (TimeFantasy_TILES_6.24.17) by
   [finalbossblues](https://finalbossblues.com) ([timefantasy.net](http://timefantasy.net)).
   `terrain.png`, `outside.png`, `water.png`, `house.png`, and the animated
