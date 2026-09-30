@@ -7,6 +7,7 @@
 texture_filter = 1
 script = ExtResource("1_script")
 map_id = 130021
+cozy_animals = true
 
 [node name="Ground" type="TileMapLayer" parent="." unique_id=190899169]
 

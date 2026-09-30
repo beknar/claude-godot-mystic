@@ -17,6 +17,9 @@ const EDGE := 3.0 # px: the lip of a terrace a walker cannot step over
 @export var map_id := 130000
 ## Pins the recipe (-1: map_id % recipe count).
 @export var recipe := -1
+## The Cozy Farm art pack's animals (wildlife.gd `mode = "pack"`): bunnies on
+## the moss floors, and farm animals by the homes.
+@export var cozy_animals := false
 
 @onready var ground: TileMapLayer = $Ground
 @onready var zone_layer: TileMapLayer = $Zone
@@ -376,7 +379,8 @@ func _reset_ambience() -> void:
 	critters.setup(flowers, ponds, terrain.glow_cells())
 	footsteps.dust_colors = _dust_colors()
 	footsteps.setup_generic(_surface, water, walker)
-	wildlife.setup_from(terrain.wildlife_plan(), water, actors, walker, _pixels, water_life)
+	wildlife.mode = "pack" if cozy_animals else ""
+	wildlife.setup_from(terrain.wildlife_plan(wildlife.mode), water, actors, walker, _pixels, water_life)
 
 
 ## Mossy trees and bushes shed leaves; bare and dead ones do not.

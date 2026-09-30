@@ -47,8 +47,10 @@ project, copy them in locally:
   `village/`, Fences & Walls to `fences/`, Weather Effects to `weather/`, and
   `_extras` to `extras/` (see docs/deprecated/mana-seed.md)
 - Cozy Farm art pack (shubibubi): its `animals/` folder to
-  `assets/pack/cozy_farm/animals/` and `Buildings/buildings.png` to
-  `assets/pack/cozy_farm/buildings.png`
+  `assets/pack/cozy_farm/animals/` (the Painted Lands and Green Caves
+  randomizers); `Buildings/buildings.png` to
+  `assets/pack/cozy_farm/buildings.png` only for the deprecated cozy farm
+  randomizer
 - Pixel Crawler (Anokolisa): the environment sheets to
   `assets/pack/pixel_crawler/`: Fairy Forest `Assets/*.png` to
   `fairy_forest/`, the Farm Game Assets forest (`Tiles.png`,
@@ -81,6 +83,12 @@ is 80 screen pixels.
 > be used in future development in this project. **Mystic Woods** is now
 > deprecated. (Time Fantasy was already ruled unsuitable.) Their existing
 > scenes and sections stay as a record only.
+>
+> **The cozy farm randomizer is deprecated.** From now on only the **Cozy
+> Farm** animals are used, in `randomizer-paintedlands` and
+> `randomizer-greencaves`; its buildings and the
+> `randomizer-painted-cozyfarm` scene stay as a record only
+> (`docs/deprecated/cozy-farm.md`).
 
 ## Two map languages
 
@@ -114,7 +122,7 @@ generator.
 | `scenes/randomizer-mysticwoods/randomizer-mysticwoods.tscn` | starts at 21021, then any | `player.png` |
 | `scenes/randomizer-greencaves/randomizer-greencaves.tscn` | starts at 130021, then any | `character_sprite_sheet.png` (the Painted Lands walker) |
 | `scenes/randomizer-manaseed/randomizer-manaseed.tscn` | starts at 160000, then any | `character_sprite_sheet.png` (the Painted Lands walker) |
-| `scenes/randomizer-painted-cozyfarm/randomizer-painted-cozyfarm.tscn` | starts at 180033 (recipe 33 Farmstead), then any | `character_sprite_sheet.png` |
+| `scenes/randomizer-painted-cozyfarm/randomizer-painted-cozyfarm.tscn` (deprecated) | starts at 180033 (recipe 33 Farmstead), then any | `character_sprite_sheet.png` |
 | `scenes/randomizer-pixelcrawler/randomizer-pixelcrawler.tscn` | starts at 170000, then any | `character_sprite_sheet.png` (the Painted Lands walker) |
 | `scenes/randomizer-timefantasy/randomizer-timefantasy.tscn` | starts at 150000, then any | `character_sprite_sheet.png` (the Painted Lands walker) |
 
@@ -138,16 +146,14 @@ Painted Lands and Green Caves ambience plus the pack's water sparkles and
 snow and rain. `tools/check_ms.gd` sweeps it headless. Its liveliness has
 not been measured yet.
 
-The Painted Lands cozy farm randomizer is the Painted Lands randomizer
-(same terrain, recipes, interiors, and ambience) with Cozy Farm buildings in
-place of the Painted Lands houses (farm cottage, farmhouse, timber, A-frame,
-thatched, brick, and long houses, each with its interior, and a farmyard of
-barns, coops, silos, and a windmill whose sails turn with the wind, by map
-type), three map types of its own (Farmstead, Windmill road, Farm village),
-and its animals drawn from the Cozy Farm art pack: bunnies, and herds of chickens, turkeys, sheep, goats,
-pigs, and cows with their young, grazing, ambling off from the walker, and
-dozing. The tiny animals (voles, mice, frogs, lizards), the birds, and the
-insects stay as drawn.
+> **Deprecated: the Painted Lands cozy farm randomizer.** It stays as a
+> record only (`docs/deprecated/cozy-farm.md`); don't build new maps from
+> it or use the Cozy Farm buildings. It was the Painted Lands randomizer with
+> Cozy Farm homes in place of the Painted Lands houses, farmyard
+> outbuildings (barn, coop, silos, windmill), and three map types of its own
+> (Farmstead, Windmill road, Farm village). Its animals live on in the
+> Painted Lands and Green Caves randomizers (the bunny and farm animals by
+> the homes; see the small-animals paragraph below).
 
 The Pixel Crawler randomizer builds outdoor maps in four biomes from
 Anokolisa's Pixel Crawler sheets, 17 recipes in all: Fairy Forest (glade,
@@ -286,7 +292,10 @@ walker: dust on paths, grass flicks, shore ripples, and kicked leaves. Every map
 population of small animals (rabbits, squirrels, voles, mice, hedgehogs,
 frogs, ducks, sparrows, lizards, and now and then a fox) in groups that
 keep to their habitat and flee, hide, curl up, dive, or fly off when the
-walker comes near. `tools/check_wildlife.gd` (same arguments as
+walker comes near. The Painted Lands and Green Caves randomizers draw the
+Cozy Farm bunny in place of the rabbit and keep farm animals by the homes
+(chickens, turkeys, and pigs in the yard; sheep, goats, and cows on the
+pasture), which amble off and doze. `tools/check_wildlife.gd` (same arguments as
 `check_recipes.gd`) lists each map's population. To check how the scene answers the
 walker, `tools/walker_test.tscn` walks a route through each camera view
 (past the animals, cobble, dirt, tufts, flowers, the shore, and trees) and
@@ -456,9 +465,10 @@ Art (purchased; not included in this repository, see "Art packs" above):
   rpg creator bundle. License: see the pack's readme and itch.io pages;
   purchased, not redistributed here.
 - **Cozy Farm** art pack by shubibubi: the farm animals (bunny, chicken,
-  turkey, sheep, goat, pig, cow) and buildings (homes, barn, coop, silos,
-  windmill) in the cozy farm randomizer. Purchased;
-  not redistributed here.
+  turkey, sheep, goat, pig, cow) in the Painted Lands and Green Caves
+  randomizers; its buildings (homes, barn, coop, silos,
+  windmill) only in the deprecated cozy farm randomizer. Purchased; not
+  redistributed here.
 - **Pixel Crawler** by Anokolisa ([Patreon](https://www.patreon.com/Anokolisa)):
   Fairy Forest, Farm Game Assets, Green Woods (Pixel Crawler FREE),
   Cemetery, and Desert environment sheets. License (the packs' Terms.txt):

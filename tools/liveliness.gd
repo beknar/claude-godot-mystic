@@ -10,6 +10,10 @@ extends SceneTree
 ##   godot --headless -s res://tools/liveliness.gd -- <first_id> [count] [recipe] [heat] [caves]
 ## `heat` also prints a map of predicted motion per cell. `caves` estimates
 ## Green Caves maps (cave_terrain.gd) with tools/liveliness_coef_caves.json.
+## Animals as the randomizers draw them: the Cozy Farm pack animals on
+## Green Caves maps; add `pack` for them on Painted Lands maps (the wilds
+## tables are drawn), `drawn` for the drawn ones, or `cozy` for the
+## deprecated cozy farm randomizer.
 
 const PaintedFeatures := preload("res://scripts/liveliness_features.gd")
 const PaintedMaps := preload("res://scripts/forest_terrain.gd")
@@ -28,7 +32,9 @@ func _init() -> void:
 	var caves := "caves" in args
 	var Features = CaveFeatures if caves else PaintedFeatures
 	if "cozy" in args:
-		PaintedFeatures.cozy = true # the cozy farm randomizer (its animals; buildings below)
+		PaintedFeatures.animals = "farm" # the cozy farm randomizer (its animals; buildings below)
+	elif "pack" in args or (caves and not "drawn" in args):
+		PaintedFeatures.animals = "pack"
 	var Terrain = CaveMaps if caves else PaintedMaps
 	var coef = JSON.parse_string(FileAccess.get_file_as_string("res://tools/liveliness_coef_caves.json" if caves else "res://tools/liveliness_coef.json"))
 	if coef == null:

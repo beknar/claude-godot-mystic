@@ -58,6 +58,14 @@ Painted Lands maps (docs/painted-lands.md):
   random new id with the same generator. Any of the 30 recipes can come up, or
   be pinned. Its first map is pinned to recipe 5.
 
+Painted Lands cozy farm randomizer (deprecated):
+
+- `scenes/randomizer-painted-cozyfarm/randomizer-painted-cozyfarm.tscn` — the
+  Painted Lands randomizer with Cozy Farm homes, farmyard buildings, three
+  cozy-only map types (id % 36), and the Cozy Farm animals, starting at map
+  id `180033`. Deprecated: only the Cozy Farm animals stay in use
+  (docs/deprecated/cozy-farm.md).
+
 Mystic Woods randomizer (deprecated):
 
 - `scenes/randomizer-mysticwoods/randomizer-mysticwoods.tscn` — the Mystic

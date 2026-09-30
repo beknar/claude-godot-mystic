@@ -1,13 +1,19 @@
 extends SceneTree
 ## Headless wildlife check: which species, groups, and animals each map gets.
-##   godot --headless -s res://tools/check_wildlife.gd -- <first_id> [count] [recipe]
+##   godot --headless -s res://tools/check_wildlife.gd -- <first_id> [count] [recipe] [pack] [caves]
+## `pack`: the Cozy Farm animals (wildlife.gd `mode = "pack"`), as
+## randomizer-paintedlands and randomizer-greencaves draw them. `caves`:
+## Green Caves maps (cave_terrain.gd).
 
 func _init() -> void:
 	var args := OS.get_cmdline_user_args()
-	var first := int(args[0]) if args.size() > 0 else 20000
-	var count := int(args[1]) if args.size() > 1 else 30
-	var pinned := int(args[2]) if args.size() > 2 else -1
-	var gen := load("res://scripts/forest_terrain.gd")
+	var nums := Array(args).filter(func(a): return a.is_valid_int())
+	var first := int(nums[0]) if nums.size() > 0 else 20000
+	var count := int(nums[1]) if nums.size() > 1 else 30
+	var pinned := int(nums[2]) if nums.size() > 2 else -1
+	var caves := "caves" in args
+	var mode := "pack" if "pack" in args else ""
+	var gen := load("res://scripts/cave_terrain.gd" if caves else "res://scripts/forest_terrain.gd")
 	var wild := load("res://scripts/wildlife.gd")
 	var species := {}
 	var animals := 0
@@ -15,7 +21,7 @@ func _init() -> void:
 	for id in range(first, first + count):
 		var t = gen.new()
 		t.generate(id, pinned)
-		var p: Dictionary = wild.plan(t)
+		var p: Dictionary = t.wildlife_plan(mode) if caves else (wild.plan(t) if mode == "" else wild.plan_from(wild.habitat_cells(t), t.map_id, t.spawn, wild.quiet_field(t), mode))
 		var per := {}
 		for g in p.groups:
 			var k: String = g.kind

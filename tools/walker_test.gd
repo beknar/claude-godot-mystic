@@ -65,8 +65,10 @@ var _out := ""
 
 func _ready() -> void:
 	_headless = DisplayServer.get_name() == "headless"
-	# `cozy`: the cozy farm randomizer's settings (Cozy Farm animals and
-	# buildings); `out=<dir>`:
+	# `cozy`: the deprecated cozy farm randomizer's settings (Cozy Farm
+	# animals and buildings); `pack`: the Cozy Farm animals as
+	# randomizer-paintedlands draws them; `drawn`: the drawn animals (Green
+	# Caves draws the pack ones by default); `out=<dir>`:
 	# write to res://<dir> instead.
 	var cozy := false
 	var out_dir := ""
@@ -75,6 +77,8 @@ func _ready() -> void:
 			_caves = true
 		elif a == "cozy":
 			cozy = true
+		elif a == "pack" or a == "drawn":
+			pass
 		elif a.begins_with("out="):
 			out_dir = a.substr(4)
 		else:
@@ -94,6 +98,10 @@ func _ready() -> void:
 	if cozy:
 		_forest.cozy_animals = true
 		_forest.cozy_buildings = true
+	elif "pack" in OS.get_cmdline_user_args():
+		_forest.cozy_animals = true
+	elif "drawn" in OS.get_cmdline_user_args():
+		_forest.cozy_animals = false
 	add_child(_forest)
 	_camera = Camera2D.new()
 	_camera.zoom = Vector2(ZOOM, ZOOM)
@@ -198,7 +206,7 @@ func _make_route() -> Array[Vector2]:
 	var t = _forest.terrain
 	var view := Rect2i(VIEWS[_view_i], VIEW)
 	var inner := view.grow(-1)
-	var habitats: Dictionary = t.wildlife_plan().habitats if _caves else Wild.habitat_cells(t)
+	var habitats: Dictionary = t.wildlife_plan(_forest.wildlife.mode).habitats if _caves else Wild.habitat_cells(t)
 	var land: Dictionary = habitats["_land"]
 	var astar := AStarGrid2D.new()
 	astar.region = view

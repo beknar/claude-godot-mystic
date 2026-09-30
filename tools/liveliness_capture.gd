@@ -73,15 +73,17 @@ func _ready() -> void:
 		elif a == "caves":
 			_caves = true
 			Features = CaveFeatures
-		elif a == "cozy" or a.begins_with("out="):
+		elif a in ["cozy", "pack", "drawn"] or a.begins_with("out="):
 			pass
 		else:
 			_plan.append(int(a))
 	if _plan.is_empty():
 		_plan = CAVE_CALIBRATE + CAVE_HOLDOUT if _caves else CALIBRATE + HOLDOUT
 	_out = ProjectSettings.globalize_path("res://.liveliness_caves/raw" if _caves else "res://.liveliness/raw")
-	# `cozy`: the cozy farm randomizer's settings (Cozy Farm animals and
-	# buildings); `out=<dir>`:
+	# `cozy`: the deprecated cozy farm randomizer's settings (Cozy Farm
+	# animals and buildings); `pack`: the Cozy Farm animals as
+	# randomizer-paintedlands draws them; `drawn`: the drawn animals (Green
+	# Caves draws the pack ones by default); `out=<dir>`:
 	# film into res://<dir>/raw instead.
 	var cozy := "cozy" in args
 	for a in args:
@@ -93,7 +95,14 @@ func _ready() -> void:
 	if cozy:
 		_forest.cozy_animals = true
 		_forest.cozy_buildings = true
-		PaintedFeatures.cozy = true
+		PaintedFeatures.animals = "farm"
+	elif "pack" in args:
+		_forest.cozy_animals = true
+		PaintedFeatures.animals = "pack"
+	elif "drawn" in args:
+		_forest.cozy_animals = false
+	elif _caves:
+		PaintedFeatures.animals = "pack"
 	add_child(_forest)
 	_camera = Camera2D.new()
 	_camera.zoom = Vector2(ZOOM, ZOOM)

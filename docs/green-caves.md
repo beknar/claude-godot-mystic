@@ -129,7 +129,11 @@ ripples), fire ambience (torch and campfire glow and smoke; flames at the
 cave sprites' height), leaves from mossy trees and bushes, critters
 (glowworms over moss, dark floor, and dark zones; moths at flowering plants;
 dragonflies over pools), wildlife (mice by clutter and bones, lizards by rocks
-and ore, frogs on the banks, voles on moss), and `scripts/cave_life.gd`:
+and ore, frogs on the banks, voles on moss; with `cozy_animals`, set in the
+randomizer, also the Cozy Farm bunnies on moss floors and, on the map types
+with homes, chickens, turkeys, and pigs in the yard outside each arch and
+sheep, goats, or cows on the moss round it: "Cozy Farm animals" in
+`docs/painted-lands.md`), and `scripts/cave_life.gd`:
 drips from every face and into open water, warm dust motes in fire light and
 pale ones everywhere, crystal and ore glints, and bat flights. No clouds, wind
 streaks, drifters, or grass waves underground.

@@ -5,12 +5,19 @@ drawn on it. A "map type" is one recipe of a scene's generator; each
 randomizer builds endless maps from its map types (the map id picks the type
 and seeds the layout), and the two fixed scenes pin one map each. Only
 current tilesets are listed: The Painted Lands packs (Forest, Green Caves,
-Cozy Cottage) and Pixel Crawler, plus the Cozy Farm animals and buildings
-used in the cozy farm randomizer. The deprecated packs (Mystic Woods, Mana
-Seed) and the unsuitable one (Time Fantasy) are left out, with their scenes.
+Cozy Cottage), Pixel Crawler, and the Cozy Farm animals (the only part of
+that pack still in use). The deprecated packs and scenes (Mystic Woods, Mana
+Seed, and the cozy farm randomizer with the Cozy Farm buildings) and the
+unsuitable pack (Time Fantasy) are left out; the cozy farm randomizer's
+record is listed at the end.
 Every map below is walked by the Painted Lands walker
 (`character_sprite_sheet.png`); the small animals, insects, birds, and
 effects drawn in code are on all of them and are not counted as a tileset.
+The Cozy Farm animals (`assets/pack/cozy_farm/animals/`, the `cozy_animals`
+option) live in the two Painted Lands randomizers only: the bunny in place of
+the drawn rabbit wherever there is lawn or moss, and farm animals (chickens,
+turkeys, pigs, sheep, goats, cows) only round homes. The fixed maps keep the
+drawn animals.
 Rules for each pack: `docs/painted-lands.md`, `docs/green-caves.md`,
 `docs/interiors.md`, `docs/pixel-crawler.md`.
 
@@ -19,21 +26,19 @@ Rules for each pack: `docs/painted-lands.md`, `docs/green-caves.md`,
 | Tilesets | Scene | Map types |
 |---|---|---|
 | Painted Lands Forest | `forest` (fixed map), `wilds` (fixed map) | 2 fixed maps |
-| Painted Lands Forest | `randomizer-paintedlands` | 8 |
-| Painted Lands Forest + Cozy Cottage (interiors) | `randomizer-paintedlands` | 25 |
-| Painted Lands Green Caves | `randomizer-greencaves` | 26 |
-| Painted Lands Green Caves + Cozy Cottage (homes) | `randomizer-greencaves` | 7 |
-| Painted Lands Forest + Cozy Farm (animals) | `randomizer-painted-cozyfarm` | 7 |
-| Painted Lands Forest + Cozy Farm (animals, buildings) | `randomizer-painted-cozyfarm` | 1 |
-| Painted Lands Forest + Cozy Cottage (interiors) + Cozy Farm (animals, buildings) | `randomizer-painted-cozyfarm` | 28 |
+| Painted Lands Forest + Cozy Farm (bunnies) | `randomizer-paintedlands` | 8 |
+| Painted Lands Forest + Cozy Cottage (interiors) + Cozy Farm (bunnies, farm animals) | `randomizer-paintedlands` | 25 |
+| Painted Lands Green Caves | `randomizer-greencaves` | 23 |
+| Painted Lands Green Caves + Cozy Farm (bunnies) | `randomizer-greencaves` | 3 |
+| Painted Lands Green Caves + Cozy Cottage (homes) + Cozy Farm (farm animals) | `randomizer-greencaves` | 7 |
 | Pixel Crawler Fairy Forest | `randomizer-pixelcrawler` | 6 |
 | Pixel Crawler Farm forest + Green Woods | `randomizer-pixelcrawler` | 5 |
 | Pixel Crawler Cemetery | `randomizer-pixelcrawler` | 3 |
 | Pixel Crawler Desert | `randomizer-pixelcrawler` | 3 |
 
-119 map types in all (33 Painted Lands, 33 Green Caves, 36 cozy farm, 17
-Pixel Crawler) and 2 fixed maps. Painted Lands and Pixel Crawler never share
-a map.
+83 map types in all (33 Painted Lands, 33 Green Caves, 17 Pixel Crawler)
+and 2 fixed maps. Painted Lands and Pixel Crawler never share a map, and
+the Cozy Farm animals never go on a Pixel Crawler map.
 
 ## Painted Lands Forest
 
@@ -44,7 +49,8 @@ a map.
 | `scenes/forest/forest.tscn` | 91003 | 3 Garden (hut in a fence yard with a gate) |
 | `scenes/wilds/wilds.tscn` | 75125 | 5 Open meadow |
 
-`randomizer-paintedlands` map types with no house (id % 33):
+`randomizer-paintedlands` map types with no house (id % 33), with Cozy Farm
+bunnies but no farm animals:
 
 | # | Map type |
 |---|---|
@@ -57,10 +63,13 @@ a map.
 | 25 | Deep forest |
 | 29 | Walled mesa |
 
-## Painted Lands Forest + Cozy Cottage
+## Painted Lands Forest + Cozy Cottage + Cozy Farm animals
 
 `randomizer-paintedlands`: every house opens onto a furnished interior drawn
-from Cozy Cottage (`assets/pack/cozy_cottage/`).
+from Cozy Cottage (`assets/pack/cozy_cottage/`), and keeps one to three
+kinds of Cozy Farm animals: chickens, turkeys, and pigs in its yard, sheep,
+goats, and cows on the lawn round it (the kinds vary by map id). Bunnies as
+on the other maps.
 
 | # | Map type | Houses (interiors) |
 |---|---|---|
@@ -92,7 +101,8 @@ from Cozy Cottage (`assets/pack/cozy_cottage/`).
 
 ## Painted Lands Green Caves
 
-`randomizer-greencaves` (id % 33), `assets/pack/green_caves/`.
+`randomizer-greencaves` (id % 33), `assets/pack/green_caves/`. Only the
+drawn cave animals (mice, lizards, frogs, voles):
 
 | # | Map type | # | Map type |
 |---|---|---|---|
@@ -100,92 +110,43 @@ from Cozy Cottage (`assets/pack/cozy_cottage/`).
 | 1 | Crystal cavern | 17 | Crystal shrine |
 | 2 | Flooded hall | 18 | Dark depths |
 | 3 | Mine shaft | 19 | Collapsed tunnel |
-| 5 | Mossy hollow | 20 | Overgrown mine |
 | 6 | Terrace steps | 21 | Watch post |
 | 7 | Ossuary | 23 | Echo chamber |
 | 8 | Pillared hall | 24 | Lake terrace |
 | 9 | Stalagmite field | 25 | Coal store |
 | 10 | Underground spring | 26 | Crossroads cavern |
-| 11 | Ore vein | 28 | Sunken garden |
-| 12 | Dead grove | 29 | Treasure vault |
+| 11 | Ore vein | 29 | Treasure vault |
+| 12 | Dead grove | | |
 | 13 | Cave mouth | | |
 | 15 | Rail junction | | |
 
-## Painted Lands Green Caves + Cozy Cottage
+## Painted Lands Green Caves + Cozy Farm animals
 
-`randomizer-greencaves`: homes built into the cave, furnished from Cozy
-Cottage.
-
-| # | Map type | Homes (rooms) |
-|---|---|---|
-| 4 | Miners' camp | 1 (2-3) |
-| 14 | Smugglers' cache | 1 (1-2) |
-| 22 | Root cellar | 1 (2-3) |
-| 27 | Hermit's nook | 1 (1-2) |
-| 30 | Hermit's home | 1 (1-2) |
-| 31 | Cave hamlet | 3 (1-2 each) |
-| 32 | Underground manor | 1 (5-6) |
-
-## Painted Lands Forest + Cozy Farm
-
-`randomizer-painted-cozyfarm` (id % 36): the Painted Lands terrain with the
-Cozy Farm animals (`assets/pack/cozy_farm/animals/`) on every map.
-
-With the animals only (no buildings):
+`randomizer-greencaves`: moss floors, with Cozy Farm bunnies among the drawn
+cave animals.
 
 | # | Map type |
 |---|---|
-| 12 | Wild lane |
-| 18 | Sparse wild |
-| 20 | Cave mouth |
-| 22 | Stone ruins |
-| 24 | Rock garden |
-| 25 | Deep forest |
-| 29 | Walled mesa |
+| 5 | Mossy hollow |
+| 20 | Overgrown mine |
+| 28 | Sunken garden |
 
-With Cozy Farm buildings (`assets/pack/cozy_farm/buildings.png`) but no
-home to enter:
+## Painted Lands Green Caves + Cozy Cottage + Cozy Farm animals
 
-| # | Map type | Farmyard |
-|---|---|---|
-| 5 | Open meadow | windmill, straw silo |
+`randomizer-greencaves`: homes built into the cave, furnished from Cozy
+Cottage, with one to three kinds of Cozy Farm animals: chickens, turkeys,
+or pigs in the yard outside each arch, and on the moss floors sheep, goats,
+or cows round it too, and bunnies.
 
-## Painted Lands Forest + Cozy Cottage + Cozy Farm
-
-`randomizer-painted-cozyfarm`: Cozy Farm homes (each with a Cozy Cottage
-interior) in place of the Painted Lands houses, farmyard outbuildings, and
-the Cozy Farm animals.
-
-| # | Map type | Homes (interiors) | Farmyard |
+| # | Map type | Homes (rooms) | Floor |
 |---|---|---|---|
-| 0 | Pastoral | farm cottage | barn, red silo, coop |
-| 1 | Crossroads | timber house | |
-| 2 | Pond walk | thatched cottage | |
-| 3 | Garden | farm cottage | coop |
-| 4 | Lookout | A-frame house | |
-| 6 | Twin water | thatched cottage | |
-| 7 | South road | long house | red silo |
-| 8 | Shore spur | thatched cottage | coop |
-| 9 | Three-way | timber house | |
-| 10 | West hamlet | timber house, A-frame house | coop |
-| 11 | East hamlet | thatched cottage | |
-| 13 | Orchard | farm cottage | barn, straw silo |
-| 14 | Shore hamlet | thatched cottage | coop |
-| 15 | Double lean | A-frame house | |
-| 16 | Below the rim | timber house | |
-| 17 | Gate road | farm cottage | coop |
-| 19 | Switchback | long house | red silo |
-| 21 | Terraces | A-frame house | |
-| 23 | Woodcutter camp | long house, red barn | straw silo |
-| 26 | Village square | timber house, A-frame house, brick house | |
-| 27 | Hedge garden | brick house | |
-| 28 | Ridgeline | timber house | |
-| 30 | Cottage row | thatched cottage, A-frame house, timber house | |
-| 31 | Twin cottages | farm cottage, thatched cottage | coop |
-| 32 | Manor green | farmhouse, brick house | barn |
-| 33 | Farmstead (cozy only) | farmhouse | barn, coop, red silo, straw silo |
-| 34 | Windmill road (cozy only) | thatched cottage | windmill, straw silo, coop |
-| 35 | Farm village (cozy only) | farm cottage, timber house, thatched cottage | barn, coop, windmill |
+| 4 | Miners' camp | 1 (2-3) | light |
+| 14 | Smugglers' cache | 1 (1-2) | dark |
+| 22 | Root cellar | 1 (2-3) | dark |
+| 27 | Hermit's nook | 1 (1-2) | moss |
+| 30 | Hermit's home | 1 (1-2) | moss |
+| 31 | Cave hamlet | 3 (1-2 each) | light |
+| 32 | Underground manor | 1 (5-6) | dark |
 
 ## Pixel Crawler
 
@@ -232,3 +193,13 @@ Desert (`desert/`: Tiles):
 | 14 | Dune sea |
 | 15 | Bone field |
 | 16 | Mesa |
+
+## Deprecated: cozy farm randomizer
+
+`randomizer-painted-cozyfarm` (id % 36, starting at 180033) is deprecated
+and not counted above: the Painted Lands terrain with Cozy Farm homes in
+place of the Painted Lands houses, farmyard outbuildings (barn, coop, silos,
+windmill), three map types of its own (33 Farmstead, 34 Windmill road, 35
+Farm village), and the older cozy farm animal table. The scene still runs as
+a record; its map types and buildings are in
+`docs/deprecated/cozy-farm.md`. Do not build new maps from it.

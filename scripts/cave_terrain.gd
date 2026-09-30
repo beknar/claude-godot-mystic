@@ -1024,7 +1024,8 @@ func trunks() -> Array[Vector2i]:
 ## The wildlife plan (wildlife.gd plan_from): mice by clutter and bones,
 ## frogs on the pool banks, lizards by rocks and ore, voles on moss and by
 ## tufts. The outdoor species find no habitat in a cave, so none are planned.
-func wildlife_plan() -> Dictionary:
+## `p_mode` "pack": the Cozy Farm bunny and farm animals by the homes too.
+func wildlife_plan(p_mode := "") -> Dictionary:
 	var water := water_cells()
 	var land := {}
 	for y in H:
@@ -1052,6 +1053,22 @@ func wildlife_plan() -> Dictionary:
 			h.rocky[c] = true
 		if (moss or deco.has(c)) and not h.shore.has(c):
 			h.dark[c] = true
+	if p_mode == "pack":
+		# The Cozy Farm animals (wildlife.gd PACK_SPECIES): bunnies on the
+		# moss floors, and poultry and pigs in the yard outside each home's
+		# arch, sheep and goats on the moss round it.
+		var open_floor := {}
+		var grazing := {}
+		for c in land:
+			if kind[_i(c)] == FLOOR:
+				open_floor[c] = true
+				if moss and not h.shore.has(c):
+					grazing[c] = true
+		h.lawn = grazing
+		var doors: Array[Vector2i] = []
+		for home in homes:
+			doors.append(home.door + Vector2i(0, 1))
+		Wildlife.add_homesteads(h, doors, open_floor, grazing)
 	h["_land"] = land
 	var trunk_set := {}
 	var tr := trunks()
@@ -1063,7 +1080,7 @@ func wildlife_plan() -> Dictionary:
 	quiet.append_array(water.keys())
 	quiet.append_array(fires)
 	quiet.append_array(tr)
-	return Wildlife.plan_from(h, map_id, spawn, Wildlife.quiet_from(quiet, W, H))
+	return Wildlife.plan_from(h, map_id, spawn, Wildlife.quiet_from(quiet, W, H), p_mode)
 
 
 func _near_any(c: Vector2i, cells: Array[Vector2i], r: int) -> bool:

@@ -104,8 +104,8 @@ const SPECIES := {
 	"lizard": {"habitat": "rocky", "groups": Vector2i(1, 3), "size": Vector2i(1, 2), "speed": 30.0, "flee": 70.0, "scare": 28.0, "home": 24.0, "gait": "dart", "react": "hide", "idle": Vector2(2.0, 6.0), "fps": 12.0},
 	"fox": {"habitat": "roam", "groups": Vector2i(1, 1), "size": Vector2i(1, 1), "speed": 20.0, "flee": 55.0, "scare": 64.0, "home": 140.0, "gait": "walk", "react": "run", "idle": Vector2(2.0, 5.0), "fps": 8.0},
 }
-# The cozy farm table (randomizer-painted-cozyfarm, `cozy = true`): the
-# larger animals drawn from the Cozy Farm art pack's sheets (4 frames x 5
+# The cozy farm table (the deprecated randomizer-painted-cozyfarm, `mode =
+# "farm"`): the larger animals drawn from the Cozy Farm art pack's sheets (4 frames x 5
 # rows: walk down, walk up, walk left, walk right, sleep), the tiny ones and
 # the birds kept as drawn above. Squirrel, hedgehog, and fox have no pack
 # counterpart and give way to the farm animals. Farm animals amble a short
@@ -132,6 +132,25 @@ const COZY_SPECIES := {
 }
 const COZY_PER_MAP := Vector2i(6, 9)
 const COZY_FARM := ["chicken", "turkey", "sheep", "goat", "pig", "cow"]
+# The pack table (`mode = "pack"`: randomizer-paintedlands and
+# randomizer-greencaves): the drawn animals, with the Cozy Farm bunny for the
+# drawn rabbit, and farm animals only where people live: poultry and pigs in
+# the yard round a home's door, sheep, goats, and cows on the pasture beyond
+# it. Squirrel, hedgehog, fox, and the small animals and birds stay as drawn.
+const PACK_SPECIES := {
+	"bunny": COZY_SPECIES.bunny,
+	"chicken": {"habitat": "yard", "groups": Vector2i(1, 1), "size": Vector2i(3, 5), "speed": 9.0, "flee": 34.0, "scare": 26.0, "home": 36.0, "gait": "walk", "react": "amble", "idle": Vector2(0.8, 2.5), "fps": 5.0},
+	"turkey": {"habitat": "yard", "groups": Vector2i(1, 1), "size": Vector2i(1, 2), "speed": 8.0, "flee": 28.0, "scare": 28.0, "home": 40.0, "gait": "walk", "react": "amble", "idle": Vector2(1.5, 4.0), "fps": 5.0, "sleep": 0.1},
+	"pig": {"habitat": "yard", "groups": Vector2i(1, 1), "size": Vector2i(1, 3), "speed": 7.0, "flee": 20.0, "scare": 26.0, "home": 36.0, "gait": "walk", "react": "amble", "idle": Vector2(2.0, 5.0), "fps": 5.0, "sleep": 0.25},
+	"sheep": {"habitat": "pasture", "groups": Vector2i(1, 1), "size": Vector2i(2, 4), "speed": 7.0, "flee": 20.0, "scare": 30.0, "home": 56.0, "gait": "walk", "react": "amble", "idle": Vector2(2.0, 5.0), "fps": 5.0, "sleep": 0.2},
+	"goat": {"habitat": "pasture", "groups": Vector2i(1, 1), "size": Vector2i(2, 3), "speed": 10.0, "flee": 26.0, "scare": 28.0, "home": 52.0, "gait": "walk", "react": "amble", "idle": Vector2(1.5, 4.0), "fps": 5.0, "sleep": 0.12},
+	"cow": {"habitat": "pasture", "groups": Vector2i(1, 1), "size": Vector2i(1, 2), "speed": 6.0, "flee": 16.0, "scare": 34.0, "home": 64.0, "gait": "walk", "react": "amble", "idle": Vector2(2.5, 6.0), "fps": 4.0, "sleep": 0.18},
+	"squirrel": SPECIES.squirrel, "vole": SPECIES.vole, "mouse": SPECIES.mouse, "hedgehog": SPECIES.hedgehog, "frog": SPECIES.frog,
+	"duck": SPECIES.duck, "sparrow": SPECIES.sparrow, "lizard": SPECIES.lizard, "fox": SPECIES.fox,
+}
+const PACK_FARM := Vector2i(1, 3) # farm kinds on a map with a home (when there is room)
+const YARD := 5 # cells round a home's doorstep that are its yard
+const PASTURE := 12 # cells round it that are its pasture
 const FOX_CHANCE := 0.35
 const SPECIES_PER_MAP := Vector2i(4, 7)
 const MIN_HABITAT := 6 # cells a species needs before it can live on a map
@@ -143,9 +162,10 @@ static var _sheet_colors := {} # sheet instance id -> Array[Color]
 
 var walker: Node2D
 var water_life: WaterLife
-## The cozy farm table and the pack's sheets instead of the drawn animals
-## that have a pack counterpart (set before setup).
-var cozy := false
+## Which animals (set before setup): "" the drawn ones, "pack" the Cozy Farm
+## bunny and farm animals by homes (PACK_SPECIES), "farm" the deprecated cozy
+## farm table (COZY_SPECIES).
+var mode := ""
 var summary := ""
 var scared := {} # species -> times an animal reacted to the walker, for tools/walker_test.gd
 var _animals: Array[Animal] = []
@@ -242,14 +262,14 @@ static func plan(t: PaintedTerrain) -> Dictionary:
 ## The plan for any map: `habitats` as habitat_cells() returns them (plus
 ## "_w", the map width), the map id, the walker's spawn cell, and quiet_from()
 ## over the things that already move.
-static func plan_from(habitats: Dictionary, map_id: int, spawn: Vector2i, quiet: PackedFloat32Array, cozy_table := false) -> Dictionary:
+static func plan_from(habitats: Dictionary, map_id: int, spawn: Vector2i, quiet: PackedFloat32Array, p_mode := "") -> Dictionary:
 	var rng := RandomNumberGenerator.new()
 	rng.seed = hash([map_id, "wildlife"])
 	var w: int = habitats.get("_w", W)
-	var table: Dictionary = COZY_SPECIES if cozy_table else SPECIES
+	var table := table_for(p_mode)
 	var eligible: Array[String] = []
 	for kind in table:
-		if habitats[table[kind].habitat].size() < (12 if kind == "duck" else MIN_HABITAT):
+		if habitats.get(table[kind].habitat, {}).size() < (12 if kind == "duck" else MIN_HABITAT):
 			continue
 		if kind == "fox" and rng.randf() >= FOX_CHANCE:
 			continue
@@ -259,13 +279,20 @@ static func plan_from(habitats: Dictionary, map_id: int, spawn: Vector2i, quiet:
 		var tmp := eligible[i]
 		eligible[i] = eligible[j]
 		eligible[j] = tmp
-	var per: Vector2i = COZY_PER_MAP if cozy_table else SPECIES_PER_MAP
-	if cozy_table:
+	var per: Vector2i = COZY_PER_MAP if p_mode == "farm" else SPECIES_PER_MAP
+	var farm := eligible.filter(func(k): return k in COZY_FARM)
+	var rest := eligible.filter(func(k): return not k in COZY_FARM)
+	var chosen: Array
+	if p_mode == "farm":
 		# A farm always has farm animals: two to four kinds lead the list.
-		var farm := eligible.filter(func(k): return k in COZY_FARM)
-		var rest := eligible.filter(func(k): return not k in COZY_FARM)
 		eligible = farm.slice(0, rng.randi_range(2, 4)) + rest + farm.slice(4)
-	var chosen := eligible.slice(0, rng.randi_range(per.x, per.y))
+		chosen = eligible.slice(0, rng.randi_range(per.x, per.y))
+	elif p_mode == "pack":
+		# A home keeps one to three farm kinds (eligible only where there is
+		# a yard or pasture), on top of the usual wild count.
+		chosen = farm.slice(0, rng.randi_range(PACK_FARM.x, PACK_FARM.y)) + rest.slice(0, rng.randi_range(per.x, per.y))
+	else:
+		chosen = eligible.slice(0, rng.randi_range(per.x, per.y))
 	var placed: Array[Vector2i] = [] # group centers of every species so far
 	var groups: Array[Dictionary] = []
 	for kind in chosen:
@@ -316,6 +343,29 @@ static func plan_from(habitats: Dictionary, map_id: int, spawn: Vector2i, quiet:
 					around[j] = tmp
 				groups.append({"kind": kind, "center": c, "cells": around.slice(0, rng.randi_range(spec.size.x, spec.size.y))})
 	return {"habitats": habitats, "groups": groups}
+
+
+static func table_for(p_mode: String) -> Dictionary:
+	return COZY_SPECIES if p_mode == "farm" else (PACK_SPECIES if p_mode == "pack" else SPECIES)
+
+
+## The pack table's farm habitats round `doors` (home doorsteps) on `land`:
+## yard within YARD cells, pasture (from `grazing`, the open ground) within
+## PASTURE cells; both skip the doorstep itself.
+static func add_homesteads(h: Dictionary, doors: Array[Vector2i], land: Dictionary, grazing: Dictionary) -> void:
+	h["yard"] = {}
+	h["pasture"] = {}
+	for d in doors:
+		for dy in range(-PASTURE, PASTURE + 1):
+			for dx in range(-PASTURE, PASTURE + 1):
+				var c := d + Vector2i(dx, dy)
+				var r := Vector2(dx, dy).length()
+				if r < 1.5 or r > PASTURE or not land.has(c) or h.shore.has(c):
+					continue
+				if r <= YARD:
+					h.yard[c] = true
+				elif grazing.has(c):
+					h.pasture[c] = true
 
 
 ## Per cell, the distance in cells (capped at QUIET_CAP) to the nearest thing
@@ -438,6 +488,16 @@ static func habitat_cells(t: PaintedTerrain) -> Dictionary:
 	for c in t.water:
 		if t._near_all(c, t.water, 1):
 			h.water[c] = true
+	# Homes keep farm animals (the pack table): the yard is any ground by the
+	# door, fence yards included; the pasture is the lawn round the home.
+	var doors: Array[Vector2i] = []
+	for hs in t.houses:
+		doors.append(hs.origin + PaintedTerrain.HOUSES[hs.id].door)
+	var ground := {}
+	for c in land:
+		if not t.plateau.has(c):
+			ground[c] = true
+	add_homesteads(h, doors, ground, h.lawn)
 	h["_land"] = land
 	h["_trunks"] = trunks
 	return h
@@ -453,7 +513,7 @@ static func _near(c: Vector2i, cells: Dictionary, r: int) -> bool:
 
 ## Places the map's animals as y-sorted children of `actors`.
 func setup(t: PaintedTerrain, actors: Node2D, p_walker: Node2D, sheet: Image, p_water_life: WaterLife) -> void:
-	var p := plan(t) if not cozy else plan_from(habitat_cells(t), t.map_id, t.spawn, quiet_field(t), true)
+	var p := plan(t) if mode == "" else plan_from(habitat_cells(t), t.map_id, t.spawn, quiet_field(t), mode)
 	setup_from(p, t.water, actors, p_walker, sheet, p_water_life)
 
 
@@ -472,7 +532,7 @@ func setup_from(p: Dictionary, water: Dictionary, actors: Node2D, p_walker: Node
 	var counts := {}
 	for g in p.groups:
 		var flock: Array = []
-		var spec: Dictionary = (COZY_SPECIES if cozy else SPECIES)[g.kind]
+		var spec: Dictionary = table_for(mode)[g.kind]
 		var colors := {}
 		if SPRITES.has(g.kind):
 			for key in SPRITES[g.kind].palette:
@@ -483,7 +543,7 @@ func setup_from(p: Dictionary, water: Dictionary, actors: Node2D, p_walker: Node
 			a.name = "%s_%d_%d" % [g.kind, cell.x, cell.y]
 			a.kind = g.kind
 			a.spec = spec
-			if cozy and COZY_SHEETS.has(g.kind):
+			if mode != "" and COZY_SHEETS.has(g.kind):
 				# About a third of a herd are young, when the pack has them.
 				var set_: Dictionary = COZY_SHEETS[g.kind]
 				if set_.has("baby") and _rng.randf() < 0.33:

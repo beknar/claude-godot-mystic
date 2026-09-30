@@ -123,9 +123,9 @@ static func grid(t) -> Dictionary:
 		var floor := p.open_floor()
 		for c in floor:
 			_add(g.home, origin + Vector2(c * TILE) + Vector2(8, 8), HOME_CAT * VIEW_CELLS / floor.size())
-	var plan: Dictionary = t.wildlife_plan()
+	var plan: Dictionary = t.wildlife_plan(Base.animals)
 	for grp in plan.groups:
-		var spec: Dictionary = Wildlife.SPECIES[grp.kind]
+		var spec: Dictionary = Wildlife.table_for(Base.animals)[grp.kind]
 		var home := Vector2(grp.center * TILE) + Vector2(8, 8)
 		var r: float = minf(spec.home, 80.0)
 		_spread(g.animals, Rect2(home - Vector2(r, r), Vector2(r, r) * 2.0), Base.sprite_area(grp.kind) * grp.cells.size())

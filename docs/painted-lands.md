@@ -11,8 +11,8 @@ or any Painted Lands forest scene.
   lawn directly; islands in a zone use the dirt set baked on that tone.
 - Houses: only the counts and prefabs the recipe names; never mix tiles
   from two prefabs.
-- Cozy Farm buildings only in the cozy farm randomizer, and never on the
-  same map as a Painted Lands house.
+- No Cozy Farm buildings (deprecated with the cozy farm randomizer); its
+  animals are the only Cozy Farm art in use.
 - Every recipe flag that is set must place its props (bushes, rocks,
   signs, fires); a crate is never a sign.
 - Every camera window reaches the liveliness floor.
@@ -647,6 +647,41 @@ under half the floor gets the campfire first. At most three anchors per map;
 an anchor that would cut the spawn off from a goal is not placed. The report
 line `floor:` gives the weakest window before and after and what was added.
 
+## Cozy Farm animals
+
+`randomizer-paintedlands` and `randomizer-greencaves` set `cozy_animals =
+true`: `wildlife.gd` runs `mode = "pack"` (`PACK_SPECIES`, drawn from
+`COZY_SHEETS`). The animals are the only part of the Cozy Farm art pack in
+use; its buildings and the cozy farm randomizer are deprecated
+(`docs/deprecated/cozy-farm.md`, where `mode = "farm"` is its table). The
+fixed scenes (`forest`, `wilds`) keep the drawn animals.
+
+- Sheets: the Cozy Farm art pack (shubibubi,
+  `assets/pack/cozy_farm/animals/`, git-ignored), 4 frames x 5 rows (walk
+  down, walk up, walk left, walk right, sleep), cells 16-24 px (`info.txt`
+  in the pack). About a third of each herd young (the baby sheets), one
+  coat per herd.
+- Replaced: the drawn rabbit by the bunny (grey and brown), on the lawn.
+- Added, only where people live: chickens, turkeys, and pigs in the yard
+  (within `YARD` = 5 cells of a house's doorstep, fence yards included);
+  sheep, goats, and cows on the pasture (lawn within `PASTURE` = 12 cells).
+  One to three farm kinds on a map with a house, on top of the usual four
+  to seven wild kinds; none on the wild map types (no house).
+- Kept as drawn: squirrel, hedgehog, and fox (no pack counterpart), vole,
+  mouse, frog, lizard (too small for the pack's animals), duck and sparrow
+  (birds), every insect in `critters.gd`, and the ambience effects.
+- Behavior: bunnies hop and bolt like the rabbit; farm animals graze, amble
+  18-40 px away from the walker instead of bolting, and doze now and then
+  on the pack's sleep row, waking when the walker comes near.
+- Green Caves (`cave_terrain.gd` `wildlife_plan("pack")`): bunnies on moss
+  floors, farm animals by the cave homes (yard outside each arch, pasture on
+  moss round it); see `docs/green-caves.md`.
+- `tools/check_wildlife.gd ... pack [caves]` lists each map's animals. The
+  liveliness tools take `pack` (Painted Lands maps with these animals),
+  `drawn` (Green Caves maps without them), and `cozy` (the deprecated
+  scene). Measured against the drawn animals in the deprecated scene:
+  `docs/liveliness-cozyfarm.md`.
+
 ## Forest generator
 
 ```
@@ -742,103 +777,3 @@ dark-green square/rectangle of baked grass; a lone dark-green grass
 tile shows its 16×16 edge; a dirt blob is an L or stair of square
 cells; land rocks sit in water or water rocks on lawn; a crate
 stands in for a sign.
-
-## Cozy farm randomizer
-
-`scenes/randomizer-painted-cozyfarm/randomizer-painted-cozyfarm.tscn` is the
-Painted Lands randomizer (same generator, recipes, interiors, and ambience;
-`forest.gd` with `interiors = true`), starting at map id `180033` pinned to
-recipe 33 Farmstead, with `cozy_animals = true` (`wildlife.gd` runs its cozy
-table: `Wildlife.cozy`, `COZY_SPECIES`, `COZY_SHEETS`) and
-`cozy_buildings = true` (below).
-
-- Animals from the Cozy Farm art pack (shubibubi,
-  `assets/pack/cozy_farm/animals/`, git-ignored): bunny (grey and brown)
-  in place of the drawn rabbit, and chicken, turkey, sheep, goat, pig, and
-  cow, about a third of each herd young (the pack's baby sheets), one coat
-  per herd. Sheets are 4 frames x 5 rows (walk down, walk up, walk left,
-  walk right, sleep); cells 16-24 px (`info.txt` in the pack).
-- Kept as drawn: vole, mouse, frog, lizard (too small for the pack's
-  animals), duck and sparrow (birds), and every insect in `critters.gd`.
-  Squirrel, hedgehog, and fox have no pack counterpart and are left out.
-- Habitats: chickens and turkeys on open ground near paths and houses,
-  sheep, goats, and cows on the lawn, pigs by clutter, bunnies on the lawn.
-  Two to four farm species on every map, six to nine species in all.
-- Behavior: bunnies hop and bolt like the rabbit; farm animals graze, amble
-  18-40 px away from the walker instead of bolting, and doze now and then
-  on the pack's sleep row, waking when the walker comes near.
-- Measured against the drawn animals (slow capture, exhaustive walker, and
-  fast estimate): `docs/liveliness-cozyfarm.md`. The tools take `cozy` and
-  `out=<dir>` for these runs.
-
-**Buildings** (`cozy_buildings = true`; `PaintedTerrain.cozy`): the Cozy
-Farm homes stand in for the Painted Lands houses on every map type that has
-houses (never both packs on one map), and farm outbuildings fill a farmyard.
-Sheet `assets/pack/cozy_farm/buildings.png` (spring versions), drawn at 0.86
-brightness (`COZY_VALUE`; the pack runs brighter than the Painted Lands
-houses). Measured against the Painted Lands sheet, the homes used sit within
-10-17 of its palette (83-98 % of pixels within 24).
-
-| id | Building | Size (px) | Door | Rooms | Chimney |
-|---|---|---|---|---|---|
-| 10 | Farm cottage | 62 x 73 | (2, 5) | 2-3 | yes |
-| 11 | Farmhouse (two wings) | 94 x 73 | (2, 5) | 3-5 | yes |
-| 12 | Timber house (purple roof) | 74 x 76 | (2, 5) | 2-4 | yes |
-| 13 | A-frame house (green roof) | 77 x 80 | (2, 5) | 2-4 | yes |
-| 14 | Thatched cottage | 72 x 74 | (2, 5) | 1-3 | yes |
-| 15 | Brick house | 82 x 69 | (1, 5) | 2-4 | no |
-| 16 | Long house | 93 x 64 | (2, 4) | 2-3 | yes |
-| 20 | Red barn (outbuilding; a home on Woodcutter camp) | 67 x 80 | (1, 5) | 1-3 | no |
-| 21 | Coop | 60 x 64 | - | - | no |
-| 22, 23 | Red silo, straw silo | 36 x 68 | - | - | no |
-| 24 | Windmill (sails turn with the wind) | 56 x 67 | - | - | no |
-
-Left out as the weakest fits: greenhouse (pale glass, lightest outlines),
-blue-roof house (a blue the sheet lacks), slime hut (rainbow roof),
-hospital, museum, and market (civic), and every fall and winter version.
-
-Map types (`COZY_SWAP`: the home for each prefab a recipe names;
-`COZY_FARM`: its outbuildings; houses keep each recipe's count):
-
-| Map types | Homes | Farmyard |
-|---|---|---|
-| Pastoral | farm cottage | barn, red silo, coop |
-| Garden, Gate road | farm cottage | coop |
-| Orchard | farm cottage | barn, straw silo |
-| Crossroads, Three-way, Below the rim, Ridgeline | timber | - |
-| Lookout, Double lean, Terraces | A-frame | - |
-| Pond walk, Twin water, East hamlet | thatched | - |
-| Shore spur, Shore hamlet | thatched | coop |
-| South road, Switchback | long house | red silo |
-| Woodcutter camp | long house, red barn | straw silo |
-| West hamlet | timber, A-frame | coop |
-| Cottage row | thatched, A-frame, timber | - |
-| Twin cottages | farm cottage, thatched | coop |
-| Village square | timber, A-frame, brick | - |
-| Hedge garden | brick | - |
-| Manor green | farmhouse, brick | barn |
-| Open meadow | none | windmill, straw silo |
-| Wild lane, Sparse wild, Cave mouth, Stone ruins, Rock garden, Deep forest, Walled mesa | none | - |
-
-New map types, only in this scene (`COZY_RECIPES`, ids 33-35; recipe =
-map id % 36 here, so the Painted Lands scenes keep % 33 and their maps):
-
-- **33 Farmstead** (the Pastoral layout): the farmhouse in its fenced yard,
-  a barn, a coop, and both silos, with the pond south.
-- **34 Windmill road** (the South road layout): a thatched cottage on the
-  road, the windmill, a straw silo, and a coop.
-- **35 Farm village** (the Village square layout): farm cottage, timber
-  house, and thatched cottage on the square, with a barn, a coop, and the
-  windmill.
-
-Outbuildings go on the free lawn closest to the first home's doorstep (80
-tries in a window round it), anywhere on the map when there is no home or no
-room (the village squares), two cells clear round each, three from any other
-building; a spot that would cut the spawn off from a goal is skipped, and the
-report check fails a map missing one. They are not entered. Their doorsteps
-count as farmyard for the animals (pigs and mice by the barn, chickens at the
-coop). The windmill's sails are six pixel-art frames through a quarter turn
-(nearest-pixel rotation), stepped faster in stronger wind, drawn in front of
-the body. `tools/check_recipes.gd ... cozy` checks the cozy generator and
-lists each map's buildings.
-

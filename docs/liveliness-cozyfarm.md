@@ -1,6 +1,7 @@
 # Liveliness: cozy farm animals
 
-The Painted Lands cozy farm randomizer (`cozy_animals = true`) against the
+The Painted Lands cozy farm randomizer (`cozy_animals = true`; the scene is
+now deprecated, the animals are still in use) against the
 same maps with the drawn animals, measured 2026-09-28/29 with today's code:
 
 - **Slow sampling:** `tools/liveliness_capture.tscn` (rendered, walker

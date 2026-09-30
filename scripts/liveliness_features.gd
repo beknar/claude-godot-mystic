@@ -132,9 +132,9 @@ static func grid(t) -> Dictionary:
 		for p in dark:
 			_add(g.fireflies, p, each)
 	# Animals: each one's sprite size, spread over its group's home range.
-	var plan: Dictionary = Wild.plan(t) if not cozy else Wild.plan_from(Wild.habitat_cells(t), t.map_id, t.spawn, Wild.quiet_field(t), true)
+	var plan: Dictionary = Wild.plan(t) if animals == "" else Wild.plan_from(Wild.habitat_cells(t), t.map_id, t.spawn, Wild.quiet_field(t), animals)
 	for grp in plan.groups:
-		var spec: Dictionary = (Wild.COZY_SPECIES if cozy else Wild.SPECIES)[grp.kind]
+		var spec: Dictionary = Wild.table_for(animals)[grp.kind]
 		var home := Vector2(grp.center * TILE) + Vector2(8, 8)
 		var r: float = minf(spec.home, 80.0)
 		var total: float = sprite_area(grp.kind) * grp.cells.size()
@@ -142,9 +142,11 @@ static func grid(t) -> Dictionary:
 	return g
 
 
-## The cozy farm animal table and sprite sizes (randomizer-painted-cozyfarm);
-## set by the tools' `cozy` option.
-static var cozy := false
+## Which animal table and sprite sizes (wildlife.gd `mode`): "" drawn,
+## "pack" the Cozy Farm bunny and farm animals (randomizer-paintedlands,
+## randomizer-greencaves), "farm" the deprecated cozy farm table; set by the
+## tools' `pack`, `drawn`, and `cozy` options.
+static var animals := ""
 static var _pack_area := {}
 
 
@@ -152,7 +154,7 @@ static var _pack_area := {}
 ## animal: the first frame of its right-facing walk row, adult and young
 ## weighted two to one as the herds are).
 static func sprite_area(kind: String) -> float:
-	if cozy and Wild.COZY_SHEETS.has(kind):
+	if animals != "" and Wild.COZY_SHEETS.has(kind):
 		if not _pack_area.has(kind):
 			var set_: Dictionary = Wild.COZY_SHEETS[kind]
 			var a := _sheet_area(set_.files[0], set_.cell)

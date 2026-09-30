@@ -27,12 +27,15 @@ const RIDGE_FRONT := 8
 @export var recipe := -1
 ## Houses open onto generated interiors (house_interiors.gd): the randomizer.
 @export var interiors := false
-## The Cozy Farm art pack's animals instead of the drawn ones that have a
-## pack counterpart (wildlife.gd `cozy`): randomizer-painted-cozyfarm.
+## The Cozy Farm art pack's animals (wildlife.gd `mode`): the bunny for the
+## drawn rabbit and farm animals round the homes ("pack"), or with
+## `cozy_buildings` the deprecated cozy farm table ("farm"). The only Cozy
+## Farm art in use.
 @export var cozy_animals := false
 ## The Cozy Farm art pack's buildings (PaintedTerrain `cozy`): its homes in
 ## place of the Painted Lands houses, farmyard outbuildings, and the cozy-only
-## map types.
+## map types. Deprecated with randomizer-painted-cozyfarm (the only scene
+## that sets it); docs/deprecated/cozy-farm.md.
 @export var cozy_buildings := false
 
 @onready var ground: TileMapLayer = $Ground
@@ -182,7 +185,7 @@ func _add_ambience() -> void:
 	add_child(drifters)
 	wildlife = Wildlife.new()
 	wildlife.name = "Wildlife"
-	wildlife.cozy = cozy_animals
+	wildlife.mode = ("farm" if cozy_buildings else "pack") if cozy_animals else ""
 	add_child(wildlife)
 	clouds = CloudShadows.new()
 	clouds.name = "CloudShadows"

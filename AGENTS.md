@@ -12,25 +12,27 @@ changing its generator, painter, or scenes.
   Green Caves, Cozy Cottage, and the rest) and **Pixel Crawler** (Anokolisa).
 - They are used in **separate maps** and never combined, on the ground, in
   props, or in palettes.
-- **Cozy Farm** (shubibubi) is used for its **animals and buildings only**,
-  in `randomizer-painted-cozyfarm` (by request): the animals replace the drawn
-  ones that have a pack counterpart; its homes replace the Painted Lands
-  houses there, never beside them, with farmyard outbuildings. The weakest
-  fits (greenhouse, blue-roof house, slime hut, civic buildings, fall and
-  winter versions) and its other art are not used.
-- **Mana Seed** is not to be used in future development. **Mystic Woods** is
-  deprecated. **Time Fantasy** is not suitable (its ground clashes and
-  strains the eyes). Their scenes and docs stay as a record only.
+- **Cozy Farm** (shubibubi) is used for its **animals only**, in
+  `randomizer-paintedlands` and `randomizer-greencaves` (`cozy_animals`):
+  the bunny for the drawn rabbit, farm animals only by homes. Insects,
+  birds, tiny animals, and effects stay as drawn. Its buildings and other
+  art are not used; `randomizer-painted-cozyfarm` is deprecated.
+- **Mana Seed** is not to be used in future development. **Mystic Woods**
+  and the **cozy farm randomizer** are deprecated. **Time Fantasy** is not
+  suitable (its ground clashes and strains the eyes). Their scenes and docs
+  stay as a record only.
 
 ## Pack index (read the doc first)
 
 | Pack | Scenes | Code | Doc |
 |---|---|---|---|
-| Painted Lands, Forest | `forest`, `wilds`, `randomizer-paintedlands`, `randomizer-painted-cozyfarm` | `forest_terrain.gd`, `forest.gd` | `docs/painted-lands.md` |
+| Painted Lands, Forest | `forest`, `wilds`, `randomizer-paintedlands` | `forest_terrain.gd`, `forest.gd` | `docs/painted-lands.md` |
 | Painted Lands, Green Caves | `randomizer-greencaves` | `cave_terrain.gd`, `caves.gd`, `cave_life.gd` | `docs/green-caves.md` |
 | Painted Lands, Cozy Cottage | homes in both randomizers above | `interior_*.gd`, `house_interiors.gd` | `docs/interiors.md` |
+| Cozy Farm (animals only) | `randomizer-paintedlands`, `randomizer-greencaves` | `wildlife.gd` (`PACK_SPECIES`), `cave_terrain.gd` (`wildlife_plan`) | `docs/painted-lands.md` (Cozy Farm animals) |
 | Pixel Crawler | `randomizer-pixelcrawler` | `pc_terrain.gd`, `pixelcrawler.gd`, `pc_tiles.gd` | `docs/pixel-crawler.md` |
 | Mystic Woods (deprecated) | `clearing`, `grove`, `hollow`, `ford`, `heath`, `randomizer-mysticwoods` | `terrain.gd`, `clearing.gd` | `docs/deprecated/mystic-woods.md` |
+| Cozy Farm buildings (deprecated) | `randomizer-painted-cozyfarm` | `forest_terrain.gd` (`cozy`), `forest.gd` (`cozy_buildings`) | `docs/deprecated/cozy-farm.md` |
 | Mana Seed (not to be used) | `randomizer-manaseed` | `ms_*.gd`, `manaseed.gd` | `docs/deprecated/mana-seed.md` |
 | Time Fantasy (not suitable) | `randomizer-timefantasy` | `tf_terrain.gd`, `timefantasy.gd` | `docs/deprecated/time-fantasy.md` |
 
