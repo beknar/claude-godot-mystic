@@ -30,6 +30,9 @@ const SHADE := Color(0.08, 0.24, 0.2, 0.28) # tree shadows, the deep grass tone
 ## The Cozy Farm art pack's animals (wildlife.gd `mode = "farmland"`): the
 ## bunny for the drawn rabbit, farm animals in the pens and yards.
 @export var cozy_animals := true
+## The farmstead map types too (Forest houses, fires, and trees on Farm
+## ground): randomizer-paintedlands-forest-farm sets it.
+@export var mixed := false
 
 @onready var ground_layer: TileMapLayer = $Ground
 @onready var water_layer: TileMapLayer = $Water
@@ -118,6 +121,7 @@ func build(id: int, pinned := -1) -> void:
 	map_id = id
 	recipe = pinned
 	terrain = FarmTerrain.new()
+	terrain.mixed = mixed
 	report = terrain.generate(map_id, recipe)
 	_use_season(terrain.season)
 	for layer in [ground_layer, water_layer, feature_layer, deco_layer] + _tone_layers:
@@ -147,7 +151,7 @@ func build(id: int, pinned := -1) -> void:
 
 func recipe_names() -> Array[String]:
 	var out: Array[String] = []
-	for r in FarmTerrain.RECIPES:
+	for r in FarmTerrain.all_recipes(mixed):
 		out.append(r.name)
 	return out
 
@@ -379,6 +383,7 @@ func _add_box(parent: Node, r: Rect2) -> void:
 ## the walker is behind it, it fades so the walker stays in sight. The
 ## windmill's sails turn faster in a stronger wind.
 func _place_buildings() -> void:
+	_fires.clear()
 	for b in terrain.buildings:
 		var art: Dictionary = FarmTiles.BUILDINGS[b.kind]
 		var origin := Vector2(b.origin * TILE)
@@ -401,7 +406,7 @@ func _place_buildings() -> void:
 			sprite = mill
 		else:
 			var s := Sprite2D.new()
-			s.texture = _tex(_sheet)
+			s.texture = _forest_tex() if art.get("sheet", "") == "forest" else _tex(_sheet)
 			s.region_enabled = true
 			s.region_rect = Rect2(region)
 			s.centered = false
@@ -412,6 +417,8 @@ func _place_buildings() -> void:
 			_add_box(body, Rect2(Vector2(block.position) - Vector2(0, size.y), Vector2(block.size)))
 		actors.add_child(body)
 		_houses.append({"node": sprite, "foot": origin.y + size.y, "rect": Rect2(origin, size)})
+		if art.has("chimney"):
+			_fires.append({"pos": origin + Vector2(art.chimney), "kind": "chimney"})
 
 
 ## The doors for house_interiors.gd: every building opens on a Cozy Cottage
@@ -825,7 +832,37 @@ func _crop_sprite(tex: Texture2D, region: Rect2, offset: Vector2) -> Sprite2D:
 
 # ---------------------------------------------------------------- props
 
+var _forest_trees: Array[Dictionary] = [] # {crown, foot, rect}: Forest trees shed leaves too
+var _fires: Array[Dictionary] = [] # campfires, torches, chimneys (fire_ambience.gd)
+var _forest_texture: Texture2D
+
+func _forest_tex() -> Texture2D:
+	if _forest_texture == null:
+		_forest_texture = load(FarmTiles.FOREST_SHEET)
+	return _forest_texture
+
+
+## Frames side by side from `first`, each starting on its own frame and
+## running at its own pace, so no two fires flicker in step.
+func _flipbook(tex: Texture2D, first: Rect2, count: int, fps: float) -> AnimatedSprite2D:
+	var frames := SpriteFrames.new()
+	frames.set_animation_speed("default", fps)
+	for i in count:
+		var at := AtlasTexture.new()
+		at.atlas = tex
+		at.region = Rect2(first.position + Vector2(i * first.size.x, 0), first.size)
+		frames.add_frame("default", at)
+	var sp := AnimatedSprite2D.new()
+	sp.sprite_frames = frames
+	sp.centered = false
+	sp.play("default")
+	sp.frame = randi() % count
+	sp.speed_scale = randf_range(0.85, 1.15)
+	return sp
+
+
 func _place_props() -> void:
+	_forest_trees.clear()
 	for p in terrain.props:
 		var art: Dictionary = FarmTiles.prop(season, p.art)
 		var rect: Rect2i = art.rect
@@ -833,13 +870,24 @@ func _place_props() -> void:
 		var node := StaticBody2D.new()
 		node.collision_mask = 0
 		node.position = foot
-		var s := Sprite2D.new()
-		s.texture = _tex(_sheet)
-		s.region_enabled = true
-		s.region_rect = Rect2(rect)
-		s.centered = false
-		s.offset = -Vector2(rect.size.x / 2.0, rect.size.y - 1)
-		s.flip_h = art.tag in ["bush", "stone", "wood", "hay", "reed", "plant", "bare"] and _hash(p.cell.x * 5, p.cell.y * 3) < 0.5
+		# Forest props (the farmsteads) come from the Forest sheet and stand on
+		# their own foot point; fires and torches are flipbooks.
+		var tex := _forest_tex() if art.get("sheet", "") == "forest" else _tex(_sheet)
+		var offset: Vector2 = -art.base if art.has("base") else -Vector2(rect.size.x / 2.0, rect.size.y - 1)
+		var s: Node2D
+		if art.get("frames", 1) > 1:
+			var fb := _flipbook(tex, Rect2(rect), art.frames, art.get("fps", 8.0))
+			fb.offset = offset
+			s = fb
+		else:
+			var sp := Sprite2D.new()
+			sp.texture = tex
+			sp.region_enabled = true
+			sp.region_rect = Rect2(rect)
+			sp.centered = false
+			sp.offset = offset
+			sp.flip_h = art.tag in ["bush", "stone", "wood", "hay", "reed", "plant", "bare", "tree"] and _hash(p.cell.x * 5, p.cell.y * 3) < 0.5
+			s = sp
 		node.add_child(s)
 		if art.block != Vector2.ZERO:
 			_add_box(node, Rect2(Vector2(-art.block.x / 2.0, -art.block.y), art.block))
@@ -847,8 +895,12 @@ func _place_props() -> void:
 			under.add_child(node)
 		else:
 			actors.add_child(node)
-		if art.tag == "bare" and rect.size.y > 40:
-			_crowns.append({"sprite": s, "foot": foot.y, "crown": Rect2(foot + s.offset, Vector2(rect.size.x, rect.size.y * 0.7))})
+		if (art.tag == "bare" or art.tag == "tree") and rect.size.y > 40:
+			_crowns.append({"sprite": s, "foot": foot.y, "crown": Rect2(foot + offset, Vector2(rect.size.x, rect.size.y * 0.7))})
+		if art.tag == "tree":
+			_forest_trees.append({"crown": Rect2(foot + offset + Vector2(5, 4), Vector2(rect.size.x - 10, rect.size.y * 0.45)), "foot": foot, "rect": rect})
+		if art.has("fire"):
+			_fires.append({"pos": foot, "kind": art.fire})
 		if art.tag == "reed" or art.tag == "plant":
 			# Reeds and wheat bunches nod with the wind (water_life.gd).
 			_crop_tops.append(s)
@@ -1099,8 +1151,16 @@ func _reset_ambience() -> void:
 			"base_y": t.foot.y}.merged(colors))
 		if t.sheet.contains("bloom") or t.sheet.contains("flowers"):
 			flowers.append(crown.get_center())
+	# The Forest trees of a farmstead shed their own leaves (and blossom).
+	for ft in _forest_trees:
+		var r: Rect2i = ft.rect
+		sources.append({"crown": ft.crown, "base_y": ft.foot.y}.merged(_colors_of_forest(Rect2i(r.position, Vector2i(r.size.x, r.size.y / 2)))))
+		if r.position.y >= 288:
+			flowers.append(ft.crown.get_center()) # blossom draws butterflies
 	leaves.set_sources(sources)
-	fire.set_fires([] as Array[Dictionary])
+	# Campfires, torches, and chimneys: flames, glow, smoke (the farmsteads'
+	# warmth).
+	fire.set_fires(_fires)
 	for c: Vector2i in terrain.deco:
 		if season != "winter" and terrain.deco[c] in terrain.flowers_set:
 			flowers.append(Vector2(c * TILE) + Vector2(8, 8))
@@ -1160,6 +1220,43 @@ func _surface(cell: Vector2i) -> String:
 	if _grass.has(cell):
 		return "grass"
 	return "dust"
+
+
+## Leaf colors from a Forest tree's crown (on the Forest sheet).
+func _colors_of_forest(region: Rect2i) -> Dictionary:
+	var key := "forest:%s" % region
+	if _leaf_colors.has(key):
+		return _leaf_colors[key]
+	if not _images.has("forest"):
+		var img: Image = _forest_tex().get_image()
+		if img.is_compressed():
+			img.decompress()
+		_images["forest"] = img
+	var img: Image = _images["forest"]
+	var counts := {}
+	for y in range(region.position.y, region.end.y):
+		for x in range(region.position.x, region.end.x):
+			var p := img.get_pixel(x, y)
+			if p.a < 0.9 or (p.r > p.g and p.get_luminance() < 0.45):
+				continue
+			var k := p.to_rgba32()
+			counts[k] = counts.get(k, 0) + 1
+	var keys := counts.keys()
+	keys.sort_custom(func(a, b): return counts[a] > counts[b])
+	var light: Array[Color] = []
+	var dark := Color(0.1, 0.25, 0.2)
+	var darkest := 2.0
+	for k in keys.slice(0, 10):
+		var c := Color.hex(k)
+		if c.get_luminance() < darkest:
+			darkest = c.get_luminance()
+			dark = c
+		if c.get_luminance() > 0.3:
+			light.append(c)
+	if light.is_empty():
+		light.append(Color(0.4, 0.6, 0.35))
+	_leaf_colors[key] = {"light": light.slice(0, 3), "dark": dark}
+	return _leaf_colors[key]
 
 
 ## Leaf colors from a tree's first frame: light foliage colors, edged with its

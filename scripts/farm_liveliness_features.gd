@@ -15,6 +15,8 @@ extends RefCounted
 ##   dragonflies ponds; none in winter
 ##   fireflies   dark and deep grass; none in winter
 ##   streak, cloud, drift   anywhere (drift none in winter)
+##   flames, glow, smoke   the farmsteads' campfires and lanterns, and the
+##               chimneys of the Forest houses (as liveliness_features.gd)
 ##   animals     sprite pixels of the map's animals over their home ranges
 ##   grass       grass waves on grass and wheat cells; none in winter
 
@@ -99,6 +101,29 @@ static func grid(t) -> Dictionary:
 			var each := clampi(dark.size() / 25, 0, 14) / float(dark.size())
 			for c in dark:
 				g.fireflies[c.y * W + c.x] += each
+	# Fires (the farmsteads): flames, the glow's inner half, and smoke over
+	# each campfire and chimney, as the Painted Lands proxy works them out.
+	for p in t.props:
+		var art: Dictionary = FarmTiles.prop(t.season, p.art)
+		if not art.has("fire"):
+			continue
+		var torch: bool = art.fire == "torch"
+		var foot := Vector2(p.cell * TILE) + Vector2(8, 15)
+		var size := Vector2(art.rect.size)
+		_spread(g.flames, Rect2(foot - Vector2(art.base), size), 1.0)
+		var flame := foot + (Vector2(0, -24) if torch else Vector2(0, -8))
+		var r := 22 if torch else (40 if art.fire == "campfire" else 52)
+		for y in range(-r, r + 1):
+			for x in range(-r, r + 1):
+				if Vector2(x, y * 1.25).length() / r < 0.55:
+					_spread(g.glow, Rect2(flame + Vector2(x, y), Vector2.ONE), 1.0 / (TILE * TILE))
+		if not torch:
+			_spread(g.smoke, Rect2(flame + Vector2(-8, -45), Vector2(16, 45)), 1.0)
+	for b in t.buildings:
+		var bart: Dictionary = FarmTiles.BUILDINGS[b.kind]
+		if bart.has("chimney"):
+			var vent := Vector2(b.origin * TILE) + Vector2(bart.chimney)
+			_spread(g.smoke, Rect2(vent + Vector2(-8, -45), Vector2(16, 45)), Base.CHIMNEY_SMOKE)
 	# Animals: the farm's own plan (mode "farmland"), sprite sizes from the
 	# Cozy Farm sheets.
 	var before: String = Base.animals

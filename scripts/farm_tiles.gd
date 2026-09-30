@@ -263,6 +263,48 @@ const BUILDINGS := {
 	"windmill": {"anim": "windmill animations/windmill_spring_summerSheet", "frames": 4, "frame": Vector2i(96, 128), "shift": Vector2i(-8, 0),
 		"region": Rect2i(0, 0, 80, 128), "door": Vector2i(2, 7), "door_w": 1,
 		"blocks": [Rect2i(18, 80, 46, 32), Rect2i(18, 112, 14, 16), Rect2i(48, 112, 16, 16)], "rooms": [1, 1]},
+	# The Painted Lands Forest houses (TILESET_brighter.png, the mixed farmstead
+	# maps only): the doorstep is the cell under the door, below the house;
+	# the chimney (px from the region's corner) smokes. Their roofs match the
+	# Farm's, so they stand in every season.
+	"fl_porch": {"sheet": "forest", "region": Rect2i(608, 160, 115, 80), "door": Vector2i(3, 5), "door_w": 1,
+		"blocks": [Rect2i(14, 32, 100, 45)], "rooms": [3, 6], "chimney": Vector2i(47, 2)},
+	"fl_flower": {"sheet": "forest", "region": Rect2i(608, 240, 115, 80), "door": Vector2i(2, 4), "door_w": 1,
+		"blocks": [Rect2i(22, 32, 58, 30), Rect2i(64, 32, 50, 46)], "rooms": [2, 4], "chimney": Vector2i(87, 2)},
+	"fl_gable": {"sheet": "forest", "region": Rect2i(608, 400, 115, 80), "door": Vector2i(2, 4), "door_w": 1,
+		"blocks": [Rect2i(22, 32, 58, 30), Rect2i(64, 32, 50, 46)], "rooms": [2, 5], "chimney": Vector2i(87, 2)},
+	"fl_hut": {"sheet": "forest", "region": Rect2i(736, 144, 48, 64), "door": Vector2i(1, 4), "door_w": 1,
+		"blocks": [Rect2i(0, 32, 48, 30)], "rooms": [1, 2], "chimney": Vector2i(23, 14)},
+}
+const FOREST_SHEET := "res://assets/pack/TILESET_brighter.png"
+# Forest art the mixed farmstead maps borrow (TILESET_brighter.png): rect in
+# px, the foot inside it (`base`), collider, tag, flipbook frames side by
+# side. Only loose props (wood, stone, fire, metal on a transparent base):
+# none of the Forest's lawn-baked tiles, so no Forest lawn meets Farm ground.
+# Trees and bushes are summer green: `summer` only.
+const FOREST_PROPS := {
+	"fl_campfire": {"sheet": "forest", "rect": Rect2i(464, 448, 16, 32), "base": Vector2(8, 31), "block": Vector2(12, 6), "tag": "fire", "frames": 4, "fps": 8.0, "fire": "campfire"},
+	"fl_campfire_big": {"sheet": "forest", "rect": Rect2i(544, 448, 16, 32), "base": Vector2(8, 31), "block": Vector2(12, 6), "tag": "fire", "frames": 4, "fps": 8.0, "fire": "campfire_big"},
+	"fl_torch": {"sheet": "forest", "rect": Rect2i(560, 416, 16, 32), "base": Vector2(8, 27), "block": Vector2(4, 5), "tag": "torch", "frames": 3, "fps": 7.0, "fire": "torch"},
+	"fl_ash": {"sheet": "forest", "rect": Rect2i(448, 464, 16, 16), "base": Vector2(8, 15), "block": Vector2.ZERO, "tag": "flat"},
+	"fl_crate": {"sheet": "forest", "rect": Rect2i(336, 432, 16, 16), "base": Vector2(8, 15), "block": Vector2(12, 6), "tag": "clutter"},
+	"fl_crate_b": {"sheet": "forest", "rect": Rect2i(352, 432, 16, 16), "base": Vector2(8, 15), "block": Vector2(12, 6), "tag": "clutter"},
+	"fl_crate_stack": {"sheet": "forest", "rect": Rect2i(352, 448, 32, 32), "base": Vector2(16, 29), "block": Vector2(24, 8), "tag": "clutter"},
+	"fl_crate_stack_b": {"sheet": "forest", "rect": Rect2i(384, 448, 32, 32), "base": Vector2(16, 29), "block": Vector2(24, 8), "tag": "clutter"},
+	"fl_crate_stack_c": {"sheet": "forest", "rect": Rect2i(320, 448, 32, 32), "base": Vector2(16, 31), "block": Vector2(24, 8), "tag": "clutter"},
+	"fl_chest": {"sheet": "forest", "rect": Rect2i(416, 448, 16, 16), "base": Vector2(8, 14), "block": Vector2(12, 6), "tag": "clutter"},
+	"fl_chest_b": {"sheet": "forest", "rect": Rect2i(432, 448, 16, 16), "base": Vector2(8, 14), "block": Vector2(12, 6), "tag": "clutter"},
+	"fl_log": {"sheet": "forest", "rect": Rect2i(336, 400, 32, 16), "base": Vector2(16, 15), "block": Vector2(28, 6), "tag": "wood"},
+	"fl_log_b": {"sheet": "forest", "rect": Rect2i(336, 416, 32, 16), "base": Vector2(16, 15), "block": Vector2(28, 6), "tag": "wood"},
+	"fl_flowerpot": {"sheet": "forest", "rect": Rect2i(736, 320, 16, 32), "base": Vector2(8, 19), "block": Vector2.ZERO, "tag": "clutter"},
+	"fl_sign": {"sheet": "forest", "rect": Rect2i(432, 368, 16, 16), "base": Vector2(8, 15), "block": Vector2(8, 4), "tag": "sign"},
+	"fl_sign_b": {"sheet": "forest", "rect": Rect2i(448, 368, 16, 16), "base": Vector2(8, 15), "block": Vector2(8, 4), "tag": "sign"},
+	"fl_tree": {"sheet": "forest", "rect": Rect2i(464, 176, 64, 80), "base": Vector2(34, 78), "block": Vector2(12, 6), "tag": "tree", "summer": true},
+	"fl_tree_b": {"sheet": "forest", "rect": Rect2i(528, 176, 80, 96), "base": Vector2(40, 91), "block": Vector2(14, 6), "tag": "tree", "summer": true},
+	"fl_bloom": {"sheet": "forest", "rect": Rect2i(464, 288, 64, 80), "base": Vector2(34, 78), "block": Vector2(12, 6), "tag": "tree", "summer": true},
+	"fl_bloom_b": {"sheet": "forest", "rect": Rect2i(528, 288, 80, 96), "base": Vector2(40, 91), "block": Vector2(14, 6), "tag": "tree", "summer": true},
+	"fl_bush": {"sheet": "forest", "rect": Rect2i(336, 352, 32, 32), "base": Vector2(16, 31), "block": Vector2(26, 8), "tag": "bush", "summer": true},
+	"fl_bush_berry": {"sheet": "forest", "rect": Rect2i(368, 352, 32, 32), "base": Vector2(16, 31), "block": Vector2(26, 8), "tag": "bush", "summer": true},
 }
 # The greenhouse interior on the sheet: 11 x 12 cells from (64, 11); the
 # back wall is three rows, the way out a gap in the bottom row.
@@ -809,6 +851,9 @@ static func get_for(season: String, key: String) -> Variant:
 
 ## A prop's data in a season ({} when the season's sheet has none).
 static func prop(season: String, art: String) -> Dictionary:
+	if FOREST_PROPS.has(art):
+		var fp: Dictionary = FOREST_PROPS[art]
+		return {} if fp.get("summer", false) and season != "summer" else fp
 	var s: Dictionary = SEASONS.get(season, {})
 	if art in s.get("no_props", []):
 		return {}
@@ -826,6 +871,8 @@ static func prop(season: String, art: String) -> Dictionary:
 ## A building's region on a season's sheet (spring's, moved).
 static func building_region(season: String, kind: String) -> Rect2i:
 	var r: Rect2i = BUILDINGS[kind].region
+	if BUILDINGS[kind].get("sheet", "") == "forest":
+		return r # the Forest houses are the same in every season
 	var moved: Dictionary = SEASONS.get(season, {}).get("buildings", {})
 	if moved.has(kind):
 		return Rect2i(moved[kind], r.size)

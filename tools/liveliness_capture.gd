@@ -90,7 +90,7 @@ func _ready() -> void:
 			_farm = true
 		elif a == "pc":
 			_pc = true
-		elif a in ["cozy", "pack", "drawn"] or a.begins_with("out="):
+		elif a in ["cozy", "pack", "drawn", "mixed"] or a.begins_with("out="):
 			pass
 		else:
 			_plan.append(int(a))
@@ -119,6 +119,8 @@ func _ready() -> void:
 	_forest = (FARM_SCENE if _farm else (PC_SCENE if _pc else (CAVE_SCENE if _caves else MAP_SCENE))).instantiate()
 	if _farm:
 		_forest.interiors = false
+		# `mixed`: with the farmsteads (randomizer-paintedlands-forest-farm).
+		_forest.mixed = "mixed" in OS.get_cmdline_user_args()
 	if cozy:
 		_forest.cozy_animals = true
 		_forest.cozy_buildings = true

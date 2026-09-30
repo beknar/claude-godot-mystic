@@ -81,6 +81,52 @@ What it says:
   Fitting farm weights would need the capture's per-block features for the
   farm (not written yet).
 
+## Farmsteads (`randomizer-paintedlands-forest-farm`)
+
+The 12 farmsteads (Farm ids 48-59, maps 200088-200099, run with `mixed`),
+measured 2026-09-30 with the same four tests: the headless walker on all 12,
+the slow capture and the slow walker test on all 12 (rendered), and the
+fast estimate. The combined scene's Forest and Farm map types are the two
+randomizers' own and keep their rows above.
+
+| Scene | Maps | At rest (median) | At rest: weakest view | Quiet blocks | Walking | Walking: weakest view | Walking / rest | Fast estimate (scene / weakest window) |
+|---|---|---|---|---|---|---|---|---|
+| **Farmsteads** (all seasons) | 12 (walk 12) | **0.55 %** (0.38-1.06) | **0.32 %** | 4 % | **0.71 %** (0.55-1.19) | **0.38 %** | x1.3 | 0.66 % / 0.28 % |
+| Farm (above) | 12 | 0.40 % | 0.27 % | 6 % | 0.51 % | 0.32 % | x1.3 | 0.58 % / 0.23 % |
+
+Headless walker, per map (median of 12): 52 animal reactions, 263 dust
+puffs, 679 grass flicks, 8 leaves kicked, 0 snags on every map, no script
+error (the farm maps, counted the same way: 63, 192, 718, 5).
+
+The farmsteads are the liveliest Painted Lands maps measured, above the farm
+(0.40 %) and level with the top of the forest randomizer (0.49-0.59 %): the
+campfires flicker, glow, and smoke, the lanterns flicker by every door and
+gate, and the Forest houses' chimneys smoke, all of it in winter too, where
+the Farm has only its snow. Winter farmsteads are the liveliest (Frozen mill
+1.05 % at rest, Winter hearth 0.73 %).
+
+| Map | Map type | At rest | Weakest view | Quiet blocks | Walking | Walking weakest | Walking / rest |
+|---|---|---|---|---|---|---|---|
+| 200088 | 48 Cottage homestead | 0.56 % | 0.24 % | 4 % | 0.61 % | 0.31 % | x1.1 |
+| 200089 | 49 Blossom cottage | 0.54 % | 0.34 % | 1 % | 0.71 % | 0.35 % | x1.3 |
+| 200090 | 50 Hamlet by the mill | 0.70 % | 0.44 % | 2 % | 0.81 % | 0.46 % | x1.2 |
+| 200091 | 51 Woodcutter's clearing | 0.50 % | 0.20 % | 3 % | 0.62 % | 0.31 % | x1.3 |
+| 200092 | 52 Village fair | 0.64 % | 0.52 % | 1 % | 0.70 % | 0.58 % | x1.1 |
+| 200093 | 53 Greenhouse cottage | 0.41 % | 0.30 % | 1 % | 0.55 % | 0.31 % | x1.3 |
+| 200094 | 54 Lantern lane | 0.38 % | 0.18 % | 5 % | 0.60 % | 0.31 % | x1.6 |
+| 200095 | 55 Harvest bonfire | 0.62 % | 0.21 % | 2 % | 0.68 % | 0.36 % | x1.1 |
+| 200096 | 56 Autumn hearths | 0.54 % | 0.23 % | 10 % | 0.81 % | 0.43 % | x1.5 |
+| 200097 | 57 Winter hearth | 0.73 % | 0.50 % | 15 % | 0.76 % | 0.56 % | x1.0 |
+| 200098 | 58 Snowbound hamlet | 0.54 % | 0.35 % | 16 % | 0.75 % | 0.39 % | x1.4 |
+| 200099 | 59 Frozen mill | 1.05 % | 0.62 % | 15 % | 1.19 % | 0.77 % | x1.1 |
+
+Fixed on the way: Greenhouse cottage, the one summer farmstead without a
+fire, was the quietest (0.29 % at rest, weakest view 0.14 %); it now has a
+campfire by the hut (0.41 %, weakest 0.30 %, refilmed). A tree that grew just
+below a campfire hid it under its crown; the rows below a fire now take no
+tree. The fast estimate now counts the farmsteads' fires and chimneys
+(flames, glow, smoke, as the Painted Lands proxy does).
+
 ## Farm, map by map
 
 At rest: the slow capture; walking: the slow walker test (same maps, final
@@ -143,6 +189,7 @@ godot --headless -s res://tools/liveliness.gd -- 190000 48 -1 farm
 python3 tools/liveliness_analyze.py compare .liveliness_farm,<dir>,...
 ```
 
-`pc` in place of `farm` runs the Pixel Crawler randomizer. The rendered runs
+`farm mixed` (ids 200088-200099) runs the farmsteads; `pc` in place of
+`farm` runs the Pixel Crawler randomizer. The rendered runs
 need the game window visible for their whole length (about 3 minutes a map);
 one farm capture stopped silently at map 5 and was resumed from there.

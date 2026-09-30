@@ -91,7 +91,8 @@ is 80 screen pixels.
 >
 > **The cozy farm randomizer is deprecated.** From now on only the **Cozy
 > Farm** animals are used, in `randomizer-paintedlands`,
-> `randomizer-greencaves`, and `randomizer-paintedlands-farm`; its buildings and the
+> `randomizer-greencaves`, `randomizer-paintedlands-farm`, and
+> `randomizer-paintedlands-forest-farm`; its buildings and the
 > `randomizer-painted-cozyfarm` scene stay as a record only
 > (`docs/deprecated/cozy-farm.md`).
 
@@ -106,6 +107,7 @@ between them.
 | forest, wilds | Painted Lands | `TILESET_brighter.png` | `scripts/forest_terrain.gd` |
 | randomizer-greencaves | Green Caves | `green_caves/green_caves_tileset.png` | `scripts/cave_terrain.gd` + `scripts/caves.gd` |
 | randomizer-paintedlands-farm | Farm – 4 Seasons (spring and summer, autumn, winter; one season per map) | `farm/` (the three seasonal tilesets, crops, tree, windmill, and gate animations, fish) | `scripts/farm_terrain.gd` + `scripts/farm.gd` (`scripts/farm_tiles.gd`) |
+| randomizer-paintedlands-forest-farm | Painted Lands Forest and Farm – 4 Seasons (one ground per map) | `TILESET_brighter.png`, `farm/` | `scripts/forest_farm.gd` over `forest.gd` and `farm.gd` (`MIXED_RECIPES` for the farmsteads) |
 | randomizer-manaseed | Mana Seed | `mana_seed/` (four seasonal forests, village, fences, weather, extras) | `scripts/ms_terrain.gd` + `scripts/manaseed.gd` |
 | randomizer-pixelcrawler | Pixel Crawler | `pixel_crawler/` (Fairy Forest, Farm forest, Green Woods, Cemetery, Desert) | `scripts/pc_terrain.gd` + `scripts/pixelcrawler.gd` |
 | randomizer-timefantasy (experimental, not suitable) | Time Fantasy | `time_fantasy/` (terrain, outside, water, house, animated) | `scripts/tf_terrain.gd` + `scripts/timefantasy.gd` |
@@ -128,6 +130,7 @@ generator.
 | `scenes/randomizer-mysticwoods/randomizer-mysticwoods.tscn` | starts at 21021, then any | `player.png` |
 | `scenes/randomizer-greencaves/randomizer-greencaves.tscn` | starts at 130021, then any | `character_sprite_sheet.png` (the Painted Lands walker) |
 | `scenes/randomizer-paintedlands-farm/randomizer-paintedlands-farm.tscn` | starts at 190032 (recipe 0, Homestead), then any | `character_sprite_sheet.png` (the Painted Lands walker) |
+| `scenes/randomizer-paintedlands-forest-farm/randomizer-paintedlands-forest-farm.tscn` | starts at 200031 (recipe 81, Cottage homestead), then any | `character_sprite_sheet.png` (the Painted Lands walker) |
 | `scenes/randomizer-manaseed/randomizer-manaseed.tscn` | starts at 160000, then any | `character_sprite_sheet.png` (the Painted Lands walker) |
 | `scenes/randomizer-painted-cozyfarm/randomizer-painted-cozyfarm.tscn` (deprecated) | starts at 180033 (recipe 33 Farmstead), then any | `character_sprite_sheet.png` |
 | `scenes/randomizer-pixelcrawler/randomizer-pixelcrawler.tscn` | starts at 170000, then any | `character_sprite_sheet.png` (the Painted Lands walker) |
@@ -193,6 +196,23 @@ interior, a sub-map far below the farm: farmhouses, the manor, the barn, and
 the windmill open on Cozy Cottage homes, and the greenhouse on the sheet's
 own glasshouse with crops in its beds. `tools/check_farm.gd` sweeps it
 headless (docs/farm.md).
+
+The Painted Lands forest and farm randomizer
+(`randomizer-paintedlands-forest-farm`) builds all 93 Painted Lands map
+types from one menu: the 33 Forest map types, the 48 Farm map types, and 12
+farmsteads of its own, all with the Cozy Farm animals. A farmstead is Farm
+ground in one season with the Forest's houses (porch house, flower cottage,
+gabled cottage, hut) in place of the farmhouses, chimney smoke, campfires
+ringed with logs, ash, and crates by the doors, lanterns flanking the doors
+and pen gates, and flowerpots, chests, and signs; in summer the Forest's
+green trees, blossoms, and berry bushes grow among the Farm trees. Six are
+summer (cottage homestead, blossom cottage, hamlet by the mill,
+woodcutter's clearing, village fair, greenhouse cottage), three autumn
+(lantern lane, harvest bonfire, autumn hearths), and three winter (winter
+hearth, snowbound hamlet, frozen mill). Each map keeps one ground (Forest
+lawn and Farm lawn never meet): the scene holds both pipelines and hides and
+pauses the one not in use. `tools/check_farm.gd ... mixed` sweeps the
+farmsteads.
 
 The Pixel Crawler randomizer builds outdoor maps in four biomes from
 Anokolisa's Pixel Crawler sheets, 17 recipes in all: Fairy Forest (glade,

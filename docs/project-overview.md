@@ -95,6 +95,17 @@ Painted Lands farm randomizer (docs/farm.md):
   interiors behind every door, the Cozy Farm animals, and the same Esc menu,
   titled "Painted Lands farm randomizer".
 
+Painted Lands forest and farm randomizer (docs/farm.md, Farmsteads):
+
+- `scenes/randomizer-paintedlands-forest-farm/randomizer-paintedlands-forest-farm.tscn` —
+  `forest_farm.gd` holds the Forest and Farm pipelines (each scene embedded
+  without its own menu) and builds all 93 Painted Lands map types, id % 93:
+  0-32 Forest, 33-80 Farm, 81-92 the farmsteads (Farm ground with Forest
+  houses, fires, lanterns, and clutter). Starts at map id `200031` (recipe 81,
+  Cottage homestead). The pipeline not in use is hidden and paused. Same
+  walker, interiors, Cozy Farm animals, and Esc menu, titled "Painted Lands
+  forest and farm randomizer".
+
 Mana Seed randomizer (not to be used in new work):
 
 - `scenes/randomizer-manaseed/randomizer-manaseed.tscn` — the Mana Seed

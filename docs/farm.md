@@ -256,6 +256,56 @@ Winter (40-47):
 | 46 | Greenhouse in the snow | greenhouse, farmhouse | bare orchard, crops growing inside the greenhouse |
 | 47 | Winter windmill | windmill, barn | pens, hay |
 
+## Farmsteads (`randomizer-paintedlands-forest-farm`)
+
+`scripts/forest_farm.gd` holds both Painted Lands pipelines (the Forest
+randomizer and this one, each without its own menu) and builds every map
+type of both from one menu, id % 93: 0-32 Forest, 33-80 Farm (0-47 here),
+81-92 the farmsteads (`FarmTerrain.MIXED_RECIPES`, Farm ids 48-59, built only
+when the painter's `mixed` is on). The pipeline not in use is hidden and
+paused (its colliders leave the physics space) and its walker camera
+switched off, or the viewport falls back to it when the walker goes indoors.
+
+A farmstead is a Farm map (Farm ground, fences, crops, and trees in its one
+season) with Forest art from `TILESET_brighter.png` on top, read from
+`FarmTiles.FOREST_PROPS` and the `fl_*` entries of `FarmTiles.BUILDINGS`:
+
+- **Houses:** porch house, flower cottage, gabled cottage, hut, in place of
+  the farmhouses (they fit every season); measured collision blocks, a door
+  onto a Cozy Cottage home (rooms by house), and a smoking chimney.
+- **Hearths** (`_hearths`): a campfire (a big one where the recipe says)
+  by a home's door, ringed with logs, ash, and crates; lanterns flanking
+  each door (a row lower where the door is in a wall) and pen gates;
+  flowerpots and crates by the Forest houses; a sign at the hub. Fires and
+  chimneys go to `fire_ambience.gd` (flicker, glow, sparks, smoke) and
+  count toward the liveliness floor (a fire 1 x the glow weight, a lantern
+  0.4).
+- **Forest greenery, summer only** (`_forest_trees`): the Forest's green
+  trees, blossoms, and berry bushes among the Farm trees, spaced, with crown
+  fades and leaf fall. Forest trees are summer green only, so autumn and
+  winter farmsteads keep the Farm's own trees; `FarmTiles.prop()` returns
+  nothing for them out of summer.
+- Never Forest ground: the lawn, paths, and water stay the Farm's.
+
+Measured (docs/liveliness-farm.md, Farmsteads): 0.55 % local motion at rest
+and 0.71 % walking over all 12, the liveliest Painted Lands maps measured;
+0 snags on every farmstead.
+
+| # | Map type | Season | Buildings | Features |
+|---|---|---|---|---|
+| 48 | Cottage homestead | summer | porch house, barn | fields, pen, pond, campfire |
+| 49 | Blossom cottage | summer | flower cottage | cherry orchard, strawberry rows |
+| 50 | Hamlet by the mill | summer | gabled cottage, hut, windmill | wheat and corn rows, brook, campfire |
+| 51 | Woodcutter's clearing | summer | hut | canopy wall, big fire, logs |
+| 52 | Village fair | summer | porch house, flower cottage, manor | market, two campfires |
+| 53 | Greenhouse cottage | summer | greenhouse, hut | peach orchard, strawberry rows |
+| 54 | Lantern lane | autumn | porch house, flower cottage | apple orchard, lantern road |
+| 55 | Harvest bonfire | autumn | barn, hut | pumpkin and corn fields, big fire |
+| 56 | Autumn hearths | autumn | gabled cottage, hut, windmill | crossing roads, pen |
+| 57 | Winter hearth | winter | porch house, barn | pen, pond, campfire |
+| 58 | Snowbound hamlet | winter | gabled cottage, hut, flower cottage | pines, two campfires |
+| 59 | Frozen mill | winter | windmill, hut | frozen lake, pen |
+
 ## Checks
 
 `godot --headless -s res://tools/check_farm.gd -- <first_id> [count] [recipe]`
@@ -263,7 +313,8 @@ generates maps and prints each one's recipe, buildings, counts, floor notes,
 and checks: the walker reaches every door, gate, field, and the hub; every
 cell has a ground tile; every shore cell has a shore tile; every building the
 recipe names stands. 96 of 96 maps (190000–190095, every map type twice) pass
-on the first layout. `tools/walker_test.tscn -- farm` walks every map type
+on the first layout; with `mixed` (the farmsteads too), 120 of 120
+(200000-200119). `tools/walker_test.tscn -- farm` walks every map type
 headless (0 snags on all 48); the liveliness tools take `farm` too
 (docs/liveliness-farm.md).
 
@@ -274,4 +325,6 @@ road, yard, or shore directly; a raw square of a darker fill; a shore cell
 with no rim or a one-cell channel of water; a road that stops short of a door or breaks in two; a field
 with no crops or a crop floating off its plot; a pen with no animals; a tree
 whose trunk does not block or whose crown hides the walker without fading; a
-building that hides the walker without fading; a door that does not open.
+building that hides the walker without fading; a door that does not open;
+on a farmstead, Forest ground, a Forest tree out of summer, or a fire under a
+crown.

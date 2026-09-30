@@ -94,7 +94,7 @@ func _ready() -> void:
 			_pc = true
 		elif a == "cozy":
 			cozy = true
-		elif a == "pack" or a == "drawn":
+		elif a in ["pack", "drawn", "mixed"]:
 			pass
 		elif a.begins_with("out="):
 			out_dir = a.substr(4)
@@ -120,6 +120,8 @@ func _ready() -> void:
 	_forest = (FARM_SCENE if _farm else (PC_SCENE if _pc else (CAVE_SCENE if _caves else MAP_SCENE))).instantiate()
 	if _farm:
 		_forest.interiors = false # the route never goes indoors
+		# `mixed`: with the farmsteads (randomizer-paintedlands-forest-farm).
+		_forest.mixed = "mixed" in OS.get_cmdline_user_args()
 	if cozy:
 		_forest.cozy_animals = true
 		_forest.cozy_buildings = true

@@ -94,6 +94,28 @@ const RECIPES := [
 	{"name": "Winter windmill", "season": "winter", "buildings": ["windmill", "barn"], "pens": [1, 2], "trees": ["wild", 8], "zones": 0.13, "pale": 0.18, "path": "road", "ground": "e", "piece": "hay"},
 ]
 
+# Farmstead map types (randomizer-paintedlands-forest-farm only, `mixed`):
+# Farm ground and buildings with the Painted Lands Forest's houses (Cozy
+# Cottage interiors, chimney smoke), campfires, torches, crates, chests,
+# signs, and (summer only) its trees and bushes. fires: campfires with ash
+# and logs round them; lanterns: torches flanking every door and gate;
+# forest_trees: Forest trees among the Farm's (summer). Recipe ids follow the
+# 48 farm types (48-59).
+const MIXED_RECIPES := [
+	{"name": "Cottage homestead", "buildings": ["fl_porch", "barn"], "fields": [2, 2], "crops": ["cabbage", "carrot", "leek"], "rows": false, "pens": [1, 1], "water": "pond", "trees": ["wild", 8], "forest_trees": 6, "fires": 1, "lanterns": true, "zones": 0.24, "pale": 0.12, "path": "road", "ground": "e", "piece": "farmyard"},
+	{"name": "Blossom cottage", "buildings": ["fl_flower"], "orchard": ["cherry", 10], "fields": [1, 1], "crops": ["strawberry"], "rows": true, "trees": ["wild", 4], "forest_trees": 5, "fires": 0, "lanterns": true, "zones": 0.2, "pale": 0.14, "path": "lane", "ground": "s", "piece": "garden", "flowers": 2},
+	{"name": "Hamlet by the mill", "buildings": ["fl_gable", "fl_hut", "windmill"], "fields": [2, 2], "crops": ["wheat", "corn"], "rows": true, "water": "stream", "trees": ["wild", 6], "forest_trees": 4, "fires": 1, "lanterns": true, "zones": 0.2, "pale": 0.16, "path": "lane", "ground": "e", "piece": "village"},
+	{"name": "Woodcutter's clearing", "buildings": ["fl_hut"], "canopy": true, "trees": ["wild", 20], "forest_trees": 6, "fires": 1, "big_fire": true, "zones": 0.32, "pale": 0.06, "path": "road", "ground": "e", "piece": "woodcutter"},
+	{"name": "Village fair", "buildings": ["fl_porch", "fl_flower", "manor"], "fields": [2, 2], "crops": ["pumpkin", "sunflower"], "rows": false, "trees": ["wild", 4], "forest_trees": 4, "fires": 2, "lanterns": true, "zones": 0.16, "pale": 0.14, "path": "cross", "ground": "e", "piece": "market"},
+	{"name": "Greenhouse cottage", "buildings": ["greenhouse", "fl_hut"], "orchard": ["peach", 6], "fields": [1, 1], "crops": ["strawberry"], "rows": true, "trees": ["wild", 4], "forest_trees": 4, "fires": 1, "lanterns": true, "zones": 0.2, "pale": 0.12, "path": "lane", "ground": "s", "piece": "garden"},
+	{"name": "Lantern lane", "season": "autumn", "buildings": ["fl_porch", "fl_flower"], "orchard": ["apple", 8], "trees": ["wild", 8], "fires": 1, "lanterns": true, "zones": 0.22, "pale": 0.14, "path": "road", "ground": "e", "piece": "harvest"},
+	{"name": "Harvest bonfire", "season": "autumn", "buildings": ["barn", "fl_hut"], "fields": [3, 3], "crops": ["pumpkin", "pumpkin", "corn"], "rows": false, "trees": ["wild", 8], "fires": 2, "big_fire": true, "zones": 0.18, "pale": 0.18, "path": "lane", "ground": "e", "piece": "hay"},
+	{"name": "Autumn hearths", "season": "autumn", "buildings": ["fl_gable", "fl_hut", "windmill"], "pens": [1, 1], "trees": ["wild", 8], "fires": 1, "lanterns": true, "zones": 0.2, "pale": 0.14, "path": "cross", "ground": "e", "piece": "village"},
+	{"name": "Winter hearth", "season": "winter", "buildings": ["fl_porch", "barn"], "pens": [1, 1], "water": "pond", "trees": ["wild", 10], "fires": 1, "lanterns": true, "zones": 0.14, "pale": 0.16, "path": "road", "ground": "e", "piece": "farmyard"},
+	{"name": "Snowbound hamlet", "season": "winter", "buildings": ["fl_gable", "fl_hut", "fl_flower"], "trees": ["pines", 12], "fires": 2, "lanterns": true, "zones": 0.14, "pale": 0.18, "path": "cross", "ground": "e", "piece": "village"},
+	{"name": "Frozen mill", "season": "winter", "buildings": ["windmill", "fl_hut"], "water": "lake", "pens": [1, 1], "trees": ["pines", 10], "fires": 1, "lanterns": true, "zones": 0.14, "pale": 0.16, "path": "lane", "ground": "s", "piece": "hay"},
+]
+
 var map_id := 0
 var recipe_id := 0
 var recipe: Dictionary
@@ -140,10 +162,19 @@ var _locked := {} # corners that must stay lawn (water, plateau feet, buildings)
 var _rng := RandomNumberGenerator.new()
 
 
+## Every map type: the 48 farm ones, and with `with_mixed` the farmsteads.
+static func all_recipes(with_mixed: bool) -> Array:
+	return RECIPES + MIXED_RECIPES if with_mixed else RECIPES
+
+
+## Draws the farmstead map types too (randomizer-paintedlands-forest-farm).
+var mixed := false
+
 func generate(id: int, pinned := -1) -> String:
 	map_id = id
-	recipe_id = pinned if pinned >= 0 else id % RECIPES.size()
-	recipe = RECIPES[recipe_id]
+	var list := all_recipes(mixed)
+	recipe_id = pinned if pinned >= 0 else id % list.size()
+	recipe = list[recipe_id]
 	season = recipe.get("season", "summer")
 	wang = FarmTiles.get_for(season, "wang")
 	plots_tab = FarmTiles.get_for(season, "plots")
@@ -169,7 +200,7 @@ func _layout() -> bool:
 	kind = PackedByteArray()
 	kind.resize(W * H)
 	kind.fill(OPEN)
-	for d in [water, stream, stones, paths, blocked, _taken, _locked, plots, fence, deco]:
+	for d in [water, stream, stones, paths, blocked, _taken, _no_tree, _locked, plots, fence, deco]:
 		d.clear()
 	for k in blobs:
 		blobs[k].clear()
@@ -211,7 +242,9 @@ func _layout() -> bool:
 	_zones()
 	_repair()
 	_piece()
+	_hearths()
 	_scatter_trees()
+	_forest_trees()
 	_scatter_small()
 	_deco()
 	_liveliness_floor()
@@ -244,6 +277,9 @@ func _set_corner(x: int, y: int, t: String) -> void:
 ## The terrain letters at a cell's TL, TR, BL, BR corners.
 func sig(c: Vector2i) -> String:
 	return corner_at(c.x, c.y) + corner_at(c.x + 1, c.y) + corner_at(c.x, c.y + 1) + corner_at(c.x + 1, c.y + 1)
+
+
+var _no_tree := {} # cells below a campfire (a crown there would hide it)
 
 
 func _claim(r: Rect2i) -> void:
@@ -1045,6 +1081,81 @@ func _piece() -> void:
 			_flower_carpet()
 
 
+## Farmstead maps: campfires in the yards (ash and logs round them, crates
+## near), torches flanking every door and pen gate, and the Forest's clutter
+## (crates, chests, flowerpots by the doors, a sign at the hub).
+func _hearths() -> void:
+	var fires: int = recipe.get("fires", 0)
+	var homes := buildings.filter(func(b): return b.kind != "greenhouse")
+	for i in fires:
+		var at: Vector2i = goals[0] if goals.size() > 0 else Vector2i(W / 2, H / 2)
+		if not homes.is_empty():
+			var b: Dictionary = homes[i % homes.size()]
+			at = b.door + Vector2i(_rng.randi_range(-5, 5), _rng.randi_range(3, 5))
+		var art := "fl_campfire_big" if recipe.get("big_fire", false) and i == 0 else "fl_campfire"
+		for t in 40:
+			var c := at + Vector2i(_rng.randi_range(-3, 3), _rng.randi_range(-1, 2))
+			if _place(art, c):
+				_near(["fl_log", "fl_log_b"], 2, c, 2)
+				_place("fl_ash", c + Vector2i(1 if _rng.randf() < 0.5 else -1, 0))
+				_near(["fl_crate", "fl_crate_b", "fl_crate_stack", "fl_chest"], 1, c, 3)
+				# No tree just below: its crown would hide the fire.
+				var shade := Rect2i(c + Vector2i(-2, 1), Vector2i(5, 4))
+				_claim(shade)
+				for y in range(shade.position.y, shade.end.y):
+					for x in range(shade.position.x, shade.end.x):
+						_no_tree[Vector2i(x, y)] = true
+				notes.append("campfire")
+				break
+	if recipe.get("lanterns", false):
+		for b in buildings:
+			# Beside the doorstep (a Forest house's is under the house; a farm
+			# building's door is in its wall, so a row down).
+			for side in [Vector2i(-1, 0), Vector2i(b.door_w, 0)]:
+				if not _place("fl_torch", b.door + side, true):
+					_place("fl_torch", b.door + side + Vector2i(0, 1), true)
+		for g in gates:
+			_place("fl_torch", g + Vector2i(-1, 1), true)
+			_place("fl_torch", g + Vector2i(1, 1), true)
+	if recipe.has("forest_trees") or recipe.get("lanterns", false) or fires > 0:
+		for b in buildings:
+			if String(b.kind).begins_with("fl_"):
+				_place("fl_flowerpot", b.door + Vector2i(-2, 0), true)
+				_near(["fl_crate", "fl_crate_b", "fl_crate_stack", "fl_crate_stack_b", "fl_chest", "fl_chest_b"], 2, b.door + Vector2i(0, 2), 4)
+		if not goals.is_empty():
+			_place(["fl_sign", "fl_sign_b"][_rng.randi() % 2], goals[0] + Vector2i(2, -1))
+
+
+## Summer farmsteads: the Forest's green and blossom trees and round bushes
+## among the Farm's own, in small clusters on the darker grass.
+func _forest_trees() -> void:
+	var want: int = recipe.get("forest_trees", 0)
+	if want <= 0 or season != "summer":
+		return
+	var arts := ["fl_tree", "fl_tree_b", "fl_bloom", "fl_bloom_b"]
+	var put := 0
+	for t in want * 40:
+		if put >= want:
+			break
+		var c := Vector2i(_rng.randi_range(3, W - 4), _rng.randi_range(5, H - 3))
+		if _taken.has(c) or (tone_level(c) < 1 and _rng.randf() < 0.5):
+			continue
+		var near := false
+		for tr in trees:
+			if Vector2(tr.cell - c).length() < 4.0:
+				near = true
+		for p in props:
+			if FarmTiles.prop(season, p.art).get("tag", "") == "tree" and Vector2(p.cell - c).length() < 4.0:
+				near = true
+		if near:
+			continue
+		if _place(arts[_rng.randi() % arts.size()], c):
+			_claim(Rect2i(c - Vector2i(2, 2), Vector2i(5, 3)))
+			if _rng.randf() < 0.5:
+				_near(["fl_bush", "fl_bush_berry"], 1, c + Vector2i(0, 2), 3)
+			put += 1
+
+
 ## A carpet of flowers (deco cells) on open lawn: wildflower patches.
 func _flower_carpet() -> void:
 	for t in 40:
@@ -1105,7 +1216,7 @@ func _place(art: String, cell: Vector2i, force := false) -> bool:
 ## A tree from the animation sheets at `cell` (its trunk cell); the trunk
 ## blocks, and a ring round it stays clear of other trees.
 func _place_tree(art: String, cell: Vector2i) -> bool:
-	if not _inside(cell) or cell.y < 3 or kind[_i(cell)] != OPEN or paths.has(cell) or blocked.has(cell) or cell == spawn:
+	if not _inside(cell) or cell.y < 3 or kind[_i(cell)] != OPEN or paths.has(cell) or blocked.has(cell) or cell == spawn or _no_tree.has(cell):
 		return false
 	for o in [Vector2i(-1, 0), Vector2i(1, 0)]:
 		if not _inside(cell + o) or kind[_i(cell + o)] != OPEN:
@@ -1368,6 +1479,10 @@ func _weakest() -> Dictionary:
 			m[_i(c)] += FLOOR_FLOWER
 	for c in firefly_spots:
 		m[_i(c)] += FLOOR_GLOW * 2.0
+	for p in props:
+		var tag: String = FarmTiles.prop(season, p.art).get("tag", "")
+		if tag == "fire" or tag == "torch":
+			m[_i(p.cell)] += FLOOR_GLOW * (1.0 if tag == "fire" else 0.4) # flames, glow, and smoke
 	var best := {"rect": Rect2i(), "value": INF}
 	var xs: Array[int] = []
 	var ys: Array[int] = []
@@ -1450,7 +1565,7 @@ func trunks() -> Array[Vector2i]:
 	for t in trees:
 		out.append(t.cell)
 	for p in props:
-		if FarmTiles.prop(season, p.art).tag == "bare":
+		if FarmTiles.prop(season, p.art).tag in ["bare", "tree"]:
 			out.append(p.cell)
 	return out
 

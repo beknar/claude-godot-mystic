@@ -36,13 +36,18 @@ Rules for each pack: `docs/painted-lands.md`, `docs/green-caves.md`,
 | Painted Lands Farm (spring and summer) + Cozy Cottage (interiors) + Cozy Farm (animals) | `randomizer-paintedlands-farm` | 28 |
 | Painted Lands Farm (autumn) + Cozy Cottage (interiors) + Cozy Farm (animals) | `randomizer-paintedlands-farm` | 10 |
 | Painted Lands Farm (winter) + Cozy Cottage (interiors) + Cozy Farm (animals) | `randomizer-paintedlands-farm` | 8 |
+| Painted Lands Farm (spring and summer) + Forest (houses, fires, clutter, summer trees) + Cozy Cottage (interiors) + Cozy Farm (animals) | `randomizer-paintedlands-forest-farm` | 6 |
+| Painted Lands Farm (autumn) + Forest (houses, fires, clutter) + Cozy Cottage (interiors) + Cozy Farm (animals) | `randomizer-paintedlands-forest-farm` | 3 |
+| Painted Lands Farm (winter) + Forest (houses, fires, clutter) + Cozy Cottage (interiors) + Cozy Farm (animals) | `randomizer-paintedlands-forest-farm` | 3 |
 | Pixel Crawler Fairy Forest | `randomizer-pixelcrawler` | 6 |
 | Pixel Crawler Farm forest + Green Woods | `randomizer-pixelcrawler` | 5 |
 | Pixel Crawler Cemetery | `randomizer-pixelcrawler` | 3 |
 | Pixel Crawler Desert | `randomizer-pixelcrawler` | 3 |
 
-131 map types in all (33 Painted Lands, 33 Green Caves, 48 Farm in three
-seasons, 17 Pixel Crawler) and 2 fixed maps. Painted Lands and Pixel Crawler never share a map, and
+143 map types in all (33 Painted Lands, 33 Green Caves, 48 Farm in three
+seasons, 12 farmsteads, 17 Pixel Crawler) and 2 fixed maps.
+`randomizer-paintedlands-forest-farm` builds all 93 Painted Lands map types
+(the 33 Forest, the 48 Farm, and the 12 farmsteads, which only it builds). Painted Lands and Pixel Crawler never share a map, and
 the Cozy Farm animals never go on a Pixel Crawler map.
 
 ## Painted Lands Forest
@@ -242,6 +247,41 @@ falling snow; no crops outdoors.
 | 45 | Winter village | farmhouse (2-4), manor (3-6), barn (its own barn interior) | crossing roads |
 | 46 | Greenhouse in the snow | greenhouse (its own glasshouse), farmhouse (2-4) | bare orchard |
 | 47 | Winter windmill | windmill (1), barn (its own barn interior) | pens, hay |
+
+## Painted Lands forest and farm: the combined randomizer
+
+`randomizer-paintedlands-forest-farm` (id % 93; `scripts/forest_farm.gd`)
+holds both Painted Lands pipelines and builds every map type of the two
+randomizers above, with the Cozy Farm animals in both: recipes 0-32 are the
+Forest map types (`randomizer-paintedlands`, same numbers), 33-80 the Farm
+map types (Farm 0-47, in three seasons), and 81-92 the farmsteads below. A
+map keeps one ground: Forest lawn and Farm lawn never meet, so the pipeline
+not in use is hidden and paused.
+
+### Farmsteads (Farm ground + Forest houses, fires, and clutter)
+
+Farm ground, crops, fences, and trees in the map's season, with the Forest
+sheet's (`TILESET_brighter.png`) houses in place of the farmhouses (their
+chimneys smoke, and they open on Cozy Cottage homes, rooms in brackets),
+campfires with logs, ash, and crates by the doors, lanterns flanking doors
+and pen gates, flowerpots, chests, and signs. The summer farmsteads add the
+Forest's summer trees, blossoms, and bushes; autumn and winter use only the
+Farm trees (Forest trees are summer green only).
+
+| # (Farm #) | Map type | Season | Buildings (rooms) | Features |
+|---|---|---|---|---|
+| 81 (48) | Cottage homestead | summer | porch house (3-6), barn (barn interior) | fields, pen, pond, campfire |
+| 82 (49) | Blossom cottage | summer | flower cottage (2-4) | cherry orchard, strawberry rows |
+| 83 (50) | Hamlet by the mill | summer | gabled cottage (2-5), hut (1-2), windmill (1) | wheat and corn rows, brook, campfire |
+| 84 (51) | Woodcutter's clearing | summer | hut (1-2) | canopy wall, big fire, log piles |
+| 85 (52) | Village fair | summer | porch house (3-6), flower cottage (2-4), manor (3-6) | market, two campfires |
+| 86 (53) | Greenhouse cottage | summer | greenhouse (its own glasshouse), hut (1-2) | peach orchard, strawberry rows |
+| 87 (54) | Lantern lane | autumn | porch house (3-6), flower cottage (2-4) | apple orchard, lantern road |
+| 88 (55) | Harvest bonfire | autumn | barn (barn interior), hut (1-2) | pumpkin and corn fields, big fire |
+| 89 (56) | Autumn hearths | autumn | gabled cottage (2-5), hut (1-2), windmill (1) | crossing roads, pen |
+| 90 (57) | Winter hearth | winter | porch house (3-6), barn (barn interior) | pen, pond, campfire |
+| 91 (58) | Snowbound hamlet | winter | gabled cottage (2-5), hut (1-2), flower cottage (2-4) | pines, two campfires |
+| 92 (59) | Frozen mill | winter | windmill (1), hut (1-2) | frozen lake, pen |
 
 ## Pixel Crawler
 

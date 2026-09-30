@@ -14,8 +14,9 @@ changing its generator, painter, or scenes.
 - They are used in **separate maps** and never combined, on the ground, in
   props, or in palettes.
 - **Cozy Farm** (shubibubi) is used for its **animals only**, in
-  `randomizer-paintedlands`, `randomizer-greencaves`, and
-  `randomizer-paintedlands-farm` (`cozy_animals`):
+  `randomizer-paintedlands`, `randomizer-greencaves`,
+  `randomizer-paintedlands-farm`, and `randomizer-paintedlands-forest-farm`
+  (`cozy_animals`):
   the bunny for the drawn rabbit, farm animals only by homes and in pens.
   Insects, birds, tiny animals, and effects stay as drawn. Its buildings
   and other art are not used; `randomizer-painted-cozyfarm` is deprecated.
@@ -31,8 +32,9 @@ changing its generator, painter, or scenes.
 | Painted Lands, Forest | `forest`, `wilds`, `randomizer-paintedlands` | `forest_terrain.gd`, `forest.gd` | `docs/painted-lands.md` |
 | Painted Lands, Green Caves | `randomizer-greencaves` | `cave_terrain.gd`, `caves.gd`, `cave_life.gd` | `docs/green-caves.md` |
 | Painted Lands, Farm – 4 Seasons (spring and summer, autumn, winter; one season per map, never mixed) | `randomizer-paintedlands-farm` | `farm_terrain.gd`, `farm.gd`, `farm_tiles.gd` | `docs/farm.md` |
-| Painted Lands, Cozy Cottage | homes in the Painted Lands, Green Caves, and farm randomizers | `interior_*.gd`, `house_interiors.gd` | `docs/interiors.md` |
-| Cozy Farm (animals only) | `randomizer-paintedlands`, `randomizer-greencaves`, `randomizer-paintedlands-farm` | `wildlife.gd` (`PACK_SPECIES`), `cave_terrain.gd` (`wildlife_plan`) | `docs/painted-lands.md` (Cozy Farm animals) |
+| Painted Lands, Forest and Farm combined (every Forest and Farm map type, plus farmsteads: Farm ground with Forest houses, fires, and clutter) | `randomizer-paintedlands-forest-farm` | `forest_farm.gd`, `farm_terrain.gd` (`MIXED_RECIPES`), `farm_tiles.gd` (`FOREST_PROPS`) | `docs/farm.md` (Farmsteads) |
+| Painted Lands, Cozy Cottage | homes in the Painted Lands, Green Caves, farm, and forest-and-farm randomizers | `interior_*.gd`, `house_interiors.gd` | `docs/interiors.md` |
+| Cozy Farm (animals only) | `randomizer-paintedlands`, `randomizer-greencaves`, `randomizer-paintedlands-farm`, `randomizer-paintedlands-forest-farm` | `wildlife.gd` (`PACK_SPECIES`), `cave_terrain.gd` (`wildlife_plan`) | `docs/painted-lands.md` (Cozy Farm animals) |
 | Pixel Crawler | `randomizer-pixelcrawler` | `pc_terrain.gd`, `pixelcrawler.gd`, `pc_tiles.gd` | `docs/pixel-crawler.md` |
 | Mystic Woods (deprecated) | `clearing`, `grove`, `hollow`, `ford`, `heath`, `randomizer-mysticwoods` | `terrain.gd`, `clearing.gd` | `docs/deprecated/mystic-woods.md` |
 | Cozy Farm buildings (deprecated) | `randomizer-painted-cozyfarm` | `forest_terrain.gd` (`cozy`), `forest.gd` (`cozy_buildings`) | `docs/deprecated/cozy-farm.md` |

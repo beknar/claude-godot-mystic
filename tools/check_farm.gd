@@ -3,7 +3,9 @@ extends SceneTree
 ## and prints each one's recipe, buildings, counts, floor notes, and checks
 ## line (the walker reaches every door, gate, and field; every cell has a
 ## ground tile and every shore cell a shore tile).
-##   godot --headless -s res://tools/check_farm.gd -- <first_id> [count] [recipe]
+##   godot --headless -s res://tools/check_farm.gd -- <first_id> [count] [recipe] [mixed]
+## `mixed`: with the farmstead map types (randomizer-paintedlands-forest-farm),
+## recipe ids 48-59; a pinned recipe over the whole list.
 
 func _init() -> void:
 	var args := OS.get_cmdline_user_args()
@@ -19,6 +21,7 @@ func _init() -> void:
 	var per := {}
 	for id in range(first, first + count):
 		var t = gen.new()
+		t.mixed = "mixed" in args
 		var report: String = t.generate(id, pinned)
 		var checks := ""
 		var notes := PackedStringArray()
