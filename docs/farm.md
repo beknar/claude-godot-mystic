@@ -171,7 +171,11 @@ too). It is drawn from the spring and summer sheet in every season (there is
 no weather indoors) and built once per map. The **greenhouse** opens on the sheet's own
 glasshouse (`GREENHOUSE_ROOM`): a glass back wall with vines, a tiled walk,
 two soil beds with crops in rows, and pots; the way out is the gap at the
-foot of the aisle. It is built once per map and kept.
+foot of the aisle. The beds are walkable: the walker wades through the crops
+and they bend away and spring back as they do outdoors (`GreenhouseView.crops`,
+swayed by farm.gd with the walker's position inside the interior). It is the
+same greenhouse on every map that has one (Greenhouse garden, Orchard and
+greenhouse, Greenhouse in the snow); no other interior grows crops. It is built once per map and kept.
 
 ## Liveliness floor
 

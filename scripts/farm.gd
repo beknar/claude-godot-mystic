@@ -463,14 +463,16 @@ func _build_greenhouse(index: int) -> Dictionary:
 	var ex: Vector2i = FarmTiles.GREENHOUSE_EXIT
 	_add_box(body, Rect2(0, (h - 1) * TILE + 12, ex.x * TILE, TILE))
 	_add_box(body, Rect2((ex.x + 1) * TILE, (h - 1) * TILE + 12, (w - ex.x - 1) * TILE, TILE))
-	# The beds (rows 4-10, either side of the aisle) grow crops in rows.
+	# The beds (rows 4-10, either side of the aisle) grow crops in rows; the
+	# walker wades through them as it does outdoors, and they bend and spring
+	# back (_sway_crops, with the walker's position inside the interior).
 	var crop_names := ["strawberry", "tomato", "pepper", "carrot", "cabbage", "leek"]
+	var indoor_crops: Array[Dictionary] = []
 	var rng := RandomNumberGenerator.new()
 	rng.seed = hash([map_id, index, "greenhouse"])
 	var crops_tex := _tex(FarmTiles.CROPS_SHEET)
 	for side in 2:
 		var x0 := 1 if side == 0 else ex.x + 1
-		_add_box(body, Rect2(x0 * TILE, 4 * TILE, 4 * TILE, 7 * TILE - 4))
 		for yy in range(4, 11):
 			if (yy - 4) % 2 == 1:
 				continue
@@ -478,14 +480,11 @@ func _build_greenhouse(index: int) -> Dictionary:
 			for xx in range(x0, x0 + 4):
 				var stage: int = FarmTiles.CROPS[crop].size() - 1 - (1 if rng.randf() < 0.3 else 0)
 				var r := FarmTiles.crop_rect(crop, stage)
-				var s := Sprite2D.new()
-				s.texture = crops_tex
-				s.region_enabled = true
-				s.region_rect = Rect2(r)
-				s.centered = false
-				s.position = Vector2(xx * TILE, (yy + 1) * TILE - 1)
-				s.offset = Vector2(0, -r.size.y + 1)
-				acts.add_child(s)
+				var plant := Node2D.new()
+				plant.position = Vector2(xx * TILE + TILE / 2.0, (yy + 1) * TILE - 1) # its foot, mid-cell
+				plant.add_child(_crop_sprite(crops_tex, Rect2(r), Vector2(-TILE / 2.0, -r.size.y + 1)))
+				acts.add_child(plant)
+				indoor_crops.append({"node": plant, "foot": plant.position, "skew": 0.0, "vel": 0.0})
 	# Pots along the back wall's walk.
 	for xx in [1, 3, 7, 9]:
 		var art: Dictionary = FarmTiles.prop(season, "pot_plant" if xx % 4 == 1 else "pot_plant_b")
@@ -504,6 +503,7 @@ func _build_greenhouse(index: int) -> Dictionary:
 	holder.name = "View"
 	holder.add_child(view)
 	holder.actors = acts
+	holder.crops = indoor_crops
 	return {"view": holder, "plan": plan, "fires": []}
 
 
@@ -687,6 +687,7 @@ func _summer_tiles() -> TileSet:
 ## The greenhouse interior's node for house_interiors.gd (it reads `actors`).
 class GreenhouseView extends Node2D:
 	var actors: Node2D
+	var crops: Array[Dictionary] = [] # plants the walker wades through (as _crops)
 
 
 # ---------------------------------------------------------------- trees
@@ -907,6 +908,12 @@ func _spawn_walker() -> void:
 func _process(delta: float) -> void:
 	var walker := actors.get_node_or_null("Walker")
 	if walker == null:
+		# Indoors: the crops of an interior that grows them (the greenhouse)
+		# bend round the walker the same way.
+		if house_interiors and house_interiors.inside >= 0 and house_interiors.view is GreenhouseView \
+				and is_instance_valid(house_interiors.walker):
+			var gv: GreenhouseView = house_interiors.view
+			_sway_crops(delta, house_interiors.walker.position, gv.crops)
 		return
 	var feet: Vector2 = walker.position
 	var body := Rect2(feet + Vector2(-6, -28), Vector2(12, 28))
@@ -963,7 +970,7 @@ func _process(delta: float) -> void:
 			if gusting and not brushed and randf() < 0.5:
 				_wind_leaves(t)
 	_gust_was = gusting
-	_sway_crops(delta, feet)
+	_sway_crops(delta, feet, _crops)
 	# Gates swing open for the walker, and shut after.
 	for g in _gates:
 		var near: bool = feet.distance_to(g.pos) < GATE_OPEN
@@ -979,11 +986,11 @@ const CROP_REACH := Vector2(11.0, 7.0) # px from a plant's foot that brushes it
 const CROP_SPRING := 140.0
 const CROP_DAMP := 7.0
 
-func _sway_crops(delta: float, feet: Vector2) -> void:
+func _sway_crops(delta: float, feet: Vector2, crops: Array[Dictionary]) -> void:
 	var step := feet - _last_feet
 	_last_feet = feet
-	var moving := step.length() > 0.05 and step.length() < 8.0
-	for c in _crops:
+	var moving := step.length() > 0.05 and step.length() < 8.0 # (a jump through a door is no step)
+	for c in crops:
 		var node: Node2D = c.node
 		if not is_instance_valid(node):
 			continue
