@@ -6,7 +6,8 @@ seeded procedural generators. They are never painted as one backdrop.
 
 `AGENTS.md` holds the binding rules for every session, and each pack's
 drawing rules live in its doc (`docs/painted-lands.md`,
-`docs/green-caves.md`, `docs/interiors.md`, `docs/pixel-crawler.md`;
+`docs/green-caves.md`, `docs/interiors.md`, `docs/farm.md`,
+`docs/pixel-crawler.md`;
 deprecated packs in `docs/deprecated/`). `docs/scene-assembly.md` holds the
 shared inventory, composition steps, and QC checklist. This README gives an
 overview; when the two disagree, `AGENTS.md` wins.
@@ -37,6 +38,9 @@ project, copy them in locally:
 - Painted Lands – Interior Cozy Cottage: the pack folder to
   `assets/pack/cozy_cottage/` (`wallpapers_and_floors.png`, `furniture.png`,
   `decoration.png`)
+- Painted Lands – Farm 4 Seasons (FULL VERSION): its `tilesets/`,
+  `tree animations/`, `windmill animations/`, and `fence gate animations/`
+  folders and `fishes.png` to `assets/pack/farm/`, keeping the pack's names
 - Mana Seed (Seliel the Shaper, from the complete rpg creator bundle's
   `mana seed pixel art tileset collection`): per season under
   `assets/pack/mana_seed/<season>/` with the file names the painter expects
@@ -47,7 +51,7 @@ project, copy them in locally:
   `village/`, Fences & Walls to `fences/`, Weather Effects to `weather/`, and
   `_extras` to `extras/` (see docs/deprecated/mana-seed.md)
 - Cozy Farm art pack (shubibubi): its `animals/` folder to
-  `assets/pack/cozy_farm/animals/` (the Painted Lands and Green Caves
+  `assets/pack/cozy_farm/animals/` (the Painted Lands, Green Caves, and farm
   randomizers); `Buildings/buildings.png` to
   `assets/pack/cozy_farm/buildings.png` only for the deprecated cozy farm
   randomizer
@@ -85,8 +89,8 @@ is 80 screen pixels.
 > scenes and sections stay as a record only.
 >
 > **The cozy farm randomizer is deprecated.** From now on only the **Cozy
-> Farm** animals are used, in `randomizer-paintedlands` and
-> `randomizer-greencaves`; its buildings and the
+> Farm** animals are used, in `randomizer-paintedlands`,
+> `randomizer-greencaves`, and `randomizer-paintedlands-farm`; its buildings and the
 > `randomizer-painted-cozyfarm` scene stay as a record only
 > (`docs/deprecated/cozy-farm.md`).
 
@@ -100,6 +104,7 @@ between them.
 | clearing, grove, hollow, ford, heath | Mystic Woods | `plains.png`, `grass.png` | `scripts/terrain.gd` + `scripts/clearing.gd` |
 | forest, wilds | Painted Lands | `TILESET_brighter.png` | `scripts/forest_terrain.gd` |
 | randomizer-greencaves | Green Caves | `green_caves/green_caves_tileset.png` | `scripts/cave_terrain.gd` + `scripts/caves.gd` |
+| randomizer-paintedlands-farm | Farm – 4 Seasons (spring and summer) | `farm/` (tilesets, crops, tree, windmill, and gate animations, fish) | `scripts/farm_terrain.gd` + `scripts/farm.gd` (`scripts/farm_tiles.gd`) |
 | randomizer-manaseed | Mana Seed | `mana_seed/` (four seasonal forests, village, fences, weather, extras) | `scripts/ms_terrain.gd` + `scripts/manaseed.gd` |
 | randomizer-pixelcrawler | Pixel Crawler | `pixel_crawler/` (Fairy Forest, Farm forest, Green Woods, Cemetery, Desert) | `scripts/pc_terrain.gd` + `scripts/pixelcrawler.gd` |
 | randomizer-timefantasy (experimental, not suitable) | Time Fantasy | `time_fantasy/` (terrain, outside, water, house, animated) | `scripts/tf_terrain.gd` + `scripts/timefantasy.gd` |
@@ -121,6 +126,7 @@ generator.
 | `scenes/randomizer-paintedlands/randomizer-paintedlands.tscn` | starts at 75125, then any | `character_sprite_sheet.png` |
 | `scenes/randomizer-mysticwoods/randomizer-mysticwoods.tscn` | starts at 21021, then any | `player.png` |
 | `scenes/randomizer-greencaves/randomizer-greencaves.tscn` | starts at 130021, then any | `character_sprite_sheet.png` (the Painted Lands walker) |
+| `scenes/randomizer-paintedlands-farm/randomizer-paintedlands-farm.tscn` | starts at 190020 (recipe 0, Homestead), then any | `character_sprite_sheet.png` (the Painted Lands walker) |
 | `scenes/randomizer-manaseed/randomizer-manaseed.tscn` | starts at 160000, then any | `character_sprite_sheet.png` (the Painted Lands walker) |
 | `scenes/randomizer-painted-cozyfarm/randomizer-painted-cozyfarm.tscn` (deprecated) | starts at 180033 (recipe 33 Farmstead), then any | `character_sprite_sheet.png` |
 | `scenes/randomizer-pixelcrawler/randomizer-pixelcrawler.tscn` | starts at 170000, then any | `character_sprite_sheet.png` (the Painted Lands walker) |
@@ -154,6 +160,29 @@ not been measured yet.
 > (Farmstead, Windmill road, Farm village). Its animals live on in the
 > Painted Lands and Green Caves randomizers (the bunny and farm animals by
 > the homes; see the small-animals paragraph below).
+
+The Painted Lands farm randomizer builds farms from antarcticbees' Farm – 4
+Seasons tileset (spring and summer) with 30 recipes (homestead, wheat valley,
+windmill hill, apple orchard, cherry blossom lane, pumpkin patch, kitchen
+garden, greenhouse garden, barnyard, sheep meadow, duck pond farm, riverside
+fields, farm village, market crossroads, sunflower field, corn rows, berry
+patch, hillside terraces, woodlot, pine ridge, wildflower meadow, old farm,
+fishing lake, cattle ranch, hayfield, scarecrow fields, twin farms, stone
+quarry, orchard and greenhouse, harvest fair). The ground blends lawn, sand
+yards, and dirt roads through the sheet's own corner tiles, with pale, dark,
+and deep grass zones drawn per pixel from the sheet's fills; ponds and lakes
+(some with an island) and brooks use the sheet's animated shores; tilled
+fields and crop rows grow sixteen crops from `crops.png`, their tops nodding
+in the wind; wheat, tall grass, and hedges are organic overlay blobs;
+fenced pens have gates that swing open for the walker and herds inside;
+orchards grow apples, cherries, oranges, and peaches. The pack's animated
+trees rustle in gusts and when brushed, dropping leaves (the cherry blossoms
+blow petals), the windmill turns with the wind, fish leap in the ponds, and
+the Cozy Farm animals graze and doze. Every building has a door into its own
+interior, a sub-map far below the farm: farmhouses, the manor, the barn, and
+the windmill open on Cozy Cottage homes, and the greenhouse on the sheet's
+own glasshouse with crops in its beds. `tools/check_farm.gd` sweeps it
+headless (docs/farm.md).
 
 The Pixel Crawler randomizer builds outdoor maps in four biomes from
 Anokolisa's Pixel Crawler sheets, 17 recipes in all: Fairy Forest (glade,
@@ -429,7 +458,7 @@ the sheet:
 
 `docs/painted-lands-art-fit.md` is the reference for what art from the
 antarcticbees tilesets goes with what (Forest, Green Caves, Cozy Cottage, and
-the not-yet-used Farm – 4 Seasons).
+Farm – 4 Seasons, which has its own randomizer, docs/farm.md).
 
 ## Editor automation
 
@@ -459,13 +488,18 @@ Art (purchased; not included in this repository, see "Art packs" above):
   [antarcticbees](https://antarcticbees.itch.io). `green_caves_tileset.png`
   (the pack's slimes are not used). License: see the pack's itch.io page;
   purchased, not redistributed here.
+- **Farm – 4 Seasons 16x16 Tileset** (full version) by
+  [antarcticbees](https://antarcticbees.itch.io). The spring and summer
+  tileset, crops, animated trees, windmill, fence gate, and fish in the farm
+  randomizer (the farmer is not used). License: see the pack's itch.io page;
+  purchased, not redistributed here.
 - **Mana Seed** tilesets by [Seliel the Shaper](https://seliel-the-shaper.itch.io/)
   (Summer, Spring, Autumn, and Winter Forest, Village Accessories, Fences &
   Walls, Weather Effects, and the collection's extras), from the complete
   rpg creator bundle. License: see the pack's readme and itch.io pages;
   purchased, not redistributed here.
 - **Cozy Farm** art pack by shubibubi: the farm animals (bunny, chicken,
-  turkey, sheep, goat, pig, cow) in the Painted Lands and Green Caves
+  turkey, sheep, goat, pig, cow) in the Painted Lands, Green Caves, and farm
   randomizers; its buildings (homes, barn, coop, silos,
   windmill) only in the deprecated cozy farm randomizer. Purchased; not
   redistributed here.

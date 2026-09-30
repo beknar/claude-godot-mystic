@@ -85,6 +85,15 @@ Green Caves randomizer:
   (`scenes/forest/walker.tscn`) and the same Esc menu, titled
   "Green Caves randomizer".
 
+Painted Lands farm randomizer (docs/farm.md):
+
+- `scenes/randomizer-paintedlands-farm/randomizer-paintedlands-farm.tscn` —
+  the Farm – 4 Seasons pipeline (`farm_terrain.gd` + `farm.gd`, tables in
+  `farm_tiles.gd`), starting at map id `190020` (recipe 0 Homestead;
+  `recipe = -1`: id % 30), spring and summer, with the Painted Lands walker,
+  interiors behind every door, the Cozy Farm animals, and the same Esc menu,
+  titled "Painted Lands farm randomizer".
+
 Mana Seed randomizer (not to be used in new work):
 
 - `scenes/randomizer-manaseed/randomizer-manaseed.tscn` — the Mana Seed
@@ -121,6 +130,9 @@ There is no health, enemy, or save. The editor addon
 - Green Caves: `green_caves/green_caves_tileset.png` (+ `explanations.png`,
   the pack's own guide). Its slimes are characters and are not used.
 - Cozy Cottage interiors: `cozy_cottage/` (docs/interiors.md).
+- Farm – 4 Seasons: `farm/` (docs/farm.md): `tilesets/` (the seasonal
+  sheets, `crops.png`), `tree animations/`, `windmill animations/`,
+  `fence gate animations/`, `fishes.png`. Spring and summer in use.
 - Mana Seed: `mana_seed/` (docs/deprecated/mana-seed.md): the four seasonal forests copied
   under one set of file names per season, plus `village/`, `fences/`,
   `weather/`, `extras/`. Not an antarcticbees pack; not mixed with them.
@@ -134,8 +146,8 @@ There is no health, enemy, or save. The editor addon
 
 **What goes with what:** `docs/painted-lands-art-fit.md` is the one art
 reference for combining the antarcticbees tilesets (Forest, Green Caves,
-Cozy Cottage, and Farm – 4 Seasons, which is not in the project yet and would
-go to `assets/pack/farm/`, git-ignored). Read it before putting one pack's
+Cozy Cottage, and Farm – 4 Seasons, in `assets/pack/farm/`, git-ignored,
+with its own randomizer). Read it before putting one pack's
 art on another pack's maps: it lists every pairing and three-pack map idea,
 what fits as it is, what needs a color remap, what never mixes, and counts,
 with sheet coordinates.

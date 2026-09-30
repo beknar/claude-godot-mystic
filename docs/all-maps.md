@@ -5,8 +5,8 @@ drawn on it. A "map type" is one recipe of a scene's generator; each
 randomizer builds endless maps from its map types (the map id picks the type
 and seeds the layout), and the two fixed scenes pin one map each. Only
 current tilesets are listed: The Painted Lands packs (Forest, Green Caves,
-Cozy Cottage), Pixel Crawler, and the Cozy Farm animals (the only part of
-that pack still in use). The deprecated packs and scenes (Mystic Woods, Mana
+Cozy Cottage, Farm – 4 Seasons), Pixel Crawler, and the Cozy Farm animals
+(the only part of that pack still in use). The deprecated packs and scenes (Mystic Woods, Mana
 Seed, and the cozy farm randomizer with the Cozy Farm buildings) and the
 unsuitable pack (Time Fantasy) are left out; the cozy farm randomizer's
 record is listed at the end.
@@ -14,12 +14,13 @@ Every map below is walked by the Painted Lands walker
 (`character_sprite_sheet.png`); the small animals, insects, birds, and
 effects drawn in code are on all of them and are not counted as a tileset.
 The Cozy Farm animals (`assets/pack/cozy_farm/animals/`, the `cozy_animals`
-option) live in the two Painted Lands randomizers only: the bunny in place of
+option) live in the three Painted Lands randomizers (in the farm
+randomizer also in every pen): the bunny in place of
 the drawn rabbit wherever there is lawn or moss, and farm animals (chickens,
 turkeys, pigs, sheep, goats, cows) only round homes. The fixed maps keep the
 drawn animals.
 Rules for each pack: `docs/painted-lands.md`, `docs/green-caves.md`,
-`docs/interiors.md`, `docs/pixel-crawler.md`.
+`docs/interiors.md`, `docs/farm.md`, `docs/pixel-crawler.md`.
 
 ## Summary
 
@@ -31,13 +32,15 @@ Rules for each pack: `docs/painted-lands.md`, `docs/green-caves.md`,
 | Painted Lands Green Caves | `randomizer-greencaves` | 23 |
 | Painted Lands Green Caves + Cozy Farm (bunnies) | `randomizer-greencaves` | 3 |
 | Painted Lands Green Caves + Cozy Cottage (homes) + Cozy Farm (farm animals) | `randomizer-greencaves` | 7 |
+| Painted Lands Farm + Cozy Farm (animals) | `randomizer-paintedlands-farm` | 2 |
+| Painted Lands Farm + Cozy Cottage (interiors) + Cozy Farm (animals) | `randomizer-paintedlands-farm` | 28 |
 | Pixel Crawler Fairy Forest | `randomizer-pixelcrawler` | 6 |
 | Pixel Crawler Farm forest + Green Woods | `randomizer-pixelcrawler` | 5 |
 | Pixel Crawler Cemetery | `randomizer-pixelcrawler` | 3 |
 | Pixel Crawler Desert | `randomizer-pixelcrawler` | 3 |
 
-83 map types in all (33 Painted Lands, 33 Green Caves, 17 Pixel Crawler)
-and 2 fixed maps. Painted Lands and Pixel Crawler never share a map, and
+113 map types in all (33 Painted Lands, 33 Green Caves, 30 Farm, 17 Pixel
+Crawler) and 2 fixed maps. Painted Lands and Pixel Crawler never share a map, and
 the Cozy Farm animals never go on a Pixel Crawler map.
 
 ## Painted Lands Forest
@@ -147,6 +150,59 @@ or cows round it too, and bunnies.
 | 30 | Hermit's home | 1 (1-2) | moss |
 | 31 | Cave hamlet | 3 (1-2 each) | light |
 | 32 | Underground manor | 1 (5-6) | dark |
+
+## Painted Lands Farm – 4 Seasons
+
+`randomizer-paintedlands-farm` (id % 30), `assets/pack/farm/` (the spring
+and summer tileset, `crops.png`, the tree, windmill, and gate animations,
+and the fish), with the Cozy Farm animals on every map (herds in the pens,
+poultry and pigs in the yards, bunnies on the lawn). Every building has a
+door into its own interior sub-map. No Forest (`TILESET_brighter.png`) tile
+is on these maps.
+
+Farm and Cozy Farm animals only (no Cozy Cottage):
+
+| # | Map type | Buildings (interiors) |
+|---|---|---|
+| 20 | Wildflower meadow | none |
+| 28 | Orchard and greenhouse | greenhouse (the Farm sheet's own glasshouse) |
+
+## Painted Lands Farm + Cozy Cottage + Cozy Farm animals
+
+`randomizer-paintedlands-farm`: farmhouses, the manor, the barn, and the
+windmill open on Cozy Cottage homes; the greenhouse on the Farm sheet's own
+glasshouse.
+
+| # | Map type | Buildings (rooms) | Farm features |
+|---|---|---|---|
+| 0 | Homestead | farmhouse (2-4), barn (1-2) | fields, pen, pond |
+| 1 | Wheat valley | windmill (1), farmhouse (2-4) | wheat, crop rows, brook |
+| 2 | Windmill hill | windmill (1) | plateaus, wheat, corn rows |
+| 3 | Apple orchard | farmhouse (2-4) | apple orchard, pond |
+| 4 | Cherry blossom lane | manor (3-6) | cherry orchard |
+| 5 | Pumpkin patch | barn (1-2) | pumpkin and melon fields |
+| 6 | Kitchen garden | farmhouse (2-4) | small vegetable beds |
+| 7 | Greenhouse garden | greenhouse, farmhouse (2-4) | berry and tomato rows, peaches |
+| 8 | Barnyard | barn (1-2), farmhouse (2-4) | two pens, corn rows |
+| 9 | Sheep meadow | farmhouse (2-4) | two big pens, pond |
+| 10 | Duck pond farm | farmhouse (2-4) | lake with an island |
+| 11 | Riverside fields | farmhouse (2-4) | brook, crop rows |
+| 12 | Farm village | two farmhouses (2-4), manor (3-6) | crossing roads, fields |
+| 13 | Market crossroads | manor (3-6), barn (1-2) | market |
+| 14 | Sunflower field | farmhouse (2-4) | sunflower rows |
+| 15 | Corn rows | windmill (1), barn (1-2) | corn rows |
+| 16 | Berry patch | farmhouse (2-4) | berry rows, hedges |
+| 17 | Hillside terraces | farmhouse (2-4) | plateaus, crop rows |
+| 18 | Woodlot | farmhouse (2-4) | canopy wall, trees |
+| 19 | Pine ridge | farmhouse (2-4) | plateaus, pines, pond |
+| 21 | Old farm | barn (1-2) | dead trees, tall grass |
+| 22 | Fishing lake | farmhouse (2-4) | lake with an island |
+| 23 | Cattle ranch | barn (1-2), farmhouse (2-4) | big pens |
+| 24 | Hayfield | barn (1-2) | wheat, hay |
+| 25 | Scarecrow fields | windmill (1) | four fields |
+| 26 | Twin farms | two farmhouses (2-4) | fields, pen |
+| 27 | Stone quarry | farmhouse (2-4) | plateaus with a cave |
+| 29 | Harvest fair | manor (3-6), farmhouse (2-4), windmill (1) | fields, market |
 
 ## Pixel Crawler
 

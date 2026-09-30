@@ -27,7 +27,7 @@ var doors: Array[Dictionary] = [] # {rect (world px, the doorstep's upper part),
 var inside := -1 # door index, or -1 outdoors
 var plans := {} # door index -> InteriorPlan
 var root: Node2D
-var view: InteriorView
+var view: Node2D # an InteriorView, or a custom interior (the Farm greenhouse)
 var life: InteriorLife
 var fire: FireAmbience
 var entered := 0 # for tools: times the walker went in
@@ -59,6 +59,20 @@ func setup(p_map: Node2D) -> void:
 
 ## After every map build: the doors of this map's houses.
 func reset(terrain: PaintedTerrain, p_walker: CharacterBody2D) -> void:
+	var list: Array[Dictionary] = []
+	for i in terrain.houses.size():
+		var house: Dictionary = terrain.houses[i]
+		var art: Dictionary = PaintedTerrain.HOUSES[house.id]
+		list.append({"step": house.origin + art.door, "house": house})
+	reset_doors(list, p_walker)
+
+
+## Any map: `list` of doors, each {step: the doorstep cell under the door,
+## house: {id, ...} (seeds the interior), width (cells, default 1), rooms
+## ([min, max], else ROOMS by house id), custom (optional Callable returning
+## {view: Node2D with `actors`, plan: InteriorPlan with size and exit_cell,
+## fires: Array} for an interior of its own)}.
+func reset_doors(list: Array[Dictionary], p_walker: CharacterBody2D) -> void:
 	if inside >= 0:
 		# Rebuilt while indoors (the menu): drop the interior and the old walker in it.
 		_restore_outdoors()
@@ -72,12 +86,21 @@ func reset(terrain: PaintedTerrain, p_walker: CharacterBody2D) -> void:
 	walker = p_walker
 	doors.clear()
 	plans.clear()
-	for i in terrain.houses.size():
-		var house: Dictionary = terrain.houses[i]
-		var art: Dictionary = PaintedTerrain.HOUSES[house.id]
-		var step: Vector2i = house.origin + art.door # the doorstep cell, under the door
-		doors.append({"rect": Rect2(Vector2(step * TILE) + Vector2(1, 0), Vector2(TILE - 2, 10)), "house": house, "index": i,
-			"step": Vector2(step * TILE) + Vector2(8, 12)})
+	for k in _custom:
+		var v: Node = _custom[k].view
+		if is_instance_valid(v) and not v.is_inside_tree():
+			v.free()
+	_custom.clear()
+	for i in list.size():
+		var d: Dictionary = list[i]
+		var step: Vector2i = d.step # the doorstep cell, under the door
+		var w: int = d.get("width", 1)
+		var door := {"rect": Rect2(Vector2(step * TILE) + Vector2(1, 0), Vector2(TILE * w - 2, 10)), "house": d.house, "index": i,
+			"step": Vector2(step * TILE) + Vector2(8 * w, 12)}
+		for k in ["rooms", "custom"]:
+			if d.has(k):
+				door[k] = d[k]
+		doors.append(door)
 	if walker:
 		var cam: Camera2D = walker.get_node("Camera")
 		_map_limits = Rect2i(cam.limit_left, cam.limit_top, cam.limit_right - cam.limit_left, cam.limit_bottom - cam.limit_top)
@@ -87,7 +110,7 @@ func reset(terrain: PaintedTerrain, p_walker: CharacterBody2D) -> void:
 func plan_for(i: int) -> InteriorPlan:
 	if not plans.has(i):
 		var house: Dictionary = doors[i].house
-		var r: Array = ROOMS.get(house.id, [1, 3])
+		var r: Array = doors[i].get("rooms", ROOMS.get(house.id, [1, 3]))
 		var seed := hash(Vector3i(map.map_id, i, house.id))
 		var n: int = r[0] + posmod(seed, r[1] - r[0] + 1)
 		plans[i] = InteriorPlan.new().generate(seed, n, {"black": true, "exit_width": 1})
@@ -118,19 +141,26 @@ func enter(i: int, instant := false) -> void:
 	_busy = true
 	if not instant:
 		await _fade_to(1.0)
-	var p := plan_for(i)
 	for c in root.get_children():
 		root.remove_child(c)
 		c.queue_free()
+	if doors[i].has("custom"):
+		_enter_custom(i)
+		if not instant:
+			await _fade_to(0.0)
+		_busy = false
+		return
+	var p := plan_for(i)
 	var backdrop := ColorRect.new()
 	backdrop.color = Color.BLACK
 	backdrop.position = Vector2(-2000, -2000)
 	backdrop.size = Vector2(p.size * TILE) + Vector2(4000, 4000)
 	root.add_child(backdrop)
-	view = InteriorView.new()
+	var iv := InteriorView.new()
+	view = iv
 	view.name = "View"
 	root.add_child(view)
-	view.build(p)
+	iv.build(p)
 	# The view sits at the root's origin, so its space is the root's. The
 	# life node goes between the floor layers and the actors: beams on the
 	# floor, under the furniture.
@@ -140,18 +170,18 @@ func enter(i: int, instant := false) -> void:
 	fire = FireAmbience.new()
 	root.add_child(fire)
 	var fires: Array[Dictionary] = []
-	for r in view.hearths:
+	for r in iv.hearths:
 		fires.append({"pos": r.end, "kind": "hearth", "flame": r.get_center(), "radius": 30, "smoke": false})
-	for l in view.lamps:
+	for l in iv.lamps:
 		fires.append({"pos": l, "kind": "lamp", "flame": l, "radius": 14, "smoke": false})
 	fire.set_fires(fires)
 	# Hide the outdoors and move the walker in, just inside the way out.
 	inside = i
 	_hide_outdoors()
-	walker.reparent(view.actors, false)
+	walker.reparent(iv.actors, false)
 	walker.position = Vector2(p.exit_cell.x * TILE + 8, (p.exit_cell.y - 1) * TILE + 12)
 	walker.set("facing", 3) # up
-	life.setup([view], view.actors, walker, true)
+	life.setup([view], iv.actors, walker, true)
 	root.visible = true
 	_set_camera(Rect2(root.position + view.position, Vector2(p.size * TILE)))
 	entered += 1
@@ -159,6 +189,43 @@ func enter(i: int, instant := false) -> void:
 	if not instant:
 		await _fade_to(0.0)
 	_busy = false
+
+
+var _custom := {} # door index -> {view, plan, fires}, built once per map
+
+
+# An interior of its own (the Farm greenhouse): built once by the door's
+# Callable and kept, entered the same way (walker just inside the way out).
+func _enter_custom(i: int) -> void:
+	if not _custom.has(i):
+		_custom[i] = doors[i].custom.call()
+	var built: Dictionary = _custom[i]
+	var p: InteriorPlan = built.plan
+	plans[i] = p
+	var backdrop := ColorRect.new()
+	backdrop.color = Color.BLACK
+	backdrop.position = Vector2(-2000, -2000)
+	backdrop.size = Vector2(p.size * TILE) + Vector2(4000, 4000)
+	root.add_child(backdrop)
+	view = built.view
+	if view.get_parent():
+		view.get_parent().remove_child(view)
+	root.add_child(view)
+	fire = FireAmbience.new()
+	root.add_child(fire)
+	var fires: Array[Dictionary] = []
+	fires.assign(built.get("fires", []))
+	fire.set_fires(fires)
+	inside = i
+	_hide_outdoors()
+	var acts: Node2D = view.get("actors")
+	walker.reparent(acts, false)
+	walker.position = Vector2(p.exit_cell.x * TILE + 8, (p.exit_cell.y - 1) * TILE + 12)
+	walker.set("facing", 3)
+	root.visible = true
+	_set_camera(Rect2(root.position + view.position, Vector2(p.size * TILE)))
+	entered += 1
+	_cooldown = 0.5
 
 
 ## Walks back out onto the doorstep.
@@ -171,6 +238,8 @@ func leave(instant := false) -> void:
 	walker.reparent(map.actors, false)
 	walker.position = d.step
 	walker.set("facing", 2) # down
+	if _custom.has(inside) and view and view.get_parent() == root:
+		root.remove_child(view) # kept for the next visit
 	inside = -1
 	root.visible = false
 	for c in root.get_children():

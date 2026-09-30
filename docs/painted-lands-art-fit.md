@@ -21,7 +21,7 @@ coordinates are `(column, row)` of 16 px cells.
 | **Forest** | `The Painted Lands - Forest Tileset` | `brighter version/TILESET_brighter.png` (816×480), `original version/TILESET.png` (the same art, darker), `explanations.png`, `character_sprite_sheet.png` (the walker) | `assets/pack/TILESET_brighter.png`, `character_sprite_sheet.png`: forest, wilds, randomizer-paintedlands |
 | **Green Caves** | `The Painted Lands - Green Caves Tileset` | `green_caves_tileset.png` (800×304), `explanations.png`, slimes (characters) | `assets/pack/green_caves/`: randomizer-greencaves |
 | **Cozy Cottage** | `FULL VERSION Interior-Cozy Cottage Tileset by antarcticbees` | `wallpapers_and_floors.png`, `furniture.png` (five wood tones, 288 px apart), `decoration.png`, no-shadow copies | `assets/pack/cozy_cottage/`: every home interior |
-| **Farm – 4 Seasons** | `FULL VERSION Farm - 4 Seasons 16x16 Tileset by antarcticbees` | `tilesets/farm_spring_summer.png` (1200×720), `farm_autumn.png`, `farm_winter.png`, `crops.png`, no-shadow copies, `tileset_explanations.png`; tree, windmill, and gate animations; `fishes.png`; the farmer (a character) | not yet; would go to `assets/pack/farm/` (git-ignored) |
+| **Farm – 4 Seasons** | `FULL VERSION Farm - 4 Seasons 16x16 Tileset by antarcticbees` | `tilesets/farm_spring_summer.png` (1200×720), `farm_autumn.png`, `farm_winter.png`, `crops.png`, no-shadow copies, `tileset_explanations.png`; tree, windmill, and gate animations; `fishes.png`; the farmer (a character) | in use (spring and summer): `assets/pack/farm/` (git-ignored), `randomizer-paintedlands-farm` (docs/farm.md) |
 
 Characters (the walker, slimes, farmer) are separate sprites and are not
 covered here.

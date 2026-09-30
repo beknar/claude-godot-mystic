@@ -651,7 +651,8 @@ line `floor:` gives the weakest window before and after and what was added.
 
 `randomizer-paintedlands` and `randomizer-greencaves` set `cozy_animals =
 true`: `wildlife.gd` runs `mode = "pack"` (`PACK_SPECIES`, drawn from
-`COZY_SHEETS`). The animals are the only part of the Cozy Farm art pack in
+`COZY_SHEETS`); the farm randomizer runs `mode = "farmland"` (the same table,
+two to four farm kinds, grazers first, a herd in every pen; docs/farm.md). The animals are the only part of the Cozy Farm art pack in
 use; its buildings and the cozy farm randomizer are deprecated
 (`docs/deprecated/cozy-farm.md`, where `mode = "farm"` is its table). The
 fixed scenes (`forest`, `wilds`) keep the drawn animals.

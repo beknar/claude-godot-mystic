@@ -149,6 +149,7 @@ const PACK_SPECIES := {
 	"duck": SPECIES.duck, "sparrow": SPECIES.sparrow, "lizard": SPECIES.lizard, "fox": SPECIES.fox,
 }
 const PACK_FARM := Vector2i(1, 3) # farm kinds on a map with a home (when there is room)
+const FARMLAND_FARM := Vector2i(2, 4) # the farm randomizer (mode "farmland")
 const YARD := 5 # cells round a home's doorstep that are its yard
 const PASTURE := 12 # cells round it that are its pasture
 const FOX_CHANCE := 0.35
@@ -163,8 +164,9 @@ static var _sheet_colors := {} # sheet instance id -> Array[Color]
 var walker: Node2D
 var water_life: WaterLife
 ## Which animals (set before setup): "" the drawn ones, "pack" the Cozy Farm
-## bunny and farm animals by homes (PACK_SPECIES), "farm" the deprecated cozy
-## farm table (COZY_SPECIES).
+## bunny and farm animals by homes (PACK_SPECIES), "farmland" the same table
+## with more farm kinds and a herd in every pen (the farm randomizer), "farm"
+## the deprecated cozy farm table (COZY_SPECIES).
 var mode := ""
 var summary := ""
 var scared := {} # species -> times an animal reacted to the walker, for tools/walker_test.gd
@@ -291,6 +293,12 @@ static func plan_from(habitats: Dictionary, map_id: int, spawn: Vector2i, quiet:
 		# A home keeps one to three farm kinds (eligible only where there is
 		# a yard or pasture), on top of the usual wild count.
 		chosen = farm.slice(0, rng.randi_range(PACK_FARM.x, PACK_FARM.y)) + rest.slice(0, rng.randi_range(per.x, per.y))
+	elif p_mode == "farmland":
+		# The farm randomizer: two to four farm kinds, grazers first when
+		# there is a pen, so a pen always has its herd.
+		var grazers := farm.filter(func(k): return table[k].habitat == "pasture")
+		var others := farm.filter(func(k): return table[k].habitat != "pasture")
+		chosen = (grazers + others).slice(0, rng.randi_range(FARMLAND_FARM.x, FARMLAND_FARM.y)) + rest.slice(0, rng.randi_range(per.x, per.y))
 	else:
 		chosen = eligible.slice(0, rng.randi_range(per.x, per.y))
 	var placed: Array[Vector2i] = [] # group centers of every species so far
@@ -346,7 +354,7 @@ static func plan_from(habitats: Dictionary, map_id: int, spawn: Vector2i, quiet:
 
 
 static func table_for(p_mode: String) -> Dictionary:
-	return COZY_SPECIES if p_mode == "farm" else (PACK_SPECIES if p_mode == "pack" else SPECIES)
+	return COZY_SPECIES if p_mode == "farm" else (PACK_SPECIES if p_mode in ["pack", "farmland"] else SPECIES)
 
 
 ## The pack table's farm habitats round `doors` (home doorsteps) on `land`:
