@@ -89,8 +89,9 @@ Painted Lands farm randomizer (docs/farm.md):
 
 - `scenes/randomizer-paintedlands-farm/randomizer-paintedlands-farm.tscn` —
   the Farm – 4 Seasons pipeline (`farm_terrain.gd` + `farm.gd`, tables in
-  `farm_tiles.gd`), starting at map id `190020` (recipe 0 Homestead;
-  `recipe = -1`: id % 30), spring and summer, with the Painted Lands walker,
+  `farm_tiles.gd`), starting at map id `190032` (recipe 0 Homestead;
+  `recipe = -1`: id % 48), in spring and summer, autumn, or winter (one
+  season per map, by recipe), with the Painted Lands walker,
   interiors behind every door, the Cozy Farm animals, and the same Esc menu,
   titled "Painted Lands farm randomizer".
 
@@ -132,7 +133,8 @@ There is no health, enemy, or save. The editor addon
 - Cozy Cottage interiors: `cozy_cottage/` (docs/interiors.md).
 - Farm – 4 Seasons: `farm/` (docs/farm.md): `tilesets/` (the seasonal
   sheets, `crops.png`), `tree animations/`, `windmill animations/`,
-  `fence gate animations/`, `fishes.png`. Spring and summer in use.
+  `fence gate animations/`, `fishes.png`. All three seasons in use (one per
+  map).
 - Mana Seed: `mana_seed/` (docs/deprecated/mana-seed.md): the four seasonal forests copied
   under one set of file names per season, plus `village/`, `fences/`,
   `weather/`, `extras/`. Not an antarcticbees pack; not mixed with them.

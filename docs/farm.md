@@ -11,7 +11,8 @@ Read this before touching `scripts/farm_terrain.gd`, `scripts/farm.gd`,
   channel, spit, or corner-only join.
 - Zones bend away from roads, yards, water, plateaus, buildings, fields, and
   fences, and never touch their baked lawn.
-- One season per map (spring and summer only so far); never mix a Farm tile
+- One season per map (spring and summer, autumn, or winter: the recipe picks
+  the sheet for the whole map); never mix seasons, and never a Farm tile
   with a Forest (`TILESET_brighter.png`) ground tile on one map.
 - Every door opens: walk into it and the interior sub-map opens.
 - `tools/check_farm.gd` passes on a sweep, and a screenshot passes the reject
@@ -29,10 +30,17 @@ antarcticbees' **Farm – 4 Seasons 16x16 Tileset** (full version), copied to
 `tree animations/`, `windmill animations/`, `fence gate animations/`, and
 `fishes.png`. The farmer (a character) is not used.
 
-The autumn and winter sheets rearrange the layout (autumn has three grass
-tones, not four), so each season needs its own tables. Only spring and
-summer are built; a season would be a second set of tables in
-`farm_tiles.gd`.
+The autumn and winter sheets rearrange the layout, so each season has its
+own tables (`FarmTiles.SEASONS`, read through `get_for`, `prop`,
+`building_region`, `tree_art`). Every group was found again on the season's
+sheet by matching its shape (alpha and luminance) at every cell offset, then
+checked by eye; a piece with no sure match is left out of that season.
+
+| Season | Sheet | Ground tones (a pale, g lawn, d dark, x deep) | What differs |
+|---|---|---|---|
+| Spring and summer | `farm_spring_summer.png` | pale (162, 177, 108), lawn (105, 150, 84), dark (63, 128, 78), deep (34, 97, 81) | the tables above |
+| Autumn | `farm_autumn.png` | pale (198, 172, 104), lawn (177, 137, 77), dark (147, 91, 55); no deep | plots from `(36, 14)`, plateau tops `(42, 0)`, `(42, 6)`, `(53, 0)`, face `(42, 3)`, foot `(42, 5)`, cave `(33, 4)`; hedge blob `(22, 5)`, straw (tall grass and wheat) `(22, 9)`; buildings moved; autumn trees, windmill; crops as in summer |
+| Winter | `farm_winter.png` | white pale (217, 225, 233), light blue lawn (187, 210, 238, the snow the pond banks are drawn on), dark (140, 180, 229), deep (104, 148, 218) | water block from row 23, open water `(0, 21)`; plateau tops `(42, 0)`, `(53, 0)`, `(42, 6)`, face `(42, 3)`, foot `(42, 4)` (no tufts), cave `(36, 2)`; one fence; frosty tufts only (no flowers, wheat, tall grass, hedges, mushrooms, or crops); snow drifts and lumps, snow-capped rocks; one farmhouse (the second is the same); snowy and bare trees (fruit trees bare), the winter windmill and gate |
 
 ## The sheet's systems (`farm_spring_summer.png`, 16 px cells)
 
@@ -64,7 +72,8 @@ windmill (four 96 x 128 frames), the gate (four 16 px frames), and the fish.
 
 ## Generator (`scripts/farm_terrain.gd`, `FarmTerrain`, 64 x 40)
 
-Recipe = map id % 30. Layout, in order: canopy wall (woodlot), plateaus,
+Recipe = map id % 48 (30 spring and summer, 10 autumn, 8 winter); the
+recipe's `season` picks the sheet for the whole map. Layout, in order: canopy wall (woodlot), plateaus,
 water (pond, lake with an island, or a brook with stepping stones where the
 road crosses), buildings (facing south, walls block, roofs walkable behind),
 roads and yards (dirt or sand by recipe; edge to edge, crossing, or lanes;
@@ -118,6 +127,11 @@ the animals).
 - **Gates** swing open (the four frames) when the walker comes within 30 px.
 - **Fish** leap from open water now and then (a pack fish arcs out and
   drops back with a ring).
+- **Seasons:** autumn tints the grass waves, blade flicks, cloud shade, and
+  tree shadows warm, and its trees shed autumn leaves; winter has no grass
+  waves, butterflies, dragonflies, fireflies, drifting seeds, fish jumps,
+  lizards, or frogs, but snow falls over the view (drifting with the wind),
+  steps kick up snow, and shadows are blue.
 - Ambience as the Painted Lands scenes: wind, streaks, cloud shadows, grass
   waves (lawn and wheat), water life, footsteps (dust on roads, blade flicks,
   tuft rustle in wheat and deco), critters (butterflies at flowers, blossom
@@ -145,7 +159,9 @@ wheat 1.2, pen 0.25 per cell, flower 3, firefly swarm 60) over every camera
 window (43 x 18 cells), threshold 0.09 %. A weak window gets a small pond (up
 to two ponds on the map), else a wildflower carpet, else fireflies.
 
-## Map types (30)
+## Map types (48)
+
+Spring and summer (0-29):
 
 | # | Map type | Buildings | Features |
 |---|---|---|---|
@@ -180,13 +196,42 @@ to two ponds on the map), else a wildflower carpet, else fireflies.
 | 28 | Orchard and greenhouse | greenhouse | mixed fruit orchard, strawberry rows |
 | 29 | Harvest fair | manor, farmhouse, windmill | fields, market, crossing roads |
 
+Autumn (30-39):
+
+| # | Map type | Buildings | Features |
+|---|---|---|---|
+| 30 | Autumn homestead | farmhouse, barn | pumpkin and cabbage fields, pen, pond |
+| 31 | Pumpkin harvest | barn | pumpkin and melon fields, scarecrows |
+| 32 | Autumn orchard | farmhouse | apple orchard, pond |
+| 33 | Golden wheat | windmill, barn | straw fields, wheat rows, hay |
+| 34 | Turning lane | manor | turning trees along a sand road |
+| 35 | Autumn market | manor, barn | market, fields, crossing roads |
+| 36 | Misty lake | farmhouse | lake with an island |
+| 37 | Cornfield | windmill | corn rows, scarecrows |
+| 38 | Old barn in autumn | barn | dead trees, straw, hedges |
+| 39 | Cider farm | farmhouse, windmill | mixed fruit orchard |
+
+Winter (40-47):
+
+| # | Map type | Buildings | Features |
+|---|---|---|---|
+| 40 | Snowy homestead | farmhouse, barn | pen, pond |
+| 41 | Winter pasture | farmhouse | two big pens |
+| 42 | Frozen lake | farmhouse | lake with an island, pines |
+| 43 | Snowy woodlot | farmhouse | snowy canopy wall, trees |
+| 44 | Pine hills | farmhouse | plateaus, snowy pines, pond |
+| 45 | Winter village | farmhouse, manor, barn | crossing roads |
+| 46 | Greenhouse in the snow | greenhouse, farmhouse | bare orchard, crops growing inside the greenhouse |
+| 47 | Winter windmill | windmill, barn | pens, hay |
+
 ## Checks
 
 `godot --headless -s res://tools/check_farm.gd -- <first_id> [count] [recipe]`
 generates maps and prints each one's recipe, buildings, counts, floor notes,
 and checks: the walker reaches every door, gate, field, and the hub; every
 cell has a ground tile; every shore cell has a shore tile; every building the
-recipe names stands. 90 of 90 maps (190000–190089) pass on the first layout.
+recipe names stands. 96 of 96 maps (190000–190095, every map type twice) pass
+on the first layout.
 
 ## Reject list
 

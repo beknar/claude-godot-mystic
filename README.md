@@ -38,7 +38,8 @@ project, copy them in locally:
 - Painted Lands – Interior Cozy Cottage: the pack folder to
   `assets/pack/cozy_cottage/` (`wallpapers_and_floors.png`, `furniture.png`,
   `decoration.png`)
-- Painted Lands – Farm 4 Seasons (FULL VERSION): its `tilesets/`,
+- Painted Lands – Farm 4 Seasons (FULL VERSION): its `tilesets/` (all three
+  seasonal sheets),
   `tree animations/`, `windmill animations/`, and `fence gate animations/`
   folders and `fishes.png` to `assets/pack/farm/`, keeping the pack's names
 - Mana Seed (Seliel the Shaper, from the complete rpg creator bundle's
@@ -104,7 +105,7 @@ between them.
 | clearing, grove, hollow, ford, heath | Mystic Woods | `plains.png`, `grass.png` | `scripts/terrain.gd` + `scripts/clearing.gd` |
 | forest, wilds | Painted Lands | `TILESET_brighter.png` | `scripts/forest_terrain.gd` |
 | randomizer-greencaves | Green Caves | `green_caves/green_caves_tileset.png` | `scripts/cave_terrain.gd` + `scripts/caves.gd` |
-| randomizer-paintedlands-farm | Farm – 4 Seasons (spring and summer) | `farm/` (tilesets, crops, tree, windmill, and gate animations, fish) | `scripts/farm_terrain.gd` + `scripts/farm.gd` (`scripts/farm_tiles.gd`) |
+| randomizer-paintedlands-farm | Farm – 4 Seasons (spring and summer, autumn, winter; one season per map) | `farm/` (the three seasonal tilesets, crops, tree, windmill, and gate animations, fish) | `scripts/farm_terrain.gd` + `scripts/farm.gd` (`scripts/farm_tiles.gd`) |
 | randomizer-manaseed | Mana Seed | `mana_seed/` (four seasonal forests, village, fences, weather, extras) | `scripts/ms_terrain.gd` + `scripts/manaseed.gd` |
 | randomizer-pixelcrawler | Pixel Crawler | `pixel_crawler/` (Fairy Forest, Farm forest, Green Woods, Cemetery, Desert) | `scripts/pc_terrain.gd` + `scripts/pixelcrawler.gd` |
 | randomizer-timefantasy (experimental, not suitable) | Time Fantasy | `time_fantasy/` (terrain, outside, water, house, animated) | `scripts/tf_terrain.gd` + `scripts/timefantasy.gd` |
@@ -126,7 +127,7 @@ generator.
 | `scenes/randomizer-paintedlands/randomizer-paintedlands.tscn` | starts at 75125, then any | `character_sprite_sheet.png` |
 | `scenes/randomizer-mysticwoods/randomizer-mysticwoods.tscn` | starts at 21021, then any | `player.png` |
 | `scenes/randomizer-greencaves/randomizer-greencaves.tscn` | starts at 130021, then any | `character_sprite_sheet.png` (the Painted Lands walker) |
-| `scenes/randomizer-paintedlands-farm/randomizer-paintedlands-farm.tscn` | starts at 190020 (recipe 0, Homestead), then any | `character_sprite_sheet.png` (the Painted Lands walker) |
+| `scenes/randomizer-paintedlands-farm/randomizer-paintedlands-farm.tscn` | starts at 190032 (recipe 0, Homestead), then any | `character_sprite_sheet.png` (the Painted Lands walker) |
 | `scenes/randomizer-manaseed/randomizer-manaseed.tscn` | starts at 160000, then any | `character_sprite_sheet.png` (the Painted Lands walker) |
 | `scenes/randomizer-painted-cozyfarm/randomizer-painted-cozyfarm.tscn` (deprecated) | starts at 180033 (recipe 33 Farmstead), then any | `character_sprite_sheet.png` |
 | `scenes/randomizer-pixelcrawler/randomizer-pixelcrawler.tscn` | starts at 170000, then any | `character_sprite_sheet.png` (the Painted Lands walker) |
@@ -162,13 +163,22 @@ not been measured yet.
 > the homes; see the small-animals paragraph below).
 
 The Painted Lands farm randomizer builds farms from antarcticbees' Farm – 4
-Seasons tileset (spring and summer) with 30 recipes (homestead, wheat valley,
+Seasons tileset with 48 recipes in three seasons, each map wholly in one
+season (the seasons are never mixed): 30 in spring and summer (homestead, wheat valley,
 windmill hill, apple orchard, cherry blossom lane, pumpkin patch, kitchen
 garden, greenhouse garden, barnyard, sheep meadow, duck pond farm, riverside
 fields, farm village, market crossroads, sunflower field, corn rows, berry
 patch, hillside terraces, woodlot, pine ridge, wildflower meadow, old farm,
 fishing lake, cattle ranch, hayfield, scarecrow fields, twin farms, stone
-quarry, orchard and greenhouse, harvest fair). The ground blends lawn, sand
+quarry, orchard and greenhouse, harvest fair), 10 in autumn (autumn
+homestead, pumpkin harvest, autumn orchard, golden wheat, turning lane,
+autumn market, misty lake, cornfield, old barn in autumn, cider farm), and 8
+in winter (snowy homestead, winter pasture, frozen lake, snowy woodlot, pine
+hills, winter village, greenhouse in the snow, winter windmill). Autumn has
+tan and russet grass, turning trees that shed autumn leaves, straw, and the
+harvest; winter has snow in white and blue, snowy and bare trees, snow drifts,
+snow falling with the wind, and no crops outdoors (they grow on in the
+greenhouse). The ground blends lawn, sand
 yards, and dirt roads through the sheet's own corner tiles, with pale, dark,
 and deep grass zones drawn per pixel from the sheet's fills; ponds and lakes
 (some with an island) and brooks use the sheet's animated shores; tilled
@@ -489,9 +499,9 @@ Art (purchased; not included in this repository, see "Art packs" above):
   (the pack's slimes are not used). License: see the pack's itch.io page;
   purchased, not redistributed here.
 - **Farm – 4 Seasons 16x16 Tileset** (full version) by
-  [antarcticbees](https://antarcticbees.itch.io). The spring and summer
-  tileset, crops, animated trees, windmill, fence gate, and fish in the farm
-  randomizer (the farmer is not used). License: see the pack's itch.io page;
+  [antarcticbees](https://antarcticbees.itch.io). The spring and summer,
+  autumn, and winter tilesets, crops, animated trees, windmills, fence gates,
+  and fish in the farm randomizer (the farmer is not used). License: see the pack's itch.io page;
   purchased, not redistributed here.
 - **Mana Seed** tilesets by [Seliel the Shaper](https://seliel-the-shaper.itch.io/)
   (Summer, Spring, Autumn, and Winter Forest, Village Accessories, Fences &

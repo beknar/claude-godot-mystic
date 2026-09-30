@@ -32,15 +32,17 @@ Rules for each pack: `docs/painted-lands.md`, `docs/green-caves.md`,
 | Painted Lands Green Caves | `randomizer-greencaves` | 23 |
 | Painted Lands Green Caves + Cozy Farm (bunnies) | `randomizer-greencaves` | 3 |
 | Painted Lands Green Caves + Cozy Cottage (homes) + Cozy Farm (farm animals) | `randomizer-greencaves` | 7 |
-| Painted Lands Farm + Cozy Farm (animals) | `randomizer-paintedlands-farm` | 2 |
-| Painted Lands Farm + Cozy Cottage (interiors) + Cozy Farm (animals) | `randomizer-paintedlands-farm` | 28 |
+| Painted Lands Farm (spring and summer) + Cozy Farm (animals) | `randomizer-paintedlands-farm` | 2 |
+| Painted Lands Farm (spring and summer) + Cozy Cottage (interiors) + Cozy Farm (animals) | `randomizer-paintedlands-farm` | 28 |
+| Painted Lands Farm (autumn) + Cozy Cottage (interiors) + Cozy Farm (animals) | `randomizer-paintedlands-farm` | 10 |
+| Painted Lands Farm (winter) + Cozy Cottage (interiors) + Cozy Farm (animals) | `randomizer-paintedlands-farm` | 8 |
 | Pixel Crawler Fairy Forest | `randomizer-pixelcrawler` | 6 |
 | Pixel Crawler Farm forest + Green Woods | `randomizer-pixelcrawler` | 5 |
 | Pixel Crawler Cemetery | `randomizer-pixelcrawler` | 3 |
 | Pixel Crawler Desert | `randomizer-pixelcrawler` | 3 |
 
-113 map types in all (33 Painted Lands, 33 Green Caves, 30 Farm, 17 Pixel
-Crawler) and 2 fixed maps. Painted Lands and Pixel Crawler never share a map, and
+131 map types in all (33 Painted Lands, 33 Green Caves, 48 Farm in three
+seasons, 17 Pixel Crawler) and 2 fixed maps. Painted Lands and Pixel Crawler never share a map, and
 the Cozy Farm animals never go on a Pixel Crawler map.
 
 ## Painted Lands Forest
@@ -151,14 +153,16 @@ or cows round it too, and bunnies.
 | 31 | Cave hamlet | 3 (1-2 each) | light |
 | 32 | Underground manor | 1 (5-6) | dark |
 
-## Painted Lands Farm – 4 Seasons
+## Painted Lands Farm – 4 Seasons (spring and summer)
 
-`randomizer-paintedlands-farm` (id % 30), `assets/pack/farm/` (the spring
-and summer tileset, `crops.png`, the tree, windmill, and gate animations,
-and the fish), with the Cozy Farm animals on every map (herds in the pens,
+`randomizer-paintedlands-farm` (id % 48), `assets/pack/farm/` (the spring
+and summer, autumn, and winter tilesets, `crops.png`, the tree, windmill,
+and gate animations of each season, and the fish). Each map is wholly one
+season: its ground, trees, buildings, windmill, gate, and props all come
+from that season's sheets, never mixed. The Cozy Farm animals are on every map (herds in the pens,
 poultry and pigs in the yards, bunnies on the lawn). Every building has a
 door into its own interior sub-map. No Forest (`TILESET_brighter.png`) tile
-is on these maps.
+is on these maps. This section and the next list the spring and summer map types.
 
 Farm and Cozy Farm animals only (no Cozy Cottage):
 
@@ -167,7 +171,7 @@ Farm and Cozy Farm animals only (no Cozy Cottage):
 | 20 | Wildflower meadow | none |
 | 28 | Orchard and greenhouse | greenhouse (the Farm sheet's own glasshouse) |
 
-## Painted Lands Farm + Cozy Cottage + Cozy Farm animals
+## Painted Lands Farm (spring and summer) + Cozy Cottage + Cozy Farm animals
 
 `randomizer-paintedlands-farm`: farmhouses, the manor, the barn, and the
 windmill open on Cozy Cottage homes; the greenhouse on the Farm sheet's own
@@ -203,6 +207,40 @@ glasshouse.
 | 26 | Twin farms | two farmhouses (2-4) | fields, pen |
 | 27 | Stone quarry | farmhouse (2-4) | plateaus with a cave |
 | 29 | Harvest fair | manor (3-6), farmhouse (2-4), windmill (1) | fields, market |
+
+## Painted Lands Farm (autumn) + Cozy Cottage + Cozy Farm animals
+
+`randomizer-paintedlands-farm`, `farm_autumn.png`: tan and russet grass,
+turning trees, straw, the harvest.
+
+| # | Map type | Buildings (rooms) | Farm features |
+|---|---|---|---|
+| 30 | Autumn homestead | farmhouse (2-4), barn (1-2) | pumpkin and cabbage fields, pen, pond |
+| 31 | Pumpkin harvest | barn (1-2) | pumpkin and melon fields |
+| 32 | Autumn orchard | farmhouse (2-4) | apple orchard, pond |
+| 33 | Golden wheat | windmill (1), barn (1-2) | straw, wheat rows, hay |
+| 34 | Turning lane | manor (3-6) | turning trees |
+| 35 | Autumn market | manor (3-6), barn (1-2) | market, fields |
+| 36 | Misty lake | farmhouse (2-4) | lake with an island |
+| 37 | Cornfield | windmill (1) | corn rows |
+| 38 | Old barn in autumn | barn (1-2) | dead trees, straw, hedges |
+| 39 | Cider farm | farmhouse (2-4), windmill (1) | mixed fruit orchard |
+
+## Painted Lands Farm (winter) + Cozy Cottage + Cozy Farm animals
+
+`randomizer-paintedlands-farm`, `farm_winter.png`: snow, snowy and bare trees,
+falling snow; no crops outdoors.
+
+| # | Map type | Buildings (rooms) | Farm features |
+|---|---|---|---|
+| 40 | Snowy homestead | farmhouse (2-4), barn (1-2) | pen, pond |
+| 41 | Winter pasture | farmhouse (2-4) | two big pens |
+| 42 | Frozen lake | farmhouse (2-4) | lake with an island |
+| 43 | Snowy woodlot | farmhouse (2-4) | snowy canopy wall |
+| 44 | Pine hills | farmhouse (2-4) | plateaus, pines, pond |
+| 45 | Winter village | farmhouse (2-4), manor (3-6), barn (1-2) | crossing roads |
+| 46 | Greenhouse in the snow | greenhouse (its own glasshouse), farmhouse (2-4) | bare orchard |
+| 47 | Winter windmill | windmill (1), barn (1-2) | pens, hay |
 
 ## Pixel Crawler
 

@@ -33,7 +33,9 @@ const SOLID := 3 # building walls
 const FIELD := 4 # tilled plots with crops
 const FENCE := 5
 
-# Recipes. buildings: kinds (FarmTiles.BUILDINGS); fields [min, max] and the
+# Recipes (map id % 48): 30 in spring and summer, 10 in autumn, 8 in winter;
+# season: the sheet for the whole map (never mixed). buildings: kinds
+# (FarmTiles.BUILDINGS); fields [min, max] and the
 # crops they grow, rows (one-tall crop rows) or blocks; pens [min, max];
 # orchard [tree set, trees]; wheat / tall / hedge: overlay blobs; water;
 # plateaus [min, max]; trees [set, count]; zones (dark share) and pale
@@ -70,11 +72,40 @@ const RECIPES := [
 	{"name": "Stone quarry", "buildings": ["farmhouse_b"], "plateaus": [2, 3], "cave": true, "trees": ["wild", 8], "zones": 0.18, "pale": 0.2, "path": "lane", "ground": "s", "piece": "quarry"},
 	{"name": "Orchard and greenhouse", "buildings": ["greenhouse"], "orchard": ["mixed_fruit", 14], "fields": [1, 1], "crops": ["strawberry"], "rows": true, "trees": ["wild", 6], "zones": 0.2, "pale": 0.12, "path": "lane", "ground": "s", "piece": "garden"},
 	{"name": "Harvest fair", "buildings": ["manor", "farmhouse", "windmill"], "fields": [2, 2], "crops": ["pumpkin", "corn", "sunflower"], "rows": false, "trees": ["wild", 6], "zones": 0.16, "pale": 0.14, "path": "cross", "ground": "e", "piece": "market"},
+	# Autumn (farm_autumn.png): the harvest, turning trees, straw.
+	{"name": "Autumn homestead", "season": "autumn", "buildings": ["farmhouse", "barn"], "fields": [2, 2], "crops": ["pumpkin", "cabbage", "potato"], "rows": false, "pens": [1, 1], "water": "pond", "trees": ["wild", 12], "zones": 0.24, "pale": 0.14, "path": "road", "ground": "e", "piece": "farmyard"},
+	{"name": "Pumpkin harvest", "season": "autumn", "buildings": ["barn"], "fields": [3, 3], "crops": ["pumpkin", "pumpkin", "watermelon"], "rows": false, "trees": ["wild", 10], "zones": 0.2, "pale": 0.18, "path": "lane", "ground": "e", "piece": "scarecrows"},
+	{"name": "Autumn orchard", "season": "autumn", "buildings": ["farmhouse_b"], "orchard": ["apple", 16], "water": "pond", "trees": ["wild", 6], "zones": 0.22, "pale": 0.12, "path": "lane", "ground": "e", "piece": "harvest"},
+	{"name": "Golden wheat", "season": "autumn", "buildings": ["windmill", "barn"], "wheat": [3, 4], "fields": [1, 1], "crops": ["wheat"], "rows": true, "trees": ["wild", 8], "zones": 0.18, "pale": 0.22, "path": "road", "ground": "e", "piece": "hay"},
+	{"name": "Turning lane", "season": "autumn", "buildings": ["manor"], "trees": ["wild", 26], "zones": 0.3, "pale": 0.14, "path": "road", "ground": "s", "piece": "garden", "flowers": 1},
+	{"name": "Autumn market", "season": "autumn", "buildings": ["manor", "barn"], "fields": [1, 2], "crops": ["pumpkin", "corn"], "rows": false, "trees": ["wild", 8], "zones": 0.18, "pale": 0.14, "path": "cross", "ground": "s", "piece": "market"},
+	{"name": "Misty lake", "season": "autumn", "buildings": ["farmhouse_b"], "water": "lake", "trees": ["wild", 14], "zones": 0.28, "pale": 0.1, "path": "lane", "ground": "e", "piece": "shore"},
+	{"name": "Cornfield", "season": "autumn", "buildings": ["windmill"], "fields": [3, 4], "crops": ["corn"], "rows": true, "trees": ["wild", 6], "zones": 0.18, "pale": 0.18, "path": "road", "ground": "e", "piece": "scarecrows"},
+	{"name": "Old barn in autumn", "season": "autumn", "buildings": ["barn"], "tall": [2, 3], "hedge": [1, 2], "trees": ["old", 14], "zones": 0.34, "pale": 0.08, "path": "lane", "ground": "e", "piece": "old"},
+	{"name": "Cider farm", "season": "autumn", "buildings": ["farmhouse", "windmill"], "orchard": ["mixed_fruit", 12], "trees": ["wild", 6], "zones": 0.2, "pale": 0.14, "path": "lane", "ground": "e", "piece": "harvest"},
+	# Winter (farm_winter.png): snow, bare and snowy trees, no crops.
+	{"name": "Snowy homestead", "season": "winter", "buildings": ["farmhouse", "barn"], "pens": [1, 1], "water": "pond", "trees": ["wild", 12], "zones": 0.14, "pale": 0.16, "path": "road", "ground": "e", "piece": "farmyard"},
+	{"name": "Winter pasture", "season": "winter", "buildings": ["farmhouse"], "pens": [2, 2], "trees": ["wild", 10], "zones": 0.13, "pale": 0.2, "path": "lane", "ground": "e", "piece": "meadow", "big_pens": true},
+	{"name": "Frozen lake", "season": "winter", "buildings": ["farmhouse"], "water": "lake", "trees": ["pines", 14], "zones": 0.14, "pale": 0.16, "path": "lane", "ground": "s", "piece": "shore"},
+	{"name": "Snowy woodlot", "season": "winter", "buildings": ["farmhouse"], "trees": ["wild", 28], "canopy": true, "zones": 0.20, "pale": 0.12, "path": "road", "ground": "e", "piece": "woodcutter"},
+	{"name": "Pine hills", "season": "winter", "buildings": ["farmhouse"], "plateaus": [2, 3], "water": "pond", "trees": ["pines", 20], "zones": 0.18, "pale": 0.14, "path": "lane", "ground": "e", "piece": "woodcutter"},
+	{"name": "Winter village", "season": "winter", "buildings": ["farmhouse", "manor", "barn"], "trees": ["wild", 8], "zones": 0.12, "pale": 0.18, "path": "cross", "ground": "e", "piece": "village"},
+	{"name": "Greenhouse in the snow", "season": "winter", "buildings": ["greenhouse", "farmhouse"], "orchard": ["orchard", 10], "trees": ["wild", 6], "zones": 0.13, "pale": 0.16, "path": "lane", "ground": "s", "piece": "garden"},
+	{"name": "Winter windmill", "season": "winter", "buildings": ["windmill", "barn"], "pens": [1, 2], "trees": ["wild", 8], "zones": 0.13, "pale": 0.18, "path": "road", "ground": "e", "piece": "hay"},
 ]
 
 var map_id := 0
 var recipe_id := 0
 var recipe: Dictionary
+var season := "summer" # summer (spring and summer sheet), autumn, or winter: the whole map
+# The season's tables (FarmTiles.get_for).
+var wang: Dictionary
+var plots_tab: Dictionary
+var fence_tab: Dictionary
+var sprouts_set: Array = []
+var sprouts_dark: Array = []
+var flowers_set: Array = []
+var tufts_set: Array = []
 var attempt := 0
 var corner := PackedStringArray() # (W + 1) * (H + 1) terrain letters
 var kind := PackedByteArray()
@@ -113,6 +144,16 @@ func generate(id: int, pinned := -1) -> String:
 	map_id = id
 	recipe_id = pinned if pinned >= 0 else id % RECIPES.size()
 	recipe = RECIPES[recipe_id]
+	season = recipe.get("season", "summer")
+	wang = FarmTiles.get_for(season, "wang")
+	plots_tab = FarmTiles.get_for(season, "plots")
+	fence_tab = FarmTiles.get_for(season, "fence")
+	sprouts_set = FarmTiles.get_for(season, "sprouts")
+	sprouts_dark = FarmTiles.get_for(season, "sprouts_dark")
+	flowers_set = FarmTiles.get_for(season, "flowers")
+	tufts_set = FarmTiles.get_for(season, "tufts")
+	if flowers_set.is_empty():
+		flowers_set = sprouts_set # winter: frosty tufts where flowers would be
 	for a in 30:
 		attempt = a
 		if _layout() and _reaches_all():
@@ -262,9 +303,10 @@ func _canopy() -> void:
 ## Impassable relief standing on plain lawn; on the quarry a cave mouth
 ## opens in the face.
 func _plateau() -> void:
-	var tones := ["g", "g", "a", "d"]
+	var tops: Dictionary = FarmTiles.get_for(season, "plateau_tops")
+	var tones := ["g", "g", "a", "d"].filter(func(k): return tops.has(k))
 	var tone: String = tones[_rng.randi() % tones.size()]
-	var top: Vector2i = FarmTiles.PLATEAU_TOPS[tone]
+	var top: Vector2i = FarmTiles.get_for(season, "plateau_tops")[tone]
 	for t in 60:
 		var w := _rng.randi_range(4, 9)
 		var th := _rng.randi_range(3, 5) # top rows
@@ -282,16 +324,16 @@ func _plateau() -> void:
 					var row := 0 if j == 0 else (2 if j == th - 1 else 1)
 					a = top + Vector2i(col, row)
 				elif j == th:
-					a = FarmTiles.PLATEAU_FACE + Vector2i(col, 0)
+					a = FarmTiles.get_for(season, "plateau_face") + Vector2i(col, 0)
 				else:
-					a = FarmTiles.PLATEAU_FOOT + Vector2i(col, 0)
+					a = FarmTiles.get_for(season, "plateau_foot") + Vector2i(col, 0)
 				pieces.append({"cell": at + Vector2i(i, j), "atlas": a, "foot": j == size.y - 1})
 		if recipe.get("cave", false) and w >= 5 and plateaus.is_empty():
 			var cx := _rng.randi_range(1, w - 4)
 			for p in pieces:
 				var rel: Vector2i = p.cell - at
 				if rel.x >= cx and rel.x < cx + 3 and rel.y >= th:
-					p.atlas = FarmTiles.PLATEAU_CAVE + Vector2i(rel.x - cx, rel.y - th)
+					p.atlas = FarmTiles.get_for(season, "plateau_cave") + Vector2i(rel.x - cx, rel.y - th)
 			notes.append("cave")
 		# Everything but the foot row blocks.
 		for j in size.y - 1:
@@ -672,7 +714,7 @@ func _field(index: int) -> void:
 ## The plot tile for a cell of a field: blocks use the 3 x 3 (and the one-wide
 ## column or row when the field is that thin); crop rows use the one-tall row.
 func _plot_tile(set_: String, c: Vector2i, r: Rect2i, rows: bool) -> Vector2i:
-	var p: Dictionary = FarmTiles.PLOTS[set_]
+	var p: Dictionary = plots_tab[set_]
 	var at: Vector2i = p.at
 	var w := r.size.x
 	var x := 0 if c.x == r.position.x else (2 if c.x == r.end.x - 1 else 1)
@@ -704,7 +746,7 @@ func _pen() -> void:
 			continue
 		var gate := Vector2i(r.position.x + _rng.randi_range(2, w - 3), r.end.y - 1)
 		var style := "grassy" if _rng.randf() < 0.5 else "plain"
-		var base: Vector2i = FarmTiles.FENCE[style]
+		var base: Vector2i = fence_tab[style]
 		for y in range(r.position.y, r.end.y):
 			for x in range(r.position.x, r.end.x):
 				var c := Vector2i(x, y)
@@ -743,7 +785,7 @@ func pen_cells() -> Dictionary:
 ## Fruit trees in rows (the orchard's grid, a little jitter), with grass
 ## between them.
 func _orchard() -> void:
-	var set_: Array = FarmTiles.TREE_SETS[recipe.orchard[0]]
+	var set_: Array = _tree_set(recipe.orchard[0])
 	var want: int = recipe.orchard[1]
 	var cols := clampi(int(sqrt(want * 1.6)), 3, 6)
 	var rows := ceili(float(want) / cols)
@@ -770,6 +812,8 @@ func _orchard() -> void:
 ## sets have every corner mix). Wheat and tall grass are walked through; a
 ## hedge blocks where it covers a cell.
 func _blob(k: String) -> void:
+	if not FarmTiles.get_for(season, "blobs").has(k):
+		return
 	var noise := FastNoiseLite.new()
 	noise.seed = map_id * 17 + blobs[k].size() + attempt * 3
 	noise.frequency = 0.3
@@ -803,6 +847,14 @@ func _blob(k: String) -> void:
 					if blob_sig(k, c) == "1111":
 						blocked[c] = true
 		return
+
+
+## A tree set of the season (winter has its own sets; kinds it lacks
+## become the season's own, FarmTiles.tree_art).
+func _tree_set(name: String) -> Array:
+	var sets: Dictionary = FarmTiles.get_for(season, "tree_sets")
+	var arts: Array = sets.get(name, FarmTiles.TREE_SETS.get(name, ["oak"]))
+	return arts.map(func(a): return FarmTiles.tree_art(season, a))
 
 
 ## The overlay corners of a blob kind at a cell (TL TR BL BR, 1 = blob).
@@ -889,6 +941,10 @@ func _zones() -> void:
 	tone_cuts.a = minf(tone_cuts.a, -0.08)
 	tone_cuts.d = maxf(tone_cuts.d, 0.08)
 	tone_cuts.x = maxf(tone_cuts.x, tone_cuts.d + 0.12)
+	if not wang.has("xxxx"):
+		tone_cuts.x = INF # autumn draws no deep grass
+	elif season == "winter":
+		tone_cuts.x = maxf(tone_cuts.x, open[clampi(int((1.0 - dark * 0.15) * m), 0, m - 1)]) # little of the deepest blue
 
 
 ## A corner next to a cell that is not open ground (water, cliff, walls,
@@ -919,7 +975,7 @@ func tone_level(c: Vector2i) -> int:
 ## Cells mixing terrains no tile draws: the lowest-priority terrain in the cell
 ## returns to its parent, until every cell has a tile.
 func _repair() -> void:
-	var tab: Dictionary = FarmTiles.WANG
+	var tab: Dictionary = wang
 	var par: Dictionary = FarmTiles.PARENT
 	for it in 40:
 		var bad := 0
@@ -1006,9 +1062,9 @@ func _flower_carpet() -> void:
 				if Vector2(x - c.x, (y - c.y) * 1.4).length() + _hash(x, y) * 1.2 < 3.6:
 					var h := _hash(x * 3, y * 7)
 					if h < 0.62:
-						deco[Vector2i(x, y)] = FarmTiles.FLOWERS[_rng.randi() % FarmTiles.FLOWERS.size()]
+						deco[Vector2i(x, y)] = flowers_set[_rng.randi() % flowers_set.size()]
 					elif h < 0.8:
-						deco[Vector2i(x, y)] = FarmTiles.SPROUTS[_rng.randi() % FarmTiles.SPROUTS.size()]
+						deco[Vector2i(x, y)] = sprouts_set[_rng.randi() % sprouts_set.size()]
 		_claim(Rect2i(c - Vector2i(3, 2), Vector2i(7, 5)))
 		return
 
@@ -1023,7 +1079,9 @@ func _place(art: String, cell: Vector2i, force := false) -> bool:
 		return false
 	if not force and _taken.has(cell):
 		return false
-	var p: Dictionary = FarmTiles.PROPS[art]
+	var p: Dictionary = FarmTiles.prop(season, art)
+	if p.is_empty():
+		return false # not drawn in this season
 	var w: int = maxi(1, int(ceil(p.block.x / 16.0)))
 	var r := Rect2i(cell - Vector2i(w / 2, 0), Vector2i(w, 1))
 	for y in range(r.position.y, r.end.y):
@@ -1071,7 +1129,7 @@ func _near(arts: Array, count: int, center: Vector2i, radius: int) -> void:
 ## then singles; they crowd onto the darker grass. On the woodlot a row
 ## stands in front of the canopy wall so the crowns cover its straight edge.
 func _scatter_trees() -> void:
-	var set_: Array = FarmTiles.TREE_SETS[recipe.trees[0]]
+	var set_: Array = _tree_set(recipe.trees[0])
 	var want: int = recipe.trees[1]
 	var placed := 0
 	if not canopy.is_empty():
@@ -1122,10 +1180,10 @@ func _deco() -> void:
 			for x in range(r.position.x + 1, r.end.x - 1):
 				var h := _hash(x * 13, y * 7)
 				if h < 0.22:
-					var set_: Array[Vector2i] = FarmTiles.SPROUTS_DARK if pl.tone == "d" else FarmTiles.SPROUTS
+					var set_: Array = sprouts_dark if pl.tone == "d" else sprouts_set
 					deco[Vector2i(x, y)] = set_[int(_hash(y, x * 3) * set_.size()) % set_.size()]
 				elif h < 0.3 and pl.tone != "d":
-					deco[Vector2i(x, y)] = FarmTiles.FLOWERS[int(_hash(y * 5, x) * FarmTiles.FLOWERS.size()) % FarmTiles.FLOWERS.size()]
+					deco[Vector2i(x, y)] = flowers_set[int(_hash(y * 5, x) * flowers_set.size()) % flowers_set.size()]
 	for y in H:
 		for x in W:
 			var c := Vector2i(x, y)
@@ -1135,15 +1193,17 @@ func _deco() -> void:
 			if s != "gggg":
 				continue
 			var h := _hash(x * 5 + 1, y * 3 + 7)
+			if season == "winter":
+				h = h * 3.0 + 0.04 # a frosty tuft here and there, not a carpet
 			if tone_level(c) <= 0:
 				if h < 0.05:
-					deco[c] = FarmTiles.FLOWERS[int(_hash(y, x) * FarmTiles.FLOWERS.size()) % FarmTiles.FLOWERS.size()]
+					deco[c] = flowers_set[int(_hash(y, x) * flowers_set.size()) % flowers_set.size()]
 				elif h < 0.15:
-					deco[c] = FarmTiles.SPROUTS[int(_hash(y, x) * FarmTiles.SPROUTS.size()) % FarmTiles.SPROUTS.size()]
+					deco[c] = sprouts_set[int(_hash(y, x) * sprouts_set.size()) % sprouts_set.size()]
 				elif h < 0.17:
-					deco[c] = FarmTiles.TUFTS[int(_hash(y, x) * 2.0) % 2]
+					deco[c] = tufts_set[int(_hash(y, x) * 2.0) % tufts_set.size()] if not tufts_set.is_empty() else sprouts_set[0]
 			elif h < 0.12:
-				deco[c] = FarmTiles.SPROUTS_DARK[int(_hash(y, x) * FarmTiles.SPROUTS_DARK.size()) % FarmTiles.SPROUTS_DARK.size()]
+				deco[c] = sprouts_dark[int(_hash(y, x) * sprouts_dark.size()) % sprouts_dark.size()]
 
 
 # ---------------------------------------------------------------- liveliness
@@ -1200,9 +1260,9 @@ func _floor_flowers(r: Rect2i) -> bool:
 				if Vector2(x - c.x, (y - c.y) * 1.4).length() + _hash(x, y) * 1.2 < 3.6:
 					var h := _hash(x * 3, y * 7)
 					if h < 0.62:
-						deco[Vector2i(x, y)] = FarmTiles.FLOWERS[_rng.randi() % FarmTiles.FLOWERS.size()]
+						deco[Vector2i(x, y)] = flowers_set[_rng.randi() % flowers_set.size()]
 					elif h < 0.8:
-						deco[Vector2i(x, y)] = FarmTiles.SPROUTS[_rng.randi() % FarmTiles.SPROUTS.size()]
+						deco[Vector2i(x, y)] = sprouts_set[_rng.randi() % sprouts_set.size()]
 		return deco.size() > before
 	return false
 
@@ -1273,7 +1333,7 @@ func _weakest() -> Dictionary:
 	for c: Vector2i in pen_cells():
 		m[_i(c)] += FLOOR_PEN / 10.0
 	for c: Vector2i in deco:
-		if deco[c] in FarmTiles.FLOWERS:
+		if deco[c] in flowers_set:
 			m[_i(c)] += FLOOR_FLOWER
 	for c in firefly_spots:
 		m[_i(c)] += FLOOR_GLOW * 2.0
@@ -1359,7 +1419,7 @@ func trunks() -> Array[Vector2i]:
 	for t in trees:
 		out.append(t.cell)
 	for p in props:
-		if FarmTiles.PROPS[p.art].tag == "bare":
+		if FarmTiles.prop(season, p.art).tag == "bare":
 			out.append(p.cell)
 	return out
 
@@ -1382,7 +1442,7 @@ func wildlife_plan(p_mode := "") -> Dictionary:
 	var bushes: Array[Vector2i] = []
 	var rocks: Array[Vector2i] = []
 	for p in props:
-		var tag: String = FarmTiles.PROPS[p.art].tag
+		var tag: String = FarmTiles.prop(season, p.art).tag
 		if tag in ["clutter", "wood", "hay"]:
 			clutter.append(p.cell)
 		elif tag in ["bush", "plant", "reed"]:
@@ -1451,6 +1511,9 @@ func wildlife_plan(p_mode := "") -> Dictionary:
 	var plan := Wildlife.plan_from(h, map_id, spawn, Wildlife.quiet_from(quiet, W, H), p_mode)
 	if p_mode == "farmland":
 		_herd_every_pen(plan)
+	if season == "winter":
+		# Lizards and frogs keep out of the snow.
+		plan.groups = plan.groups.filter(func(g): return not g.kind in ["lizard", "frog"])
 	return plan
 
 
@@ -1537,7 +1600,7 @@ func _report() -> String:
 	var untiled := 0
 	for y in H:
 		for x in W:
-			if not FarmTiles.WANG.has(sig(Vector2i(x, y))):
+			if not wang.has(sig(Vector2i(x, y))):
 				untiled += 1
 	if untiled > 0:
 		fails.append("%d cells without a tile" % untiled)

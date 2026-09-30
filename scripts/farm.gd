@@ -16,7 +16,6 @@ const TILE := 16
 const W := FarmTerrain.W
 const H := FarmTerrain.H
 const WALKER_SCENE := preload("res://scenes/forest/walker.tscn")
-const SRC := 0
 const CROWN_FADE := 0.42
 const HOUSE_FADE := 0.55
 const FADE_RATE := 5.0
@@ -24,7 +23,7 @@ const BRUSH := 14.0 # px from a trunk that shakes the tree
 const GATE_OPEN := 30.0 # px: a gate swings open for the walker this close
 const SHADE := Color(0.08, 0.24, 0.2, 0.28) # tree shadows, the deep grass tone
 
-@export var map_id := 190020 # recipe 0, Homestead
+@export var map_id := 190032 # recipe 0, Homestead (id % 48)
 @export var recipe := -1
 ## Buildings open onto interiors (house_interiors.gd): a sub-map per door.
 @export var interiors := true
@@ -45,6 +44,10 @@ var report := ""
 var house_interiors: HouseInteriors
 var _tiles: TileSet
 var _src: TileSetAtlasSource
+var _src_id := 0
+var _srcs := {} # season -> [source id, TileSetAtlasSource]
+var season := "summer"
+var _sheet := FarmTiles.SHEET # the season's tileset
 var _images := {}
 var _textures := {}
 var _frames_cache := {} # sheet -> SpriteFrames
@@ -56,10 +59,11 @@ var _shade: CanvasGroup
 var _tone_layers: Array[TileMapLayer] = []
 # Tone zones (pale, dark, deep): their fill tiles on the farm sheet, plain
 # first, and whether a level is below its cut (pale) or above it.
+# (The fills are the season's plain tiles of that terrain, FarmTiles.WANG.)
 const TONES := [
-	{"key": "a", "sign": -1.0, "fills": [Vector2i(19, 0), Vector2i(20, 0), Vector2i(21, 0), Vector2i(22, 0)]},
-	{"key": "d", "sign": 1.0, "fills": [Vector2i(23, 0), Vector2i(24, 0), Vector2i(25, 0), Vector2i(26, 0)]},
-	{"key": "x", "sign": 1.0, "fills": [Vector2i(23, 1), Vector2i(24, 1), Vector2i(25, 1), Vector2i(26, 1)]},
+	{"key": "a", "sign": -1.0},
+	{"key": "d", "sign": 1.0},
+	{"key": "x", "sign": 1.0},
 ]
 
 var wind: Wind
@@ -74,6 +78,7 @@ var drifters: Drifters
 var wildlife: Wildlife
 var clouds: CloudShadows
 var fish: FishJumps
+var snow: Snowfall
 
 # Things that move in _process.
 var _crowns: Array[Dictionary] = [] # {sprite, foot: y, crown: Rect2}
@@ -111,6 +116,7 @@ func build(id: int, pinned := -1) -> void:
 	recipe = pinned
 	terrain = FarmTerrain.new()
 	report = terrain.generate(map_id, recipe)
+	_use_season(terrain.season)
 	for layer in [ground_layer, water_layer, feature_layer, deco_layer] + _tone_layers:
 		layer.clear()
 	for node in [under, actors, collision, _shade] + _tone_layers:
@@ -190,12 +196,24 @@ func _frames(sheet: String, count: int, size: Vector2i, fps: float, loop: bool) 
 func _build_tileset() -> void:
 	_tiles = TileSet.new()
 	_tiles.tile_size = Vector2i(TILE, TILE)
-	_src = TileSetAtlasSource.new()
-	_src.texture = _tex(FarmTiles.SHEET)
-	_src.texture_region_size = Vector2i(TILE, TILE)
-	_tiles.add_source(_src, SRC)
+	_use_season("summer")
 	for layer in [ground_layer, water_layer, feature_layer, deco_layer] + _tone_layers:
 		layer.tile_set = _tiles
+
+
+## The atlas source of a season's sheet (one per season, made once).
+func _use_season(p_season: String) -> void:
+	season = p_season
+	_sheet = FarmTiles.get_for(season, "sheet")
+	if not _srcs.has(season):
+		var src := TileSetAtlasSource.new()
+		src.texture = _tex(_sheet)
+		src.texture_region_size = Vector2i(TILE, TILE)
+		var id := _srcs.size()
+		_tiles.add_source(src, id)
+		_srcs[season] = [id, src]
+	_src_id = _srcs[season][0]
+	_src = _srcs[season][1]
 
 
 ## A tile from the farm sheet; `anim` "shore" steps down five rows per frame,
@@ -210,7 +228,7 @@ func _put(layer: TileMapLayer, cell: Vector2i, atlas: Vector2i, anim := "") -> v
 			_src.set_tile_animation_frames_count(atlas, FarmTiles.WATER_FRAMES)
 			for i in FarmTiles.WATER_FRAMES:
 				_src.set_tile_animation_frame_duration(atlas, i, FarmTiles.WATER_DURATION)
-	layer.set_cell(cell, SRC, atlas)
+	layer.set_cell(cell, _src_id, atlas)
 
 
 func _hash(x: int, y: int) -> float:
@@ -222,11 +240,16 @@ func _hash(x: int, y: int) -> float:
 # ---------------------------------------------------------------- paint
 
 func _paint() -> void:
+	var open_tiles: Array = FarmTiles.get_for(season, "open")
+	# The shore tables are spring's (frames from row 21); a season's block may
+	# sit elsewhere.
+	var shore_shift: Vector2i = FarmTiles.get_for(season, "water_origin") - Vector2i(0, 21)
+	var blob_base: Dictionary = FarmTiles.get_for(season, "blobs")
 	for y in H:
 		for x in W:
 			var c := Vector2i(x, y)
 			var s := terrain.sig(c)
-			var cells: Array = FarmTiles.WANG.get(s, FarmTiles.WANG["gggg"])
+			var cells: Array = terrain.wang.get(s, terrain.wang["gggg"])
 			var a: Vector2i = cells[0]
 			# Fills: mostly plain, now and then a tufted variant.
 			if cells.size() > 1 and s == s[0].repeat(4) and _hash(x, y) > 0.72:
@@ -235,18 +258,18 @@ func _paint() -> void:
 			# Water and its shores.
 			var k := terrain.shore_key(c)
 			if k == "open":
-				_put(water_layer, c, FarmTiles.WATER_OPEN[int(_hash(x * 3, y) * 2.0) % 2], "open")
+				_put(water_layer, c, open_tiles[int(_hash(x * 3, y) * 2.0) % open_tiles.size()], "open")
 			elif k != "" and k != "?":
 				var tab: Dictionary = FarmTiles.SHORE_WATER if terrain.water.has(c) else FarmTiles.SHORE_LAND
-				_put(water_layer, c, tab[k], "shore")
+				_put(water_layer, c, tab[k] + shore_shift, "shore")
 			# Plots, overlay blobs, fences.
 			if terrain.plots.has(c):
 				_put(feature_layer, c, terrain.plots[c])
 			else:
 				for bk in ["wheat", "tall", "hedge"]:
 					var bs := terrain.blob_sig(bk, c)
-					if bs != "0000" and FarmTiles.BLOB.has(bs):
-						_put(feature_layer, c, FarmTiles.BLOB_BASE[bk] + FarmTiles.BLOB[bs])
+					if bs != "0000" and FarmTiles.BLOB.has(bs) and blob_base.has(bk):
+						_put(feature_layer, c, blob_base[bk] + FarmTiles.BLOB[bs])
 						break
 			if terrain.fence.has(c):
 				_put(feature_layer, c, terrain.fence[c])
@@ -267,14 +290,16 @@ func _paint() -> void:
 func _paint_tones() -> void:
 	if terrain.tone_field.is_empty():
 		return
-	var sheet := _image(FarmTiles.SHEET)
+	var sheet := _image(_sheet)
 	var field := terrain.tone_field
 	for li in TONES.size():
 		var tone: Dictionary = TONES[li]
 		var layer: TileMapLayer = _tone_layers[li]
 		var sgn: float = tone.sign
 		var cut: float = sgn * float(terrain.tone_cuts[tone.key])
-		var fills: Array = tone.fills
+		var fills: Array = terrain.wang.get(String(tone.key).repeat(4), [])
+		if fills.is_empty() or is_inf(cut):
+			continue
 		var img := Image.create(W * TILE, H * TILE, false, Image.FORMAT_RGBA8)
 		var any := false
 		for y in H:
@@ -290,7 +315,8 @@ func _paint_tones() -> void:
 				var amp := maxf(hi - lo, 0.004) * 0.2
 				if hi + amp * 1.5 < cut:
 					continue
-				var fill: Vector2i = fills[0] if _hash(x * 7 + li, y * 3) < 0.7 else fills[1 + int(_hash(y + li, x) * 3.0) % 3]
+				var nf := mini(fills.size(), 4)
+				var fill: Vector2i = fills[0] if _hash(x * 7 + li, y * 3) < 0.7 or nf < 2 else fills[1 + int(_hash(y + li, x) * 3.0) % (nf - 1)]
 				if lo - amp * 1.5 >= cut:
 					_put(layer, Vector2i(x, y), fill)
 					continue
@@ -354,6 +380,7 @@ func _place_buildings() -> void:
 		var art: Dictionary = FarmTiles.BUILDINGS[b.kind]
 		var origin := Vector2(b.origin * TILE)
 		var size := Vector2(art.region.size)
+		var region := FarmTiles.building_region(season, b.kind)
 		var body := StaticBody2D.new()
 		body.name = "building_%s" % b.kind
 		body.collision_mask = 0
@@ -362,7 +389,7 @@ func _place_buildings() -> void:
 		if art.has("anim"):
 			var mill := AnimatedSprite2D.new()
 			var fr: Vector2i = art.frame
-			mill.sprite_frames = _frames(art.anim, art.frames, fr, 4.0, true)
+			mill.sprite_frames = _frames(FarmTiles.get_for(season, "windmill"), art.frames, fr, 4.0, true)
 			mill.centered = false
 			mill.offset = Vector2(art.shift) + Vector2(0, -fr.y)
 			mill.play("default")
@@ -371,9 +398,9 @@ func _place_buildings() -> void:
 			sprite = mill
 		else:
 			var s := Sprite2D.new()
-			s.texture = _tex(FarmTiles.SHEET)
+			s.texture = _tex(_sheet)
 			s.region_enabled = true
-			s.region_rect = Rect2(art.region)
+			s.region_rect = Rect2(region)
 			s.centered = false
 			s.offset = Vector2(0, -size.y)
 			sprite = s
@@ -405,7 +432,7 @@ func _doors() -> Array[Dictionary]:
 ## growing in the beds and pots by the wall; the way out is the gap at the
 ## foot of the aisle.
 func _build_greenhouse(index: int) -> Dictionary:
-	var room: Rect2i = FarmTiles.GREENHOUSE_ROOM
+	var room: Rect2i = FarmTiles.get_for(season, "greenhouse_room")
 	var view := Node2D.new()
 	view.name = "Greenhouse"
 	var layer := TileMapLayer.new()
@@ -456,9 +483,9 @@ func _build_greenhouse(index: int) -> Dictionary:
 				acts.add_child(s)
 	# Pots along the back wall's walk.
 	for xx in [1, 3, 7, 9]:
-		var art: Dictionary = FarmTiles.PROPS["pot_plant" if xx % 4 == 1 else "pot_plant_b"]
+		var art: Dictionary = FarmTiles.prop(season, "pot_plant" if xx % 4 == 1 else "pot_plant_b")
 		var s := Sprite2D.new()
-		s.texture = _tex(FarmTiles.SHEET)
+		s.texture = _tex(_sheet)
 		s.region_enabled = true
 		s.region_rect = Rect2(art.rect)
 		s.centered = false
@@ -488,8 +515,10 @@ class GreenhouseView extends Node2D:
 ## fades while the walker is behind it.
 func _place_trees() -> void:
 	for t in terrain.trees:
-		var art: Dictionary = FarmTiles.TREES[t.art]
-		var sheet: String = FarmTiles.TREE_DIR + art.sheet
+		var trees_tab: Dictionary = FarmTiles.get_for(season, "trees")
+		var tree_dir: String = FarmTiles.get_for(season, "tree_dir")
+		var art: Dictionary = trees_tab[FarmTiles.tree_art(season, t.art)]
+		var sheet: String = tree_dir + art.sheet
 		var tex := _tex(sheet)
 		var size := Vector2i(tex.get_width() / FarmTiles.TREE_FRAMES, tex.get_height())
 		var foot := Vector2(t.cell * TILE) + Vector2(TILE / 2.0, TILE - 1)
@@ -520,8 +549,9 @@ func _place_trees() -> void:
 				kind_key = k
 		if art.get("petals", false):
 			kind_key = "cherry_bloom"
-		_trees.append({"sprite": spr, "foot": foot, "falling": (FarmTiles.TREE_DIR + falling) if falling != "" else "",
-			"size": size, "offset": spr.offset, "flip": flip, "leaves": FarmTiles.WIND_LEAVES[kind_key], "cool": randf() * 3.0,
+		var wind_leaves: Dictionary = FarmTiles.get_for(season, "wind_leaves")
+		_trees.append({"sprite": spr, "foot": foot, "falling": (tree_dir + falling) if falling != "" else "",
+			"size": size, "offset": spr.offset, "flip": flip, "leaves": wind_leaves.get(kind_key, wind_leaves.basic), "cool": randf() * 3.0,
 			"crown": crown, "sheet": sheet})
 		# A soft shadow under the crown, in the deep grass tone.
 		var sh := Sprite2D.new()
@@ -534,11 +564,12 @@ var _shadows := {}
 
 ## A dithered oval, opaque; the shadow group draws it at SHADE's alpha.
 func _shadow_tex(w: int, h: int) -> Texture2D:
-	var key := Vector2i(w, h)
+	var key := "%d:%d:%s" % [w, h, season]
 	if _shadows.has(key):
 		return _shadows[key]
 	var img := Image.create(maxi(w, 4), maxi(h, 3), false, Image.FORMAT_RGBA8)
-	var c := Color(SHADE.r, SHADE.g, SHADE.b, 1.0)
+	var sc: Color = SEASON_FX[season].tree_shade
+	var c := Color(sc.r, sc.g, sc.b, 1.0)
 	for y in img.get_height():
 		for x in img.get_width():
 			var d := Vector2((x + 0.5) / img.get_width() * 2.0 - 1.0, (y + 0.5) / img.get_height() * 2.0 - 1.0).length()
@@ -606,14 +637,14 @@ func _crop_sprite(tex: Texture2D, region: Rect2, offset: Vector2) -> Sprite2D:
 
 func _place_props() -> void:
 	for p in terrain.props:
-		var art: Dictionary = FarmTiles.PROPS[p.art]
+		var art: Dictionary = FarmTiles.prop(season, p.art)
 		var rect: Rect2i = art.rect
 		var foot := Vector2(p.cell * TILE) + Vector2(TILE / 2.0, TILE - 1)
 		var node := StaticBody2D.new()
 		node.collision_mask = 0
 		node.position = foot
 		var s := Sprite2D.new()
-		s.texture = _tex(FarmTiles.SHEET)
+		s.texture = _tex(_sheet)
 		s.region_enabled = true
 		s.region_rect = Rect2(rect)
 		s.centered = false
@@ -634,7 +665,7 @@ func _place_props() -> void:
 	# The canopy wall (woodlot): seamless crown blocks along the top edge.
 	for c in terrain.canopy:
 		var s := Sprite2D.new()
-		s.texture = _tex(FarmTiles.SHEET)
+		s.texture = _tex(_sheet)
 		s.region_enabled = true
 		s.region_rect = Rect2(FarmTiles.CANOPY)
 		s.centered = false
@@ -644,9 +675,11 @@ func _place_props() -> void:
 	# Stepping stones where a path crosses the brook.
 	for c: Vector2i in terrain.stones:
 		for k in 2:
-			var art: Dictionary = FarmTiles.PROPS["pebble" if k == 0 else "pebble_b"]
+			var art: Dictionary = FarmTiles.prop(season, "pebble" if k == 0 else "pebble_b")
+			if art.is_empty():
+				art = FarmTiles.prop(season, "snow_lump" if k == 0 else "snow_lump_c")
 			var s := Sprite2D.new()
-			s.texture = _tex(FarmTiles.SHEET)
+			s.texture = _tex(_sheet)
 			s.region_enabled = true
 			s.region_rect = Rect2(art.rect)
 			s.position = Vector2(c * TILE) + Vector2(5 + k * 7, 5 + k * 6)
@@ -656,7 +689,7 @@ func _place_props() -> void:
 ## Pen gates: the pack's gate animation (four frames, closed to open), swung
 ## open as the walker comes near and closed after.
 func _place_gates() -> void:
-	var tex := _tex(FarmTiles.GATE_SHEET)
+	var tex := _tex(FarmTiles.get_for(season, "gate"))
 	for g in terrain.gates:
 		var s := Sprite2D.new()
 		s.texture = tex
@@ -781,22 +814,33 @@ func _add_ambience() -> void:
 	footsteps.water_life = water_life
 	footsteps.leaves = leaves
 	fish.water_life = water_life
+	snow = Snowfall.new()
+	snow.name = "Snowfall"
+	snow.wind = wind
+	add_child(snow)
 
 
 func _reset_ambience() -> void:
 	var map_rect := Rect2(0, 0, W * TILE, H * TILE)
 	streaks.bounds = map_rect
-	clouds.shade = Color(0.06, 0.2, 0.1, 0.16)
-	grass_waves.tip = Color(0.72, 0.8, 0.5)
-	footsteps.blade_colors = [Color(0.52, 0.68, 0.4), Color(0.42, 0.6, 0.34)]
+	var fx: Dictionary = SEASON_FX[season]
+	clouds.shade = fx.shade
+	grass_waves.tip = fx.tip
+	footsteps.blade_colors = fx.blades
 	footsteps.dust_colors = [Color(0.6, 0.47, 0.32), Color(0.52, 0.4, 0.27)]
+	var winter := season == "winter"
+	snow.visible = winter
+	snow.process_mode = Node.PROCESS_MODE_INHERIT if winter else Node.PROCESS_MODE_DISABLED
+	drifters.visible = not winter
+	drifters.process_mode = Node.PROCESS_MODE_DISABLED if winter else Node.PROCESS_MODE_INHERIT
 	water_life.ring_color = Color(0.3, 0.52, 0.6)
 	water_life.ring_highlight = Color(0.86, 0.95, 1.0)
 	water_life.drop_color = Color(0.55, 0.78, 0.86)
 	clouds.reset(map_rect)
 	var walker := actors.get_node_or_null("Walker")
 	water_life.setup(terrain.open_water(), _crop_tops)
-	fish.setup(terrain.open_water(), _tex("fishes"))
+	# Fish leap in open water, not in winter's cold water.
+	fish.setup(terrain.open_water() if season != "winter" else ([] as Array[Vector2i]), _tex("fishes"))
 	var sources: Array[Dictionary] = []
 	var flowers: Array[Vector2] = []
 	var dark: Array[Vector2] = []
@@ -809,7 +853,7 @@ func _reset_ambience() -> void:
 	leaves.set_sources(sources)
 	fire.set_fires([] as Array[Dictionary])
 	for c: Vector2i in terrain.deco:
-		if terrain.deco[c] in FarmTiles.FLOWERS:
+		if season != "winter" and terrain.deco[c] in terrain.flowers_set:
 			flowers.append(Vector2(c * TILE) + Vector2(8, 8))
 	for cr in terrain.crops:
 		if cr.crop in ["sunflower", "strawberry", "pumpkin", "tomato", "berry"] and (cr.cell.x + cr.cell.y) % 3 == 0:
@@ -825,20 +869,33 @@ func _reset_ambience() -> void:
 	for r in terrain.ponds:
 		ponds.append(Rect2(Vector2(r.position) * TILE + Vector2(16, 16), Vector2(r.size) * TILE - Vector2(32, 32)))
 	critters.walker = walker
+	if season == "winter":
+		# No butterflies, dragonflies, or fireflies in the snow.
+		flowers.clear()
+		ponds.clear()
+		dark.clear()
 	critters.setup(flowers, ponds, dark)
 	drifters.setup(map_rect, flowers)
 	_grass = terrain.grass_cells()
 	_wheat = terrain.wheat_cells()
 	var waves := _grass.duplicate()
 	waves.merge(_wheat)
-	grass_waves.setup(waves)
+	grass_waves.setup(waves if season != "winter" else {})
 	var water := {}
 	for c in terrain.water:
 		if not terrain.stones.has(c):
 			water[c] = true
 	footsteps.setup_generic(_surface, water, walker)
 	wildlife.mode = "farmland" if cozy_animals else ""
-	wildlife.setup_from(terrain.wildlife_plan(wildlife.mode), water, actors, walker, _image(FarmTiles.SHEET), water_life)
+	wildlife.setup_from(terrain.wildlife_plan(wildlife.mode), water, actors, walker, _image(_sheet), water_life)
+
+
+# Per season: grass-wave tips, blade flicks (snow puffs in winter), cloud shade.
+const SEASON_FX := {
+	"summer": {"tip": Color(0.72, 0.8, 0.5), "blades": [Color(0.52, 0.68, 0.4), Color(0.42, 0.6, 0.34)], "shade": Color(0.06, 0.2, 0.1, 0.16), "tree_shade": Color(0.08, 0.24, 0.2)},
+	"autumn": {"tip": Color(0.86, 0.74, 0.46), "blades": [Color(0.8, 0.64, 0.38), Color(0.66, 0.5, 0.28)], "shade": Color(0.2, 0.1, 0.04, 0.16), "tree_shade": Color(0.36, 0.18, 0.12)},
+	"winter": {"tip": Color(0.95, 0.97, 1.0), "blades": [Color(0.94, 0.96, 1.0), Color(0.8, 0.87, 0.97)], "shade": Color(0.12, 0.18, 0.35, 0.14), "tree_shade": Color(0.36, 0.48, 0.72)},
+}
 
 
 func _surface(cell: Vector2i) -> String:
@@ -933,3 +990,50 @@ class FishJumps extends Node2D:
 			draw_set_transform(p.floor(), (k - 0.5) * 2.2 * signf(sx), Vector2(sx, 0.75))
 			draw_texture_rect_region(_tex, Rect2(-8, -8, 16, 16), src)
 		draw_set_transform(Vector2.ZERO, 0.0, Vector2.ONE)
+
+
+## Winter: snow falling over the view, flakes of two sizes drifting with the
+## wind and swaying as they fall; a gust sends them sideways.
+class Snowfall extends Node2D:
+	const COUNT := 90
+	const COLORS := [Color(1, 1, 1, 0.95), Color(0.9, 0.94, 1.0, 0.85), Color(0.82, 0.88, 0.98, 0.8)]
+	var wind: Wind
+	var _flakes: Array[Dictionary] = []
+
+	func _ready() -> void:
+		z_index = 40 # over the actors and the crowns
+
+	func _process(delta: float) -> void:
+		var view := _view()
+		while _flakes.size() < COUNT:
+			_flakes.append(_new_flake(view, true))
+		var push := wind.carry(18.0) if wind else Vector2.ZERO
+		for f in _flakes:
+			f.t += delta
+			f.pos += Vector2(push.x + sin(f.t * f.sway + f.phase) * 6.0, f.fall) * delta
+			if not view.grow(24.0).has_point(f.pos) or f.t > f.life:
+				var n := _new_flake(view, false)
+				f.pos = n.pos
+				f.t = 0.0
+				f.life = n.life
+		queue_redraw()
+
+	func _new_flake(view: Rect2, anywhere: bool) -> Dictionary:
+		var pos := Vector2(randf_range(view.position.x - 20, view.end.x + 20), view.position.y - randf_range(2, 20))
+		if anywhere:
+			pos.y = randf_range(view.position.y, view.end.y)
+		return {"pos": pos, "t": 0.0, "life": randf_range(6.0, 14.0), "fall": randf_range(10.0, 22.0), "sway": randf_range(0.8, 1.8),
+			"phase": randf() * TAU, "big": randf() < 0.25, "color": COLORS[randi() % COLORS.size()]}
+
+	func _draw() -> void:
+		for f in _flakes:
+			var p: Vector2 = f.pos.floor()
+			var c: Color = f.color
+			draw_rect(Rect2(p, Vector2.ONE), c)
+			if f.big:
+				draw_rect(Rect2(p + Vector2(1, 0), Vector2.ONE), c)
+				draw_rect(Rect2(p + Vector2(0, 1), Vector2.ONE), Color(c, c.a * 0.6))
+
+	func _view() -> Rect2:
+		var inv := get_viewport().get_canvas_transform().affine_inverse()
+		return Rect2(inv * Vector2.ZERO, inv.basis_xform(get_viewport_rect().size))

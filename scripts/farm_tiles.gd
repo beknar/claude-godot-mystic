@@ -394,3 +394,453 @@ static func crop_rect(crop: String, stage: int) -> Rect2i:
 	var st: Array = CROPS[crop][clampi(stage, 0, CROPS[crop].size() - 1)]
 	var tall: bool = st.size() > 2
 	return Rect2i(st[0] * 16, (st[1] - (1 if tall else 0)) * 16, 16, 32 if tall else 16)
+
+
+# ---------------------------------------------------------------- seasons
+
+# Autumn (farm_autumn.png): three grass tones, a pale (198, 172, 104),
+# lawn g (177, 137, 77), dark d (147, 91, 55); no deep. Read the same way.
+const AUTUMN_WANG := {
+	"aaaa": [Vector2i(19, 0), Vector2i(20, 0), Vector2i(21, 0), Vector2i(22, 0), Vector2i(28, 4), Vector2i(28, 13), Vector2i(28, 19)],
+	"aaae": [Vector2i(27, 21)],
+	"aaag": [Vector2i(27, 0)],
+	"aaas": [Vector2i(27, 15)],
+	"aaea": [Vector2i(29, 21)],
+	"aaee": [Vector2i(28, 20), Vector2i(28, 21)],
+	"aaga": [Vector2i(29, 0)],
+	"aagg": [Vector2i(28, 0), Vector2i(28, 5)],
+	"aasa": [Vector2i(29, 15)],
+	"aass": [Vector2i(28, 14), Vector2i(28, 15)],
+	"aeaa": [Vector2i(27, 23)],
+	"aeae": [Vector2i(29, 19), Vector2i(27, 22)],
+	"aeee": [Vector2i(29, 20)],
+	"agaa": [Vector2i(27, 2)],
+	"agag": [Vector2i(27, 1), Vector2i(29, 4)],
+	"aggg": [Vector2i(29, 5)],
+	"asaa": [Vector2i(27, 17)],
+	"asas": [Vector2i(29, 13), Vector2i(27, 16)],
+	"asss": [Vector2i(29, 14)],
+	"dddd": [Vector2i(23, 0), Vector2i(24, 0), Vector2i(25, 0), Vector2i(26, 0), Vector2i(31, 1), Vector2i(34, 13), Vector2i(34, 19)],
+	"ddde": [Vector2i(33, 21)],
+	"dddg": [Vector2i(30, 3)],
+	"ddds": [Vector2i(33, 15)],
+	"dded": [Vector2i(35, 21)],
+	"ddee": [Vector2i(34, 20), Vector2i(34, 21)],
+	"ddgd": [Vector2i(32, 3)],
+	"ddgg": [Vector2i(31, 2), Vector2i(31, 3)],
+	"ddsd": [Vector2i(35, 15)],
+	"ddss": [Vector2i(34, 14), Vector2i(34, 15)],
+	"dedd": [Vector2i(33, 23)],
+	"dede": [Vector2i(35, 19), Vector2i(33, 22)],
+	"deee": [Vector2i(35, 20)],
+	"dgdd": [Vector2i(30, 5)],
+	"dgdg": [Vector2i(32, 1), Vector2i(30, 4)],
+	"dggg": [Vector2i(32, 2)],
+	"dsdd": [Vector2i(33, 17)],
+	"dsds": [Vector2i(35, 13), Vector2i(33, 16)],
+	"dsss": [Vector2i(35, 14)],
+	"eaaa": [Vector2i(29, 23)],
+	"eaea": [Vector2i(27, 19), Vector2i(29, 22)],
+	"eaee": [Vector2i(27, 20)],
+	"eddd": [Vector2i(35, 23)],
+	"eded": [Vector2i(33, 19), Vector2i(35, 22)],
+	"edee": [Vector2i(33, 20)],
+	"eeaa": [Vector2i(28, 18), Vector2i(28, 23)],
+	"eeae": [Vector2i(29, 18)],
+	"eedd": [Vector2i(34, 18), Vector2i(34, 23)],
+	"eede": [Vector2i(35, 18)],
+	"eeea": [Vector2i(27, 18)],
+	"eeed": [Vector2i(33, 18)],
+	"eeee": [Vector2i(28, 22), Vector2i(31, 22), Vector2i(34, 22)],
+	"eeeg": [Vector2i(30, 18)],
+	"eege": [Vector2i(32, 18)],
+	"eegg": [Vector2i(31, 18), Vector2i(31, 23)],
+	"egee": [Vector2i(30, 20)],
+	"egeg": [Vector2i(30, 19), Vector2i(32, 22)],
+	"eggg": [Vector2i(32, 23)],
+	"gaaa": [Vector2i(29, 2)],
+	"gaga": [Vector2i(29, 1), Vector2i(27, 4)],
+	"gagg": [Vector2i(27, 5)],
+	"gddd": [Vector2i(32, 5)],
+	"gdgd": [Vector2i(30, 1), Vector2i(32, 4)],
+	"gdgg": [Vector2i(30, 2)],
+	"geee": [Vector2i(32, 20)],
+	"gege": [Vector2i(32, 19), Vector2i(30, 22)],
+	"gegg": [Vector2i(30, 23)],
+	"ggaa": [Vector2i(28, 2), Vector2i(28, 3)],
+	"ggag": [Vector2i(29, 3)],
+	"ggdd": [Vector2i(31, 0), Vector2i(31, 5)],
+	"ggdg": [Vector2i(32, 0)],
+	"ggee": [Vector2i(31, 20), Vector2i(31, 21)],
+	"ggeg": [Vector2i(32, 21)],
+	"ggga": [Vector2i(27, 3)],
+	"gggd": [Vector2i(30, 0)],
+	"ggge": [Vector2i(30, 21)],
+	"gggg": [Vector2i(19, 1), Vector2i(20, 1), Vector2i(21, 1), Vector2i(22, 1), Vector2i(28, 1), Vector2i(31, 4), Vector2i(31, 13), Vector2i(31, 19)],
+	"gggs": [Vector2i(30, 15)],
+	"ggsg": [Vector2i(32, 15)],
+	"ggss": [Vector2i(31, 14), Vector2i(31, 15)],
+	"gsgg": [Vector2i(30, 17)],
+	"gsgs": [Vector2i(32, 13), Vector2i(30, 16)],
+	"gsss": [Vector2i(32, 14)],
+	"saaa": [Vector2i(29, 17)],
+	"sasa": [Vector2i(27, 13), Vector2i(29, 16)],
+	"sass": [Vector2i(27, 14)],
+	"sddd": [Vector2i(35, 17)],
+	"sdsd": [Vector2i(33, 13), Vector2i(35, 16)],
+	"sdss": [Vector2i(33, 14)],
+	"sggg": [Vector2i(32, 17)],
+	"sgsg": [Vector2i(30, 13), Vector2i(32, 16)],
+	"sgss": [Vector2i(30, 14)],
+	"ssaa": [Vector2i(28, 12), Vector2i(28, 17)],
+	"ssas": [Vector2i(29, 12)],
+	"ssdd": [Vector2i(34, 12), Vector2i(34, 17)],
+	"ssds": [Vector2i(35, 12)],
+	"ssgg": [Vector2i(31, 12), Vector2i(31, 17)],
+	"ssgs": [Vector2i(32, 12)],
+	"sssa": [Vector2i(27, 12)],
+	"sssd": [Vector2i(33, 12)],
+	"sssg": [Vector2i(30, 12)],
+	"ssss": [Vector2i(28, 16), Vector2i(31, 16), Vector2i(34, 16)],
+}
+# Winter (farm_winter.png): four snow tones, a white (217, 225, 233), lawn
+# g the light blue (187, 210, 238) the pond banks are drawn on, dark d
+# (140, 180, 229), deep x (104, 148, 218).
+const WINTER_WANG := {
+	"aaaa": [Vector2i(25, 4), Vector2i(25, 13), Vector2i(25, 19), Vector2i(25, 7)],
+	"aaae": [Vector2i(24, 21)],
+	"aaag": [Vector2i(24, 0)],
+	"aaas": [Vector2i(24, 15)],
+	"aaea": [Vector2i(26, 21)],
+	"aaee": [Vector2i(25, 20), Vector2i(25, 21)],
+	"aaga": [Vector2i(26, 0)],
+	"aagg": [Vector2i(25, 0), Vector2i(25, 5)],
+	"aasa": [Vector2i(26, 15)],
+	"aass": [Vector2i(25, 14), Vector2i(25, 15)],
+	"aeaa": [Vector2i(24, 23)],
+	"aeae": [Vector2i(26, 19), Vector2i(24, 22)],
+	"aeee": [Vector2i(26, 20)],
+	"agaa": [Vector2i(24, 2)],
+	"agag": [Vector2i(24, 1), Vector2i(26, 4)],
+	"aggg": [Vector2i(26, 5)],
+	"asaa": [Vector2i(24, 17)],
+	"asas": [Vector2i(26, 13), Vector2i(24, 16)],
+	"asss": [Vector2i(26, 14)],
+	"dddd": [Vector2i(28, 1), Vector2i(31, 4), Vector2i(31, 13), Vector2i(31, 19), Vector2i(31, 7)],
+	"ddde": [Vector2i(30, 21)],
+	"dddg": [Vector2i(27, 3)],
+	"ddds": [Vector2i(30, 15)],
+	"dddx": [Vector2i(30, 0)],
+	"dded": [Vector2i(32, 21)],
+	"ddee": [Vector2i(31, 20), Vector2i(31, 21)],
+	"ddgd": [Vector2i(29, 3)],
+	"ddgg": [Vector2i(28, 2), Vector2i(28, 3)],
+	"ddsd": [Vector2i(32, 15)],
+	"ddss": [Vector2i(31, 14), Vector2i(31, 15)],
+	"ddxd": [Vector2i(32, 0)],
+	"ddxx": [Vector2i(31, 0), Vector2i(31, 5)],
+	"dedd": [Vector2i(30, 23)],
+	"dede": [Vector2i(32, 19), Vector2i(30, 22)],
+	"deee": [Vector2i(32, 20)],
+	"dgdd": [Vector2i(27, 5)],
+	"dgdg": [Vector2i(29, 1), Vector2i(27, 4)],
+	"dggg": [Vector2i(29, 2)],
+	"dsdd": [Vector2i(30, 17)],
+	"dsds": [Vector2i(32, 13), Vector2i(30, 16)],
+	"dsss": [Vector2i(32, 14)],
+	"dxdd": [Vector2i(30, 2)],
+	"dxdx": [Vector2i(30, 1), Vector2i(32, 4)],
+	"dxxx": [Vector2i(32, 5)],
+	"eaaa": [Vector2i(26, 23)],
+	"eaea": [Vector2i(24, 19), Vector2i(26, 22)],
+	"eaee": [Vector2i(24, 20)],
+	"eddd": [Vector2i(32, 23)],
+	"eded": [Vector2i(30, 19), Vector2i(32, 22)],
+	"edee": [Vector2i(30, 20)],
+	"eeaa": [Vector2i(25, 18), Vector2i(25, 23)],
+	"eeae": [Vector2i(26, 18)],
+	"eedd": [Vector2i(31, 18), Vector2i(31, 23)],
+	"eede": [Vector2i(32, 18)],
+	"eeea": [Vector2i(24, 18)],
+	"eeed": [Vector2i(30, 18)],
+	"eeee": [Vector2i(25, 22), Vector2i(28, 22), Vector2i(31, 22), Vector2i(34, 22)],
+	"eeeg": [Vector2i(27, 18)],
+	"eeex": [Vector2i(33, 18)],
+	"eege": [Vector2i(29, 18)],
+	"eegg": [Vector2i(28, 18), Vector2i(28, 23)],
+	"eexe": [Vector2i(35, 18)],
+	"eexx": [Vector2i(34, 18), Vector2i(34, 23)],
+	"egee": [Vector2i(27, 20)],
+	"egeg": [Vector2i(27, 19), Vector2i(29, 22)],
+	"eggg": [Vector2i(29, 23)],
+	"exee": [Vector2i(33, 20)],
+	"exex": [Vector2i(33, 19), Vector2i(35, 22)],
+	"exxx": [Vector2i(35, 23)],
+	"gaaa": [Vector2i(26, 2)],
+	"gaga": [Vector2i(26, 1), Vector2i(24, 4)],
+	"gagg": [Vector2i(24, 5)],
+	"gddd": [Vector2i(29, 5)],
+	"gdgd": [Vector2i(27, 1), Vector2i(29, 4)],
+	"gdgg": [Vector2i(27, 2)],
+	"geee": [Vector2i(29, 20)],
+	"gege": [Vector2i(29, 19), Vector2i(27, 22)],
+	"gegg": [Vector2i(27, 23)],
+	"ggaa": [Vector2i(25, 2), Vector2i(25, 3)],
+	"ggag": [Vector2i(26, 3)],
+	"ggdd": [Vector2i(28, 0), Vector2i(28, 5)],
+	"ggdg": [Vector2i(29, 0)],
+	"ggee": [Vector2i(28, 20), Vector2i(28, 21)],
+	"ggeg": [Vector2i(29, 21)],
+	"ggga": [Vector2i(24, 3)],
+	"gggd": [Vector2i(27, 0)],
+	"ggge": [Vector2i(27, 21)],
+	"gggg": [Vector2i(25, 1), Vector2i(28, 4), Vector2i(28, 13), Vector2i(28, 19), Vector2i(28, 7)],
+	"gggs": [Vector2i(27, 15)],
+	"ggsg": [Vector2i(29, 15)],
+	"ggss": [Vector2i(28, 14), Vector2i(28, 15)],
+	"gsgg": [Vector2i(27, 17)],
+	"gsgs": [Vector2i(29, 13), Vector2i(27, 16)],
+	"gsss": [Vector2i(29, 14)],
+	"saaa": [Vector2i(26, 17)],
+	"sasa": [Vector2i(24, 13), Vector2i(26, 16)],
+	"sass": [Vector2i(24, 14)],
+	"sddd": [Vector2i(32, 17)],
+	"sdsd": [Vector2i(30, 13), Vector2i(32, 16)],
+	"sdss": [Vector2i(30, 14)],
+	"sggg": [Vector2i(29, 17)],
+	"sgsg": [Vector2i(27, 13), Vector2i(29, 16)],
+	"sgss": [Vector2i(27, 14)],
+	"ssaa": [Vector2i(25, 12), Vector2i(25, 17)],
+	"ssas": [Vector2i(26, 12)],
+	"ssdd": [Vector2i(31, 12), Vector2i(31, 17)],
+	"ssds": [Vector2i(32, 12)],
+	"ssgg": [Vector2i(28, 12), Vector2i(28, 17)],
+	"ssgs": [Vector2i(29, 12)],
+	"sssa": [Vector2i(24, 12)],
+	"sssd": [Vector2i(30, 12)],
+	"sssg": [Vector2i(27, 12)],
+	"ssss": [Vector2i(25, 16), Vector2i(28, 16), Vector2i(31, 16), Vector2i(34, 16)],
+	"sssx": [Vector2i(33, 12)],
+	"ssxs": [Vector2i(35, 12)],
+	"ssxx": [Vector2i(34, 12), Vector2i(34, 17)],
+	"sxss": [Vector2i(33, 14)],
+	"sxsx": [Vector2i(33, 13), Vector2i(35, 16)],
+	"sxxx": [Vector2i(35, 17)],
+	"xddd": [Vector2i(32, 2)],
+	"xdxd": [Vector2i(32, 1), Vector2i(30, 4)],
+	"xdxx": [Vector2i(30, 5)],
+	"xeee": [Vector2i(35, 20)],
+	"xexe": [Vector2i(35, 19), Vector2i(33, 22)],
+	"xexx": [Vector2i(33, 23)],
+	"xsss": [Vector2i(35, 14)],
+	"xsxs": [Vector2i(35, 13), Vector2i(33, 16)],
+	"xsxx": [Vector2i(33, 17)],
+	"xxdd": [Vector2i(31, 2), Vector2i(31, 3)],
+	"xxdx": [Vector2i(32, 3)],
+	"xxee": [Vector2i(34, 20), Vector2i(34, 21)],
+	"xxex": [Vector2i(35, 21)],
+	"xxss": [Vector2i(34, 14), Vector2i(34, 15)],
+	"xxsx": [Vector2i(35, 15)],
+	"xxxd": [Vector2i(30, 3)],
+	"xxxe": [Vector2i(33, 21)],
+	"xxxs": [Vector2i(33, 15)],
+	"xxxx": [Vector2i(31, 1), Vector2i(34, 13), Vector2i(34, 19), Vector2i(34, 7)],
+}
+
+# What each season draws where it differs from spring and summer (the
+# constants above). Sheets rearrange their groups, so every group was found
+# again on the season's sheet by matching its shape (alpha and luminance);
+# pieces with no sure match are left out of that season.
+const SEASONS := {
+	"summer": {},
+	"autumn": {
+		"sheet": "tilesets/farm_autumn",
+		"wang": AUTUMN_WANG,
+		"open": [Vector2i(13, 19)],
+		"plots": {"dry": {"at": Vector2i(36, 14), "col": 39, "row": 17}, "wet": {"at": Vector2i(48, 14), "col": 51, "row": 17},
+			"ragged": {"at": Vector2i(48, 18), "col": 51, "row": 21}},
+		"blobs": {"hedge": Vector2i(22, 5), "tall": Vector2i(22, 9), "wheat": Vector2i(22, 9)},
+		"sprouts": [Vector2i(19, 2), Vector2i(20, 2), Vector2i(21, 2), Vector2i(22, 2), Vector2i(23, 2), Vector2i(24, 2), Vector2i(19, 3), Vector2i(20, 3), Vector2i(21, 3), Vector2i(22, 3)],
+		"sprouts_dark": [Vector2i(23, 3), Vector2i(24, 3), Vector2i(26, 2)],
+		"flowers": [Vector2i(19, 4), Vector2i(20, 4), Vector2i(21, 4), Vector2i(22, 4), Vector2i(23, 4), Vector2i(24, 4)],
+		"tufts": [Vector2i(25, 3), Vector2i(26, 3)],
+		"plateau_tops": {"g": Vector2i(42, 0), "a": Vector2i(42, 6), "d": Vector2i(53, 0)},
+		"plateau_face": Vector2i(42, 3), "plateau_foot": Vector2i(42, 5), "plateau_cave": Vector2i(33, 4),
+		"props": {"bush_pine": Rect2i(179, 129, 26, 31), "hay": Rect2i(980, 402, 42, 28), "hay_big": Rect2i(1024, 401, 48, 31),
+			"hay_crate": Rect2i(980, 312, 26, 19), "trough": Rect2i(964, 348, 26, 15), "trough_water": Rect2i(996, 348, 26, 15)},
+		"no_props": ["bush_b", "crate_open", "crate", "box", "box_b"],
+		"buildings": {"farmhouse": Vector2i(960, 208), "farmhouse_b": Vector2i(1056, 208), "manor": Vector2i(960, 96), "barn": Vector2i(848, 352),
+			"greenhouse": Vector2i(768, 464)},
+		"windmill": "windmill animations/windmill_autumn-Sheet",
+		"greenhouse_room": Rect2i(48, 34, 11, 12),
+		"tree_dir": "tree animations/autumn/trees_cut_down/",
+		"trees": {
+			"oak": {"sheet": "basic/tree_basic1_autumn-Sheet", "falling": ""},
+			"oak_b": {"sheet": "basic/tree_basic2_autumn-Sheet", "falling": "basic/basic_autumn_leaves_falling-Sheet"},
+			"elm": {"sheet": "basic/tree_basic3_autumn-Sheet", "falling": ""},
+			"elm_b": {"sheet": "basic/tree_basic4_autumn-Sheet", "falling": ""},
+			"pine": {"sheet": "basic/tree_pine_autumn-Sheet", "falling": ""},
+			"oak_bare": {"sheet": "basic/tree_basic1_autumn_no_leaves-Sheet", "falling": ""},
+			"oak_dead": {"sheet": "basic/tree_basic1_autumn_dead-Sheet", "falling": ""},
+			"elm_dead": {"sheet": "basic/tree_basic3_autumn_dead-Sheet", "falling": ""},
+			"apple": {"sheet": "fruit trees/apple/tree_apple_autumn-Sheet", "falling": "fruit trees/apple/apple_leaves_falling_autumn-Sheet"},
+			"apple_fruit": {"sheet": "fruit trees/apple/tree_apple_autumn_fruits-Sheet", "falling": "fruit trees/apple/apple_leaves_falling_autumn-Sheet"},
+			"apple_flowers": {"sheet": "fruit trees/apple/tree_apple_autumn_flowers-Sheet", "falling": "fruit trees/apple/apple_leaves_falling_autumn-Sheet"},
+			"cherry": {"sheet": "fruit trees/cherry/tree_cherry_autumn-Sheet", "falling": "fruit trees/cherry/cherry_leaves_falling_autumn-Sheet"},
+			"cherry_bloom": {"sheet": "fruit trees/cherry/tree_cherry_autumn_bloom-Sheet", "falling": "fruit trees/cherry/cherry_leaves_falling_autumn-Sheet", "petals": true},
+			"cherry_fruit": {"sheet": "fruit trees/cherry/tree_cherry_autumn_fruits-Sheet", "falling": "fruit trees/cherry/cherry_leaves_falling_autumn-Sheet"},
+			"orange": {"sheet": "fruit trees/orange/tree_orange_autumn-Sheet", "falling": "fruit trees/orange/orange_leaves_falling_autumn-Sheet"},
+			"orange_fruit": {"sheet": "fruit trees/orange/tree_orange_autumn_fruits-Sheet", "falling": "fruit trees/orange/orange_leaves_falling_autumn-Sheet"},
+			"orange_flowers": {"sheet": "fruit trees/orange/tree_orange_autumn_flowers-Sheet", "falling": "fruit trees/orange/orange_leaves_falling_autumn-Sheet"},
+			"peach": {"sheet": "fruit trees/peach/tree_peach_autumn-Sheet", "falling": "fruit trees/peach/peach_leaves_falling_autumn-Sheet"},
+			"peach_fruit": {"sheet": "fruit trees/peach/tree_peach_autumn_fruits-Sheet", "falling": "fruit trees/peach/peach_leaves_falling_autumn-Sheet"},
+			"peach_flowers": {"sheet": "fruit trees/peach/tree_peach_autumn_flowers-Sheet", "falling": "fruit trees/peach/peach_leaves_falling_autumn-Sheet"},
+		},
+		"wind_leaves": {
+			"basic": "tree animations/autumn/leaves_wind/leaves_wind_basic_spritesheet_autumn",
+			"apple": "tree animations/autumn/leaves_wind/leaves_apple_autumn_Sheet",
+			"cherry": "tree animations/autumn/leaves_wind/leaves_cherry_autumn_Sheet",
+			"cherry_bloom": "tree animations/autumn/leaves_wind/flowers_cherry_autumn_Sheet",
+			"orange": "tree animations/autumn/leaves_wind/leaves_orange_autumn_Sheet",
+			"peach": "tree animations/autumn/leaves_wind/leaves_peach_autumn_Sheet",
+		},
+	},
+	"winter": {
+		"sheet": "tilesets/farm_winter",
+		"wang": WINTER_WANG,
+		"water_origin": Vector2i(0, 23),
+		"open": [Vector2i(0, 21)],
+		"plots": {"dry": {"at": Vector2i(37, 14), "col": 40, "row": 17}, "wet": {"at": Vector2i(49, 14), "col": 52, "row": 17},
+			"ragged": {"at": Vector2i(49, 18), "col": 52, "row": 21}},
+		"blobs": {},
+		"fence": {"plain": Vector2i(13, 11), "grassy": Vector2i(13, 11)},
+		"sprouts": [Vector2i(15, 18), Vector2i(15, 19)],
+		"sprouts_dark": [Vector2i(15, 18), Vector2i(15, 19)],
+		"flowers": [],
+		"tufts": [],
+		"plateau_tops": {"g": Vector2i(42, 0), "a": Vector2i(53, 0), "d": Vector2i(42, 6)},
+		"plateau_face": Vector2i(42, 3), "plateau_foot": Vector2i(42, 4), "plateau_cave": Vector2i(36, 2),
+		"props": {"dead_tree_big": Rect2i(115, 152, 49, 71), "bush": Rect2i(96, 288, 32, 32), "bush_pine": Rect2i(131, 289, 26, 31),
+			"rock": Rect2i(162, 237, 29, 19), "rock_b": Rect2i(130, 240, 26, 16), "rock_big": Rect2i(97, 234, 29, 22),
+			"log": Rect2i(161, 258, 31, 14), "log_s": Rect2i(160, 57, 16, 7), "stump": Rect2i(259, 132, 11, 12), "stump_b": Rect2i(73, 128, 22, 16),
+			"crate_stack": Rect2i(5, 230, 22, 20), "barrel": Rect2i(39, 279, 18, 25), "barrel_b": Rect2i(71, 279, 18, 25),
+			"bucket": Rect2i(291, 211, 11, 13), "planter": Rect2i(132, 261, 23, 20), "mailbox": Rect2i(258, 208, 12, 32),
+			"pot_plant": Rect2i(99, 256, 12, 25), "pot_plant_b": Rect2i(115, 261, 11, 20), "chest": Rect2i(288, 194, 16, 14),
+			"scarecrow": Rect2i(164, 288, 40, 48), "reeds": Rect2i(177, 353, 31, 15), "reeds_b": Rect2i(147, 357, 27, 20),
+			"reeds_s": Rect2i(177, 371, 15, 12), "cattail": Rect2i(211, 365, 4, 19), "cattail_b": Rect2i(217, 363, 4, 20),
+			"sign": Rect2i(176, 192, 16, 16), "sign_arrow": Rect2i(192, 192, 16, 16), "sign_post": Rect2i(192, 176, 16, 16),
+			"hay": Rect2i(804, 418, 42, 28), "hay_big": Rect2i(800, 449, 48, 31), "trough": Rect2i(708, 508, 26, 15), "trough_water": Rect2i(740, 508, 26, 15)},
+		"no_props": ["bush_b", "pebble", "pebble_b", "mushroom_red", "mushroom", "mushroom_s", "mushrooms", "mushroom_b", "log_moss",
+			"crates_tuft", "wheat_bunch", "wheat_bunch_b", "wheat_bunch_c", "hay_crate", "stone_slab"],
+		# Winter's own: snow drifts and lumps (flat), snow-capped rocks.
+		"new_props": {
+			"snow_drift": {"rect": Rect2i(208, 265, 32, 18), "block": Vector2.ZERO, "tag": "flat"},
+			"snow_drift_b": {"rect": Rect2i(208, 297, 32, 18), "block": Vector2.ZERO, "tag": "flat"},
+			"snow_lump": {"rect": Rect2i(257, 277, 14, 10), "block": Vector2.ZERO, "tag": "flat"},
+			"snow_lump_b": {"rect": Rect2i(257, 292, 14, 11), "block": Vector2.ZERO, "tag": "flat"},
+			"snow_lump_c": {"rect": Rect2i(257, 309, 14, 10), "block": Vector2.ZERO, "tag": "flat"},
+			"rock_snow": {"rect": Rect2i(194, 237, 29, 19), "block": Vector2(24, 7), "tag": "stone"},
+			"rock_snow_b": {"rect": Rect2i(226, 240, 26, 16), "block": Vector2(22, 6), "tag": "stone"},
+		},
+		"buildings": {"farmhouse": Vector2i(704, 368), "farmhouse_b": Vector2i(704, 368), "manor": Vector2i(592, 352), "barn": Vector2i(576, 464),
+			"greenhouse": Vector2i(976, 96)},
+		"windmill": "windmill animations/windmill_winter-Sheet",
+		"gate": "fence gate animations/gate_winter-Sheet",
+		"greenhouse_room": Rect2i(61, 11, 11, 12),
+		"crops": false,
+		"tree_dir": "tree animations/winter/trees_cut_down/",
+		"trees": {
+			"oak": {"sheet": "basic trees/tree_basic1_winter-Sheet", "falling": ""},
+			"oak_b": {"sheet": "basic trees/tree_basic2_winter-Sheet", "falling": ""},
+			"elm": {"sheet": "basic trees/tree_basic3_winter-Sheet", "falling": ""},
+			"elm_b": {"sheet": "basic trees/tree_basic4_winter-Sheet", "falling": ""},
+			"pine": {"sheet": "basic trees/tree_pine_snow_winter-Sheet", "falling": ""},
+			"pine_b": {"sheet": "basic trees/tree_pine_winter-Sheet", "falling": ""},
+			"oak_bare": {"sheet": "basic trees/tree_basic1_winter_no_leaves-Sheet", "falling": ""},
+			"oak_dead": {"sheet": "basic trees/tree_basic1_winter_dead-Sheet", "falling": ""},
+			"elm_dead": {"sheet": "basic trees/tree_basic3_winter_dead-Sheet", "falling": ""},
+			"apple": {"sheet": "fruit trees/tree_apple_winter-Sheet", "falling": ""},
+			"cherry": {"sheet": "fruit trees/tree_cherry_winter-Sheet", "falling": ""},
+			"orange": {"sheet": "fruit trees/tree_orange_winter-Sheet", "falling": ""},
+			"peach": {"sheet": "fruit trees/tree_peach_winter-Sheet", "falling": ""},
+		},
+		"tree_sets": {
+			"wild": ["oak", "oak_b", "elm", "elm_b", "pine", "oak"],
+			"pines": ["pine", "pine", "pine_b", "pine", "elm_b"],
+			"old": ["oak_dead", "elm_dead", "oak_bare", "oak", "pine_b"],
+			"orchard": ["apple", "cherry", "orange", "peach"],
+		},
+		"wind_leaves": {"basic": "tree animations/winter/leaves_wind/leaves_wind_winter_Sheet"},
+	},
+}
+
+
+## A season's value for `key`, else the spring and summer one.
+static func get_for(season: String, key: String) -> Variant:
+	var s: Dictionary = SEASONS.get(season, {})
+	if s.has(key):
+		return s[key]
+	match key:
+		"sheet": return SHEET
+		"wang": return WANG
+		"water_origin": return Vector2i(0, 21)
+		"open": return WATER_OPEN
+		"plots": return PLOTS
+		"blobs": return BLOB_BASE
+		"fence": return FENCE
+		"sprouts": return SPROUTS
+		"sprouts_dark": return SPROUTS_DARK
+		"flowers": return FLOWERS
+		"tufts": return TUFTS
+		"plateau_tops": return PLATEAU_TOPS
+		"plateau_face": return PLATEAU_FACE
+		"plateau_foot": return PLATEAU_FOOT
+		"plateau_cave": return PLATEAU_CAVE
+		"windmill": return BUILDINGS.windmill.anim
+		"gate": return GATE_SHEET
+		"greenhouse_room": return GREENHOUSE_ROOM
+		"crops": return true
+		"tree_dir": return TREE_DIR
+		"trees": return TREES
+		"tree_sets": return TREE_SETS
+		"wind_leaves": return WIND_LEAVES
+	return null
+
+
+## A prop's data in a season ({} when the season's sheet has none).
+static func prop(season: String, art: String) -> Dictionary:
+	var s: Dictionary = SEASONS.get(season, {})
+	if art in s.get("no_props", []):
+		return {}
+	if s.get("new_props", {}).has(art):
+		return s.new_props[art]
+	if not PROPS.has(art):
+		return {}
+	var p: Dictionary = PROPS[art]
+	if s.get("props", {}).has(art):
+		p = p.duplicate()
+		p.rect = s.props[art]
+	return p
+
+
+## A building's region on a season's sheet (spring's, moved).
+static func building_region(season: String, kind: String) -> Rect2i:
+	var r: Rect2i = BUILDINGS[kind].region
+	var moved: Dictionary = SEASONS.get(season, {}).get("buildings", {})
+	if moved.has(kind):
+		return Rect2i(moved[kind], r.size)
+	return r
+
+
+## A tree kind a season has (winter's fruit trees are bare: every fruit
+## variant becomes the plain winter tree of its kind).
+static func tree_art(season: String, art: String) -> String:
+	var trees: Dictionary = get_for(season, "trees")
+	if trees.has(art):
+		return art
+	for k in ["apple", "cherry", "orange", "peach"]:
+		if art.begins_with(k) and trees.has(k):
+			return k
+	if art.begins_with("pine") and trees.has("pine"):
+		return "pine"
+	return "oak"

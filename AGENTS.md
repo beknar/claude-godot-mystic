@@ -30,7 +30,7 @@ changing its generator, painter, or scenes.
 |---|---|---|---|
 | Painted Lands, Forest | `forest`, `wilds`, `randomizer-paintedlands` | `forest_terrain.gd`, `forest.gd` | `docs/painted-lands.md` |
 | Painted Lands, Green Caves | `randomizer-greencaves` | `cave_terrain.gd`, `caves.gd`, `cave_life.gd` | `docs/green-caves.md` |
-| Painted Lands, Farm – 4 Seasons | `randomizer-paintedlands-farm` | `farm_terrain.gd`, `farm.gd`, `farm_tiles.gd` | `docs/farm.md` |
+| Painted Lands, Farm – 4 Seasons (spring and summer, autumn, winter; one season per map, never mixed) | `randomizer-paintedlands-farm` | `farm_terrain.gd`, `farm.gd`, `farm_tiles.gd` | `docs/farm.md` |
 | Painted Lands, Cozy Cottage | homes in the Painted Lands, Green Caves, and farm randomizers | `interior_*.gd`, `house_interiors.gd` | `docs/interiors.md` |
 | Cozy Farm (animals only) | `randomizer-paintedlands`, `randomizer-greencaves`, `randomizer-paintedlands-farm` | `wildlife.gd` (`PACK_SPECIES`), `cave_terrain.gd` (`wildlife_plan`) | `docs/painted-lands.md` (Cozy Farm animals) |
 | Pixel Crawler | `randomizer-pixelcrawler` | `pc_terrain.gd`, `pixelcrawler.gd`, `pc_tiles.gd` | `docs/pixel-crawler.md` |
