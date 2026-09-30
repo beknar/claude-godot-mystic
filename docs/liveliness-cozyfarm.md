@@ -11,7 +11,9 @@ same maps with the drawn animals, measured 2026-09-28/29 with today's code:
   maps; plus the headless walker counts on 30 maps (120000-120029).
 - **Fast:** `tools/liveliness.gd` (the calibrated proxy) on 30 maps.
 
-Both runs use the tools' new `cozy` and `out=<dir>` options. The results
+Both runs use the tools' new `cozy` and `out=<dir>` options. These results
+predate the Cozy Farm buildings (added after): `cozy` now also turns the
+buildings on, so a rerun measures the scene as it is. The results
 recorded on 2026-09-27 (`.liveliness`, `.liveliness_walk`) are listed for
 reference only: since then every map id builds another recipe (`id % 33`),
 and grass waves, drifters, streams, ponds, and the liveliness floor were

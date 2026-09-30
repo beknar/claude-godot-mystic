@@ -1,13 +1,16 @@
 extends SceneTree
 ## Headless recipe check: generates Painted Lands maps and prints each
 ## report's checks line.
-##   godot --headless -s res://tools/check_recipes.gd -- <first_id> [count] [recipe]
+##   godot --headless -s res://tools/check_recipes.gd -- <first_id> [count] [recipe] [cozy]
+## `cozy`: the cozy farm randomizer's generator (Cozy Farm homes, farmyard
+## outbuildings, and its extra map types); each line also lists the buildings.
 
 func _init() -> void:
 	var args := OS.get_cmdline_user_args()
 	var first := int(args[0]) if args.size() > 0 else 20000
 	var count := int(args[1]) if args.size() > 1 else 20
-	var pinned := int(args[2]) if args.size() > 2 else -1
+	var pinned := int(args[2]) if args.size() > 2 and args[2] != "cozy" else -1
+	var cozy := "cozy" in args
 	var gen := load("res://scripts/forest_terrain.gd")
 	var arts := {}
 	var stairs := 0
@@ -16,11 +19,12 @@ func _init() -> void:
 	for id in range(first, first + count):
 		var t0 := Time.get_ticks_msec()
 		var t = gen.new()
+		t.cozy = cozy
 		var report: String = t.generate(id, pinned)
 		var lines := report.split("\n")
 		var tail := PackedStringArray()
 		for line in lines:
-			if line.begins_with("  checks:") or line.begins_with("  dropped:") or line.begins_with("  grass tones:") or line.begins_with("  hedgerows") or line.begins_with("  path ") or line.begins_with("  floor:"):
+			if line.begins_with("  checks:") or line.begins_with("  dropped:") or (cozy and line.begins_with("  houses:")) or line.begins_with("  grass tones:") or line.begins_with("  hedgerows") or line.begins_with("  path ") or line.begins_with("  floor:"):
 				tail.append(line.strip_edges())
 		print("%d r%d %s: %dms, attempt %d | %s" % [id, t.recipe_id, t.recipe.name, Time.get_ticks_msec() - t0, t.attempt, " | ".join(tail)])
 		if "checks: ok" in tail:

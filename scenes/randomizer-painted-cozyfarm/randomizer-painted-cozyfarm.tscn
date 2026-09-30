@@ -6,10 +6,11 @@
 [node name="RandomizerPaintedCozyFarm" type="Node2D"]
 texture_filter = 1
 script = ExtResource("1_script")
-map_id = 180003
-recipe = 3
+map_id = 180033
+recipe = 33
 interiors = true
 cozy_animals = true
+cozy_buildings = true
 
 [node name="Ground" type="TileMapLayer" parent="."]
 

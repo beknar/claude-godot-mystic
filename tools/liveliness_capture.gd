@@ -80,7 +80,8 @@ func _ready() -> void:
 	if _plan.is_empty():
 		_plan = CAVE_CALIBRATE + CAVE_HOLDOUT if _caves else CALIBRATE + HOLDOUT
 	_out = ProjectSettings.globalize_path("res://.liveliness_caves/raw" if _caves else "res://.liveliness/raw")
-	# `cozy`: the Cozy Farm animals (randomizer-painted-cozyfarm); `out=<dir>`:
+	# `cozy`: the cozy farm randomizer's settings (Cozy Farm animals and
+	# buildings); `out=<dir>`:
 	# film into res://<dir>/raw instead.
 	var cozy := "cozy" in args
 	for a in args:
@@ -91,6 +92,7 @@ func _ready() -> void:
 	_forest = (CAVE_SCENE if _caves else MAP_SCENE).instantiate()
 	if cozy:
 		_forest.cozy_animals = true
+		_forest.cozy_buildings = true
 		PaintedFeatures.cozy = true
 	add_child(_forest)
 	_camera = Camera2D.new()

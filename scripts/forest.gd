@@ -6,6 +6,11 @@ extends Node2D
 
 const TILE := 16
 const SHEET := preload("res://assets/pack/TILESET_brighter.png")
+const COZY_SHEET := "res://assets/pack/cozy_farm/buildings.png"
+## The Cozy Farm buildings are a little brighter than the Painted Lands
+## houses (value 0.42-0.61 against 0.34-0.42): drawn at this value.
+const COZY_VALUE := 0.86
+const SAIL_FRAMES := 6 # the sails' quarter turn, in pixel-art frames
 const WALKER_SCENE := preload("res://scenes/forest/walker.tscn")
 const SOURCE := 0
 const FLIP := 1 # alternative tile id for horizontally flipped cells
@@ -25,6 +30,10 @@ const RIDGE_FRONT := 8
 ## The Cozy Farm art pack's animals instead of the drawn ones that have a
 ## pack counterpart (wildlife.gd `cozy`): randomizer-painted-cozyfarm.
 @export var cozy_animals := false
+## The Cozy Farm art pack's buildings (PaintedTerrain `cozy`): its homes in
+## place of the Painted Lands houses, farmyard outbuildings, and the cozy-only
+## map types.
+@export var cozy_buildings := false
 
 @onready var ground: TileMapLayer = $Ground
 @onready var features_layer: TileMapLayer = $Features
@@ -90,6 +99,7 @@ func build(id: int, pinned := -1) -> void:
 	map_id = id
 	recipe = pinned
 	terrain = PaintedTerrain.new()
+	terrain.cozy = cozy_buildings
 	report = terrain.generate(map_id, recipe)
 	for layer in [ground, features_layer, deco_layer, accent_layer] + tone_layers:
 		layer.clear()
@@ -115,6 +125,9 @@ func recipe_names() -> Array[String]:
 	var out: Array[String] = []
 	for r in PaintedTerrain.RECIPES:
 		out.append(r.name)
+	if cozy_buildings:
+		for r in PaintedTerrain.COZY_RECIPES:
+			out.append(r.name)
 	return out
 
 
@@ -479,8 +492,9 @@ func _build_collision() -> void:
 # Each prefab splits into HOUSE_ROOF (no collision, sorted at the eave) and
 # HOUSE_BODY (walls, door, porch; collides; sorted at the doorstep).
 func _place_houses() -> void:
-	for house in terrain.houses:
+	for house in terrain.houses + terrain.outbuildings:
 		var art: Dictionary = PaintedTerrain.HOUSES[house.id]
+		var tex: Texture2D = _cozy_texture() if art.get("sheet", "") == "cozy" else SHEET
 		var region: Rect2i = art.region
 		var origin := Vector2(house.origin * TILE)
 		var eave: int = art.roof_rows * TILE
@@ -488,7 +502,7 @@ func _place_houses() -> void:
 		var roof := Node2D.new()
 		roof.name = "HOUSE_ROOF_%d" % house.id
 		roof.position = origin + Vector2(0, eave)
-		roof.add_child(_region_sprite(Rect2(Vector2(region.position), Vector2(region.size.x, eave)), Vector2(0, -eave)))
+		roof.add_child(_region_sprite(Rect2(Vector2(region.position), Vector2(region.size.x, eave)), Vector2(0, -eave), tex))
 		actors.add_child(roof)
 
 		var body := StaticBody2D.new()
@@ -497,7 +511,16 @@ func _place_houses() -> void:
 		body.position = origin + Vector2(0, region.size.y)
 		body.add_child(_region_sprite(
 			Rect2(Vector2(region.position + Vector2i(0, eave)), Vector2(region.size.x, region.size.y - eave)),
-			Vector2(0, eave - region.size.y)))
+			Vector2(0, eave - region.size.y), tex))
+		if art.has("sails"):
+			# The windmill's sails turn over the body with the wind, in front
+			# of it (sorted just below its foot).
+			var sails := Sails.new()
+			sails.frames = _sail_frames(art.sails)
+			sails.wind = wind
+			sails.position = origin + Vector2(art.sails_hub) + Vector2(0, region.size.y - art.sails_hub.y + 1)
+			sails.offset = Vector2(-art.sails.size.x / 2.0, -art.sails.size.y / 2.0 - (region.size.y - art.sails_hub.y + 1))
+			actors.add_child(sails)
 		for block in art.blocks:
 			_add_box(body, Rect2(Vector2(block.position) - Vector2(0, region.size.y), Vector2(block.size)))
 		# Loose door and windows hung on the wall (the barn).
@@ -628,9 +651,9 @@ func _spawn_walker() -> void:
 	camera.limit_bottom = PaintedTerrain.HEIGHT * TILE
 
 
-func _region_sprite(region: Rect2, offset: Vector2) -> Sprite2D:
+func _region_sprite(region: Rect2, offset: Vector2, tex: Texture2D = SHEET) -> Sprite2D:
 	var sprite := Sprite2D.new()
-	sprite.texture = SHEET
+	sprite.texture = tex
 	sprite.region_enabled = true
 	sprite.region_rect = region
 	sprite.centered = false
@@ -688,3 +711,77 @@ func _hash(x: int, y: int, salt: int) -> float:
 
 func _solid_ground(cell: Vector2i) -> bool:
 	return terrain.water.has(cell) or terrain.ledge.has(cell) or terrain.hedge.has(cell) or terrain.canopy.has(cell)
+
+
+# ---------------------------------------------------------------- cozy farm
+
+var _cozy_img: Image
+var _cozy_tex: Texture2D
+var _sails_cache := {}
+
+
+## The Cozy Farm building sheet, drawn at COZY_VALUE brightness.
+func _cozy_image() -> Image:
+	if _cozy_img == null:
+		_cozy_img = load(COZY_SHEET).get_image()
+		if _cozy_img.is_compressed():
+			_cozy_img.decompress()
+		_cozy_img.convert(Image.FORMAT_RGBA8)
+		for y in _cozy_img.get_height():
+			for x in _cozy_img.get_width():
+				var c := _cozy_img.get_pixel(x, y)
+				if c.a > 0.0:
+					c.v *= COZY_VALUE
+					_cozy_img.set_pixel(x, y, c)
+	return _cozy_img
+
+
+func _cozy_texture() -> Texture2D:
+	if _cozy_tex == null:
+		_cozy_tex = ImageTexture.create_from_image(_cozy_image())
+	return _cozy_tex
+
+
+## The sails at SAIL_FRAMES angles through a quarter turn (they look the same
+## every 90 degrees), each rotated on whole pixels (nearest source pixel), so
+## the turning stays pixel art.
+func _sail_frames(src: Rect2i) -> Array[Texture2D]:
+	if _sails_cache.has(src):
+		return _sails_cache[src]
+	var img := _cozy_image().get_region(src)
+	var n := src.size.x
+	var mid := (n - 1) / 2.0
+	var out: Array[Texture2D] = []
+	for f in SAIL_FRAMES:
+		var a := -f * (PI / 2.0) / SAIL_FRAMES
+		var ca := cos(a)
+		var sa := sin(a)
+		var frame := Image.create(n, n, false, Image.FORMAT_RGBA8)
+		for y in n:
+			for x in n:
+				var dx := x - mid
+				var dy := y - mid
+				var sx := roundi(mid + dx * ca - dy * sa)
+				var sy := roundi(mid + dx * sa + dy * ca)
+				if sx >= 0 and sy >= 0 and sx < n and sy < n:
+					frame.set_pixel(x, y, img.get_pixel(sx, sy))
+		out.append(ImageTexture.create_from_image(frame))
+	_sails_cache[src] = out
+	return out
+
+
+## Windmill sails: steps through the rotation frames faster in stronger wind
+## (a slow drift in calm air, about a turn every four seconds in a gust).
+class Sails extends Sprite2D:
+	var frames: Array[Texture2D] = []
+	var wind: Wind
+	var _phase := 0.0
+
+	func _ready() -> void:
+		centered = false
+		_phase = randf() * frames.size()
+
+	func _process(delta: float) -> void:
+		var strength := wind.strength() if wind else 0.5
+		_phase = fmod(_phase + delta * frames.size() * (0.15 + strength * 0.9), frames.size())
+		texture = frames[int(_phase)]

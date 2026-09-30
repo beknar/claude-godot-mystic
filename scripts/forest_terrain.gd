@@ -228,14 +228,65 @@ const HOUSES := {
 		# The sheet's loose door and windows, hung on the barn's front wall.
 		"overlays": [{"src": Rect2i(736, 400, 16, 16), "at": Vector2i(48, 48)}, {"src": Rect2i(752, 384, 16, 32), "at": Vector2i(24, 36)},
 			{"src": Rect2i(752, 416, 16, 16), "at": Vector2i(84, 32)}, {"src": Rect2i(736, 416, 16, 16), "at": Vector2i(100, 32)}]},
+	# Cozy Farm art pack buildings (shubibubi, assets/pack/cozy_farm/
+	# buildings.png, spring versions), only in the cozy farm randomizer
+	# (`cozy`). Homes (10-16) have doors and interiors; outbuildings (20-24)
+	# stand in the farmyard and are not entered. The weakest fits (greenhouse,
+	# blue-roof house, slime hut, hospital, museum, market, and every fall and
+	# winter version) are left out.
+	10: {"name": "Farm cottage", "sheet": "cozy", "region": Rect2i(0, 39, 62, 73), "roof_rows": 2, "door": Vector2i(2, 5), "blocks": [Rect2i(6, 34, 50, 38)]},
+	11: {"name": "Farmhouse", "sheet": "cozy", "region": Rect2i(976, 39, 94, 73), "roof_rows": 2, "door": Vector2i(2, 5), "blocks": [Rect2i(4, 34, 86, 38)]},
+	12: {"name": "Timber house", "sheet": "cozy", "region": Rect2i(3, 452, 74, 76), "roof_rows": 2, "door": Vector2i(2, 5), "blocks": [Rect2i(4, 40, 66, 35)]},
+	13: {"name": "A-frame house", "sheet": "cozy", "region": Rect2i(674, 448, 77, 80), "roof_rows": 2, "door": Vector2i(2, 5), "blocks": [Rect2i(4, 42, 69, 37)]},
+	14: {"name": "Thatched cottage", "sheet": "cozy", "region": Rect2i(4, 534, 72, 74), "roof_rows": 2, "door": Vector2i(2, 5), "blocks": [Rect2i(4, 40, 64, 33)]},
+	15: {"name": "Brick house", "sheet": "cozy", "region": Rect2i(696, 539, 82, 69), "roof_rows": 2, "door": Vector2i(1, 5), "blocks": [Rect2i(4, 32, 74, 36)]},
+	16: {"name": "Long house", "sheet": "cozy", "region": Rect2i(1, 704, 93, 64), "roof_rows": 2, "door": Vector2i(2, 4), "blocks": [Rect2i(4, 28, 85, 35)]},
+	20: {"name": "Red barn", "sheet": "cozy", "region": Rect2i(7, 112, 67, 80), "roof_rows": 3, "door": Vector2i(1, 5), "blocks": [Rect2i(3, 46, 61, 33)], "farm": true},
+	21: {"name": "Coop", "sheet": "cozy", "region": Rect2i(1, 208, 60, 64), "roof_rows": 2, "door": Vector2i(2, 4), "blocks": [Rect2i(4, 32, 52, 31)], "farm": true},
+	22: {"name": "Red silo", "sheet": "cozy", "region": Rect2i(984, 124, 36, 68), "roof_rows": 2, "door": Vector2i(1, 5), "blocks": [Rect2i(2, 40, 32, 27)], "farm": true},
+	23: {"name": "Straw silo", "sheet": "cozy", "region": Rect2i(1032, 124, 36, 68), "roof_rows": 2, "door": Vector2i(1, 5), "blocks": [Rect2i(2, 40, 32, 27)], "farm": true},
+	# The windmill's body; its sails (91 x 91, hub at the middle) turn over it
+	# with the wind (forest.gd), hub at `sails_hub` in body pixels.
+	24: {"name": "Windmill", "sheet": "cozy", "region": Rect2i(869, 317, 56, 67), "roof_rows": 2, "door": Vector2i(1, 5), "blocks": [Rect2i(2, 44, 44, 22)], "farm": true,
+		"sails": Rect2i(1330, 209, 91, 91), "sails_hub": Vector2i(23, 8)},
 }
+
+# The cozy farm randomizer: which Cozy Farm home stands in for each Painted
+# Lands prefab a recipe names (by recipe id: {painted id: cozy id}), and the
+# outbuildings its farmyard gets. Map types with no house keep none (the wild
+# ones: Wild lane, Sparse wild, Cave mouth, Stone ruins, Rock garden, Deep
+# forest, Walled mesa); Open meadow gets a windmill and a straw silo. Homes
+# follow the palette fit: timber, A-frame, and thatch closest (villages and
+# hamlets), the farm cottage and farmhouse on farms, brick at most once on
+# the grander greens, the long house for working places.
+const COZY_SWAP := {
+	0: {0: 10}, 1: {1: 12}, 2: {2: 14}, 3: {3: 10}, 4: {0: 13}, 6: {1: 14}, 7: {2: 16}, 8: {3: 14},
+	9: {0: 12}, 10: {1: 12, 3: 13}, 11: {2: 14}, 13: {3: 10}, 14: {0: 14}, 15: {1: 13}, 16: {2: 12},
+	17: {3: 10}, 19: {0: 16}, 21: {3: 13}, 23: {4: 16, 5: 20}, 26: {0: 12, 1: 13, 2: 15}, 27: {2: 15},
+	28: {1: 12}, 30: {1: 14, 2: 13, 3: 12}, 31: {0: 10, 2: 14}, 32: {0: 11, 3: 15},
+}
+const COZY_FARM := {
+	0: [20, 22, 21], 3: [21], 5: [24, 23], 7: [22], 8: [21], 10: [21], 13: [20, 23], 14: [21], 17: [21],
+	19: [22], 23: [23], 31: [21], 32: [20],
+}
+# Map types only in the cozy farm randomizer, after the Painted Lands ones
+# (recipe = seed % (33 + 3) there; the Painted Lands scenes keep % 33). Each
+# borrows a Painted Lands layout (`layout`) with Cozy Farm buildings.
+const COZY_RECIPES := [
+	{"name": "Farmstead", "layout": 0, "swap": {0: 11}, "houses": [11], "farm": [20, 21, 22, 23], "water": "P+WP+WR", "height": "F", "path": "trunk + L", "patch": ["R", 2, 3], "props": ["bushes", "LR", "T"], "signs": 1},
+	{"name": "Windmill road", "layout": 7, "swap": {2: 14}, "houses": [14], "farm": [24, 23, 21], "water": "S if room", "height": "", "path": "south third", "patch": ["I", 2, 3], "props": ["bushes", "CF", "T"], "signs": 1},
+	{"name": "Farm village", "layout": 26, "houses": [10, 12, 14], "farm": [20, 21, 24], "water": "S if room", "height": "", "path": "plaza + 2 trunks", "patch": ["R", 1, 2], "props": ["T"], "signs": 3},
+]
+
 
 # Props. `region` in cells, `cell` = region top-left relative to the anchor
 # tile, `base` = foot pixel inside the region (y-sort origin).
 # Where smoke leaves each house that has a hearth: the roof's peak, in pixels
 # from the prefab's top-left (the sheet draws no chimneys). The shed and the
 # barn are outbuildings and have none.
-const CHIMNEYS := {0: Vector2i(47, 2), 1: Vector2i(87, 2), 2: Vector2i(87, 2), 3: Vector2i(23, 14)}
+const CHIMNEYS := {0: Vector2i(47, 2), 1: Vector2i(87, 2), 2: Vector2i(87, 2), 3: Vector2i(23, 14),
+	# The Cozy Farm homes draw their chimneys: the smoke leaves the top.
+	10: Vector2i(46, 6), 11: Vector2i(39, 6), 12: Vector2i(60, 6), 13: Vector2i(53, 6), 14: Vector2i(56, 4), 16: Vector2i(75, 2)}
 
 # "splice": Vector2i(cut, join) on a tree whose sheet art stacks two bottoms
 # (the tree's own root flare, then the grass-tuft or shade row drawn with a
@@ -372,6 +423,10 @@ var ridges := 0
 var hedgerows := 0
 var props: Array[Dictionary] = [] # {art, cell, block} or {sign, cell, block}
 var houses: Array[Dictionary] = [] # {id, origin}
+## The cozy farm randomizer: Cozy Farm homes for the recipe's prefabs, its
+## outbuildings, and the cozy-only map types (set before generate()).
+var cozy := false
+var outbuildings: Array[Dictionary] = [] # {id, origin}: farm buildings, not entered
 var fence := {} # cell -> {atlas, flip}
 var gate := Vector2i(-1, -1) # left cell of a two-cell gate
 var leans := 0
@@ -392,13 +447,25 @@ var _blocked := {} # cells the walker cannot enter
 # forest and wilds scenes do, so their maps survive new recipes).
 func generate(p_map_id: int, p_recipe := -1) -> String:
 	map_id = p_map_id
-	recipe_id = p_recipe if p_recipe >= 0 else map_id % RECIPES.size()
-	recipe = RECIPES[recipe_id]
+	var count := RECIPES.size() + (COZY_RECIPES.size() if cozy else 0)
+	recipe_id = p_recipe if p_recipe >= 0 and p_recipe < count else map_id % count
+	recipe = RECIPES[recipe_id] if recipe_id < RECIPES.size() else COZY_RECIPES[recipe_id - RECIPES.size()]
+	if cozy:
+		# The recipe's houses become its Cozy Farm homes, and its farmyard.
+		recipe = recipe.duplicate(true)
+		var swap: Dictionary = recipe.get("swap", COZY_SWAP.get(recipe_id, {}))
+		var ids: Array = []
+		for id in recipe.houses:
+			ids.append(swap.get(id, id))
+		recipe.houses = ids
+		recipe["swap"] = swap
+		if not recipe.has("farm"):
+			recipe["farm"] = COZY_FARM.get(recipe_id, [])
 	var built := false
 	for a in ATTEMPTS:
 		attempt = a
 		_reset(hash(Vector2i(map_id, a)))
-		if _layout() and _autotile_path():
+		if _layout() and _autotile_path() and _place_farm():
 			built = true
 			break
 	if not built:
@@ -596,7 +663,7 @@ func _reset(seed_value: int) -> void:
 	_rng.seed = seed_value
 	for d in [lawn, features, path, water, deep, hedge, accents, canopy, ridge, ridge_rock, plateau, ledge, stairs, ramps, deco, fence, _taken, _solid, _blocked]:
 		d.clear()
-	for a in [blobs, ponds, streams, props, houses, goals, tones, caves, plateaus]:
+	for a in [blobs, ponds, streams, props, houses, goals, tones, caves, plateaus, outbuildings]:
 		a.clear()
 	dropped.clear()
 	floor_notes.clear()
@@ -623,7 +690,7 @@ func _paint_lawn() -> void:
 # next attempt seed.
 
 func _layout() -> bool:
-	match recipe_id:
+	match recipe.get("layout", recipe_id):
 		0: return _lay_pastoral()
 		1: return _lay_crossroads()
 		2: return _lay_pond_walk()
@@ -945,7 +1012,7 @@ func _lay_shore_hamlet() -> bool:
 	var end := door.y + _rng.randi_range(6, 9)
 	if not _route([door, Vector2i(door.x, end)]):
 		return false
-	var size := _cells(HOUSES[0].region.size)
+	var size := _cells(HOUSES[h.id].region.size)
 	if not _pond(Rect2i(h.origin.x + size.x + 3, door.y + 1, 22, HEIGHT - door.y - 4), "WP+WR"):
 		return false
 	var p := ponds[0]
@@ -1313,6 +1380,8 @@ func _center_zone() -> Rect2i:
 # ---------------------------------------------------------------- pieces
 
 func _place_house(id: int, zone: Rect2i) -> Dictionary:
+	if cozy:
+		id = recipe.get("swap", {}).get(id, id) # the Cozy Farm home for this prefab
 	var art: Dictionary = HOUSES[id]
 	var size := _cells(art.region.size)
 	if zone.size.x <= 0 or zone.size.y <= 0:
@@ -1335,6 +1404,73 @@ func _place_house(id: int, zone: Rect2i) -> Dictionary:
 			_block_pixels(origin * 16, block)
 		return h
 	return {}
+
+
+# The cozy farm randomizer's farmyard: the recipe's outbuildings (barn, coop,
+# silos, windmill) grouped round the first home, each on the free lawn spot
+# closest to its doorstep (of 80 tries), or anywhere on the map when there is
+# no home (Open meadow's windmill) or no room round it (the village squares). Each keeps two cells clear round it and
+# three from any other building, and a spot that would cut the spawn off from
+# a goal is skipped. True when every outbuilding stands.
+func _place_farm() -> bool:
+	if not cozy:
+		return true
+	var anchor := Vector2i(-1, -1)
+	if not houses.is_empty():
+		anchor = _door(houses[0])
+	for id in recipe.get("farm", []):
+		# Near the home first; anywhere on the map when the ground round it
+		# is taken (the village squares).
+		if not _place_outbuilding(id, anchor) and not _place_outbuilding(id, Vector2i(-1, -1)):
+			return false
+	return true
+
+
+func _place_outbuilding(id: int, anchor: Vector2i) -> bool:
+	var art: Dictionary = HOUSES[id]
+	var size := _cells(art.region.size)
+	var best := Vector2i(-1, -1)
+	var best_d := INF
+	for i in 80:
+		var origin := Vector2i(_rng.randi_range(2, WIDTH - size.x - 2), _rng.randi_range(2, HEIGHT - size.y - 4))
+		if anchor.x >= 0:
+			origin = anchor + Vector2i(_rng.randi_range(-24, 20), _rng.randi_range(-12, 14))
+		var d := 0.0 if anchor.x < 0 else Vector2(origin + size / 2 - anchor).length()
+		if d >= best_d:
+			continue
+		var box := Rect2i(origin, size + Vector2i(0, 1)).grow(2) # the doorstep row too
+		if not _rect_free(box):
+			continue
+		var crowded := false
+		for other in houses + outbuildings:
+			var osize := _cells(HOUSES[other.id].region.size)
+			if Rect2i(other.origin, osize).grow(3).intersects(Rect2i(origin, size)):
+				crowded = true
+		if crowded:
+			continue
+		var before_blocked := _blocked.duplicate()
+		var before_solid := _solid.duplicate()
+		for block in art.blocks:
+			_block_pixels(origin * 16, block)
+		var ok := true
+		for g in goals:
+			if not _reaches(spawn, g):
+				ok = false
+				break
+		_blocked = before_blocked
+		_solid = before_solid
+		if ok:
+			best = origin
+			best_d = d
+			if anchor.x < 0:
+				break
+	if best.x < 0:
+		return false
+	for block in art.blocks:
+		_block_pixels(best * 16, block)
+	outbuildings.append({"id": id, "origin": best})
+	_claim(Rect2i(best, size).grow(2))
+	return true
 
 
 func _door(h: Dictionary) -> Vector2i:
@@ -2364,7 +2500,7 @@ func _place_clutter() -> void:
 		# A flowerpot beside the doorstep of a cottage or hut, if the ground is free.
 		for side in [Vector2i(-1, 0), Vector2i(2, 0)]:
 			var pot: Vector2i = door + side
-			if h.id <= 3 and _inside(pot) and not _solid.has(pot):
+			if (h.id <= 3 or h.id >= 10) and _inside(pot) and not _solid.has(pot):
 				props.append({"art": "flowerpot", "cell": pot, "block": false})
 				_solid[pot] = true
 				_taken[pot] = true
@@ -2915,6 +3051,8 @@ func _verify() -> String:
 			fails.append("fill on a cap or knuckle at %s" % c)
 	if houses.size() != recipe.houses.size():
 		fails.append("houses %d, recipe wants %d" % [houses.size(), recipe.houses.size()])
+	if outbuildings.size() != recipe.get("farm", []).size():
+		fails.append("farm buildings %d, recipe wants %d" % [outbuildings.size(), recipe.get("farm", []).size()])
 	for i in houses.size():
 		if i < recipe.houses.size() and houses[i].id != recipe.houses[i]:
 			fails.append("house %d is prefab %d, recipe names %d" % [i, houses[i].id, recipe.houses[i]])
@@ -3032,10 +3170,12 @@ func _verify() -> String:
 	var house_names := PackedStringArray()
 	for h in houses:
 		house_names.append(HOUSES[h.id].name)
+	for h in outbuildings:
+		house_names.append(HOUSES[h.id].name + " (farm)")
 	var lines := PackedStringArray([
 		"Painted Lands map %d: recipe %d %s, %dx%d (layout attempt %d)" % [map_id, recipe_id, recipe.name, WIDTH, HEIGHT, attempt],
 		"  hedgerows %d; ridges %d; accents %d; carpets %d; canopy %d cells; deep water %d cells; plateaus %s" % [hedgerows, ridges, accent_count, carpets, canopy.size(), deep.size(), ", ".join(plateaus.map(func(i): return "%s %s" % [i.tone, "+".join(["stairs", "ramp", "cave", "narrow"].filter(func(k): return i[k] >= 0))]))],
-		"  houses: %s; ponds %d; plateau %s; fence %d; leans %d" % [", ".join(house_names) if not houses.is_empty() else "none", ponds.size(), "with stairs" if not stairs.is_empty() else ("yes" if not plateau.is_empty() else "no"), fence.size(), leans],
+		"  houses: %s; ponds %d; plateau %s; fence %d; leans %d" % [", ".join(house_names) if not house_names.is_empty() else "none", ponds.size(), "with stairs" if not stairs.is_empty() else ("yes" if not plateau.is_empty() else "no"), fence.size(), leans],
 		"  path %d cells (%s), patches %s" % [path.size(), recipe.path, " ".join(patch_notes)],
 		"  grass tones: %s" % ", ".join(tone_notes),
 		"  props: %s; signs %s" % [str(counts), str(sign_ids.keys())],

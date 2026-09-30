@@ -16,7 +16,10 @@ const OFFSET := Vector2(0, 20000) # the interior sits far below the map
 const FADE := 0.16
 ## Rooms per building (house ids of PaintedTerrain.HOUSES): the porch
 ## cottage is the largest, the shed a single room.
-const ROOMS := {0: [3, 6], 1: [2, 4], 2: [2, 5], 3: [1, 2], 4: [1, 1], 5: [1, 3]}
+const ROOMS := {0: [3, 6], 1: [2, 4], 2: [2, 5], 3: [1, 2], 4: [1, 1], 5: [1, 3],
+	# Cozy Farm homes (the cozy farm randomizer), by size; the red barn when
+	# a recipe names it as a building (Woodcutter camp).
+	10: [2, 3], 11: [3, 5], 12: [2, 4], 13: [2, 4], 14: [1, 3], 15: [2, 4], 16: [2, 3], 20: [1, 3]}
 
 var map: Node2D # forest.gd
 var walker: CharacterBody2D

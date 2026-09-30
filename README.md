@@ -47,7 +47,8 @@ project, copy them in locally:
   `village/`, Fences & Walls to `fences/`, Weather Effects to `weather/`, and
   `_extras` to `extras/` (see docs/deprecated/mana-seed.md)
 - Cozy Farm art pack (shubibubi): its `animals/` folder to
-  `assets/pack/cozy_farm/animals/`
+  `assets/pack/cozy_farm/animals/` and `Buildings/buildings.png` to
+  `assets/pack/cozy_farm/buildings.png`
 - Pixel Crawler (Anokolisa): the environment sheets to
   `assets/pack/pixel_crawler/`: Fairy Forest `Assets/*.png` to
   `fairy_forest/`, the Farm Game Assets forest (`Tiles.png`,
@@ -113,7 +114,7 @@ generator.
 | `scenes/randomizer-mysticwoods/randomizer-mysticwoods.tscn` | starts at 21021, then any | `player.png` |
 | `scenes/randomizer-greencaves/randomizer-greencaves.tscn` | starts at 130021, then any | `character_sprite_sheet.png` (the Painted Lands walker) |
 | `scenes/randomizer-manaseed/randomizer-manaseed.tscn` | starts at 160000, then any | `character_sprite_sheet.png` (the Painted Lands walker) |
-| `scenes/randomizer-painted-cozyfarm/randomizer-painted-cozyfarm.tscn` | starts at 180003 (recipe 3), then any | `character_sprite_sheet.png` |
+| `scenes/randomizer-painted-cozyfarm/randomizer-painted-cozyfarm.tscn` | starts at 180033 (recipe 33 Farmstead), then any | `character_sprite_sheet.png` |
 | `scenes/randomizer-pixelcrawler/randomizer-pixelcrawler.tscn` | starts at 170000, then any | `character_sprite_sheet.png` (the Painted Lands walker) |
 | `scenes/randomizer-timefantasy/randomizer-timefantasy.tscn` | starts at 150000, then any | `character_sprite_sheet.png` (the Painted Lands walker) |
 
@@ -138,8 +139,12 @@ snow and rain. `tools/check_ms.gd` sweeps it headless. Its liveliness has
 not been measured yet.
 
 The Painted Lands cozy farm randomizer is the Painted Lands randomizer
-(same terrain, recipes, homes, and ambience) with its animals drawn from the
-Cozy Farm art pack: bunnies, and herds of chickens, turkeys, sheep, goats,
+(same terrain, recipes, interiors, and ambience) with Cozy Farm buildings in
+place of the Painted Lands houses (farm cottage, farmhouse, timber, A-frame,
+thatched, brick, and long houses, each with its interior, and a farmyard of
+barns, coops, silos, and a windmill whose sails turn with the wind, by map
+type), three map types of its own (Farmstead, Windmill road, Farm village),
+and its animals drawn from the Cozy Farm art pack: bunnies, and herds of chickens, turkeys, sheep, goats,
 pigs, and cows with their young, grazing, ambling off from the walker, and
 dozing. The tiny animals (voles, mice, frogs, lizards), the birds, and the
 insects stay as drawn.
@@ -451,7 +456,8 @@ Art (purchased; not included in this repository, see "Art packs" above):
   rpg creator bundle. License: see the pack's readme and itch.io pages;
   purchased, not redistributed here.
 - **Cozy Farm** art pack by shubibubi: the farm animals (bunny, chicken,
-  turkey, sheep, goat, pig, cow) in the cozy farm randomizer. Purchased;
+  turkey, sheep, goat, pig, cow) and buildings (homes, barn, coop, silos,
+  windmill) in the cozy farm randomizer. Purchased;
   not redistributed here.
 - **Pixel Crawler** by Anokolisa ([Patreon](https://www.patreon.com/Anokolisa)):
   Fairy Forest, Farm Game Assets, Green Woods (Pixel Crawler FREE),

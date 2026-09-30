@@ -65,7 +65,8 @@ var _out := ""
 
 func _ready() -> void:
 	_headless = DisplayServer.get_name() == "headless"
-	# `cozy`: the Cozy Farm animals (randomizer-painted-cozyfarm); `out=<dir>`:
+	# `cozy`: the cozy farm randomizer's settings (Cozy Farm animals and
+	# buildings); `out=<dir>`:
 	# write to res://<dir> instead.
 	var cozy := false
 	var out_dir := ""
@@ -92,6 +93,7 @@ func _ready() -> void:
 	_forest = (CAVE_SCENE if _caves else MAP_SCENE).instantiate()
 	if cozy:
 		_forest.cozy_animals = true
+		_forest.cozy_buildings = true
 	add_child(_forest)
 	_camera = Camera2D.new()
 	_camera.zoom = Vector2(ZOOM, ZOOM)

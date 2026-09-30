@@ -386,6 +386,13 @@ static func habitat_cells(t: PaintedTerrain) -> Dictionary:
 			rocks[foot] = true
 	for c in t.fence:
 		clutter[c] = true
+	# Farmyard outbuildings (the cozy farm randomizer): their doorsteps are
+	# yard ground (pigs and mice by the barn, chickens at the coop).
+	var yard := {}
+	for o in t.outbuildings:
+		var step: Vector2i = o.origin + PaintedTerrain.HOUSES[o.id].door
+		clutter[step] = true
+		yard[step] = true
 	for c in t.hedge:
 		bushes[c] = true
 	for c in t.ridge:
@@ -426,7 +433,7 @@ static func habitat_cells(t: PaintedTerrain) -> Dictionary:
 			h.bushes[c] = true
 		if (t.plateau.has(c) and not t.stairs.has(c)) or _near(c, rocks, 2):
 			h.rocky[c] = true
-		if (on_ground and tone <= 0 and not wet and (_near(c, t.path, 3) or _near(c, t.fence, 3))) or green_top.has(c):
+		if (on_ground and tone <= 0 and not wet and (_near(c, t.path, 3) or _near(c, t.fence, 3) or _near(c, yard, 4))) or green_top.has(c):
 			h.open[c] = true
 	for c in t.water:
 		if t._near_all(c, t.water, 1):

@@ -28,7 +28,7 @@ func _init() -> void:
 	var caves := "caves" in args
 	var Features = CaveFeatures if caves else PaintedFeatures
 	if "cozy" in args:
-		PaintedFeatures.cozy = true # the cozy farm animals (randomizer-painted-cozyfarm)
+		PaintedFeatures.cozy = true # the cozy farm randomizer (its animals; buildings below)
 	var Terrain = CaveMaps if caves else PaintedMaps
 	var coef = JSON.parse_string(FileAccess.get_file_as_string("res://tools/liveliness_coef_caves.json" if caves else "res://tools/liveliness_coef.json"))
 	if coef == null:
@@ -44,6 +44,8 @@ func _init() -> void:
 	var weakest: Array[float] = []
 	for id in range(first, first + count):
 		var t = Terrain.new()
+		if not caves and "cozy" in args:
+			t.cozy = true # the cozy farm randomizer's buildings and map types
 		t.generate(id, pinned)
 		var g: Dictionary = Features.grid(t)
 		var m := PackedFloat32Array()

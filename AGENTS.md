@@ -12,9 +12,12 @@ changing its generator, painter, or scenes.
   Green Caves, Cozy Cottage, and the rest) and **Pixel Crawler** (Anokolisa).
 - They are used in **separate maps** and never combined, on the ground, in
   props, or in palettes.
-- **Cozy Farm** (shubibubi) is used for its **animals only**, in
-  `randomizer-painted-cozyfarm` (by request): they replace the drawn animals
-  that have a pack counterpart. Its other art is not used.
+- **Cozy Farm** (shubibubi) is used for its **animals and buildings only**,
+  in `randomizer-painted-cozyfarm` (by request): the animals replace the drawn
+  ones that have a pack counterpart; its homes replace the Painted Lands
+  houses there, never beside them, with farmyard outbuildings. The weakest
+  fits (greenhouse, blue-roof house, slime hut, civic buildings, fall and
+  winter versions) and its other art are not used.
 - **Mana Seed** is not to be used in future development. **Mystic Woods** is
   deprecated. **Time Fantasy** is not suitable (its ground clashes and
   strains the eyes). Their scenes and docs stay as a record only.
@@ -32,6 +35,7 @@ changing its generator, painter, or scenes.
 | Time Fantasy (not suitable) | `randomizer-timefantasy` | `tf_terrain.gd`, `timefantasy.gd` | `docs/deprecated/time-fantasy.md` |
 
 Engine, player, scene list, and art directories: `docs/project-overview.md`.
+Every current map type by tilesets used: `docs/all-maps.md`.
 Combining antarcticbees packs: `docs/painted-lands-art-fit.md`. Shared
 inventory and QC: `docs/scene-assembly.md`.
 
