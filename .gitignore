@@ -16,6 +16,7 @@ __pycache__/
 assets/pack/
 .liveliness_caves/
 .liveliness_walk_caves/
+.liveliness_*/
 .lv_*/
 .lw_*/
 .lwh_*/

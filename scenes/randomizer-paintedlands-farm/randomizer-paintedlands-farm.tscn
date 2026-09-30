@@ -1,29 +1,29 @@
-[gd_scene format=3]
+[gd_scene format=3 uid="uid://dgiupa8vgqvd"]
 
-[ext_resource type="Script" path="res://scripts/farm.gd" id="1_script"]
-[ext_resource type="Script" path="res://scripts/randomizer_menu.gd" id="2_menu"]
+[ext_resource type="Script" uid="uid://yewyi5ridn8e" path="res://scripts/farm.gd" id="1_script"]
+[ext_resource type="Script" uid="uid://bur3cxtn52dtl" path="res://scripts/randomizer_menu.gd" id="2_menu"]
 
-[node name="RandomizerPaintedLandsFarm" type="Node2D"]
+[node name="RandomizerPaintedLandsFarm" type="Node2D" unique_id=1999190276]
 texture_filter = 1
 script = ExtResource("1_script")
 
-[node name="Ground" type="TileMapLayer" parent="."]
+[node name="Ground" type="TileMapLayer" parent="." unique_id=1771302147]
 
-[node name="Water" type="TileMapLayer" parent="."]
+[node name="Water" type="TileMapLayer" parent="." unique_id=1526912605]
 
-[node name="Features" type="TileMapLayer" parent="."]
+[node name="Features" type="TileMapLayer" parent="." unique_id=897677680]
 
-[node name="Deco" type="TileMapLayer" parent="."]
+[node name="Deco" type="TileMapLayer" parent="." unique_id=1051680615]
 
-[node name="Under" type="Node2D" parent="."]
+[node name="Under" type="Node2D" parent="." unique_id=289750980]
 
-[node name="Actors" type="Node2D" parent="."]
+[node name="Actors" type="Node2D" parent="." unique_id=1696303817]
 y_sort_enabled = true
 
-[node name="Collision" type="StaticBody2D" parent="."]
+[node name="Collision" type="StaticBody2D" parent="." unique_id=1520717301]
 collision_mask = 0
 
-[node name="Menu" type="CanvasLayer" parent="."]
+[node name="Menu" type="CanvasLayer" parent="." unique_id=521907812]
 layer = 10
 script = ExtResource("2_menu")
 title = "Painted Lands farm randomizer"

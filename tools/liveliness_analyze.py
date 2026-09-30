@@ -109,6 +109,12 @@ def measure(raw_path, meta):
     clouded = np.zeros((n - 1, bx * by))
     reached = np.zeros((h, w), bool)
     view_motion = view_cloud = 0.0
+    # A pack with its own cloud shade (the farm by season, Pixel Crawler by
+    # biome) records it with the view.
+    shade, shade_a = SHADE, SHADE_A
+    if meta.get("shade"):
+        shade = np.array(meta["shade"][:3], np.float32)
+        shade_a = float(meta["shade"][3])
     for i in range(n - 1):
         a = frames[i].astype(np.float32)
         c = frames[i + 1].astype(np.float32)
@@ -116,8 +122,8 @@ def measure(raw_path, meta):
         if meta.get("pack") == "caves":  # no cloud shadows underground
             cl = np.zeros_like(d)
         else:
-            enter = (np.abs(c - (a + SHADE_A * (SHADE - a))) <= SHADE_TOL).all(axis=2)
-            leave = (np.abs(a - (c + SHADE_A * (SHADE - c))) <= SHADE_TOL).all(axis=2)
+            enter = (np.abs(c - (a + shade_a * (shade - a))) <= SHADE_TOL).all(axis=2)
+            leave = (np.abs(a - (c + shade_a * (shade - c))) <= SHADE_TOL).all(axis=2)
             cl = d & (enter | leave)
         d &= ~cl
         if "walker" in meta:
@@ -340,7 +346,38 @@ def walkcmp(folder):
     json.dump(out, open(os.path.join(".liveliness_walk", "compare.json"), "w"), indent=1)
 
 
+def compare(folders):
+    """One line per results folder: local motion (median of maps, and of each
+    map's weakest view), quiet blocks, reach, longest still stretch.
+    compare <dir>[,<dir>...]"""
+    for folder in folders.split(","):
+        res = os.path.join(folder, "results")
+        if not os.path.isdir(res):
+            print(f"{folder}: no results")
+            continue
+        per = {}
+        for f in os.listdir(res):
+            m = json.load(open(os.path.join(res, f)))
+            e = per.setdefault(m["map"], {"views": [], "quiet": [], "reach": [], "still": [], "name": m["recipe_name"]})
+            e["views"].append(m["measured"]["view_motion"])
+            e["quiet"].append(np.mean([x < QUIET for x in m["measured"]["motion"]]))
+            e["reach"].append(m["measured"]["view_reach"])
+            e["still"].append(np.max(m["measured"]["still"]))
+        maps = [np.mean(e["views"]) for e in per.values()]
+        weak = [np.min(e["views"]) for e in per.values()]
+        quiet = [np.mean(e["quiet"]) * 100 for e in per.values()]
+        reach = [np.mean(e["reach"]) for e in per.values()]
+        print(f"{folder}: {len(per)} maps, {sum(len(e['views']) for e in per.values())} views; local motion median {np.median(maps):.3f}% "
+              f"(range {np.min(maps):.3f}-{np.max(maps):.3f}), weakest view median {np.median(weak):.3f}%, quiet blocks {np.median(quiet):.0f}%, "
+              f"reach {np.median(reach):.1f}%")
+        json.dump({"maps": len(per), "motion": float(np.median(maps)), "motion_min": float(np.min(maps)), "motion_max": float(np.max(maps)),
+                   "weakest": float(np.median(weak)), "quiet": float(np.median(quiet)), "reach": float(np.median(reach)),
+                   "per_map": {str(k): {"name": e["name"], "motion": float(np.mean(e["views"])), "weakest": float(np.min(e["views"])),
+                                        "quiet": float(np.mean(e["quiet"]) * 100)} for k, e in per.items()}},
+                  open(os.path.join(folder, "summary.json"), "w"), indent=1)
+
+
 if __name__ == "__main__":
     if "caves" in sys.argv[3:]:
         use_caves()
-    {"watch": watch, "fit": fit, "walkcmp": walkcmp}[sys.argv[1]](sys.argv[2])
+    {"watch": watch, "fit": fit, "walkcmp": walkcmp, "compare": compare}[sys.argv[1]](sys.argv[2])

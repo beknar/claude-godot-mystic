@@ -169,6 +169,9 @@ var water_life: WaterLife
 ## the deprecated cozy farm table (COZY_SPECIES).
 var mode := ""
 var summary := ""
+## The walker shares the animals' parent (an interior sub-map, far from the
+## world origin): compare its local position, not its global one.
+var local_walker := false
 var scared := {} # species -> times an animal reacted to the walker, for tools/walker_test.gd
 var _animals: Array[Animal] = []
 var _habitat := {} # species -> {cell: true}
@@ -197,6 +200,7 @@ class Animal extends Node2D:
 	var sheet: Texture2D # cozy farm: the pack sheet (4 x 5 cells) instead of `frames`
 	var cell := 16
 	var dir := Vector2.RIGHT # last direction of travel (picks the sheet row)
+	var wary := 0.0 # s before a startled animal that found no way off looks again
 	var fly_from := Vector2.ZERO
 	var fly_k := 0.0
 	var fly_time := 1.0
@@ -583,7 +587,9 @@ func setup_from(p: Dictionary, water: Dictionary, actors: Node2D, p_walker: Node
 
 
 func _process(delta: float) -> void:
-	var feet := walker.global_position if is_instance_valid(walker) and walker.visible else Vector2(-9999, -9999)
+	var feet := Vector2(-9999, -9999)
+	if is_instance_valid(walker) and walker.visible:
+		feet = walker.position if local_walker else walker.global_position
 	for a in _animals:
 		if not is_instance_valid(a):
 			continue
@@ -595,7 +601,8 @@ func _process(delta: float) -> void:
 func _update(a: Animal, delta: float, feet: Vector2) -> void:
 	var spec := a.spec
 	a.t += delta
-	var near: bool = a.pos.distance_to(feet) < spec.scare
+	a.wary = maxf(0.0, a.wary - delta)
+	var near: bool = a.pos.distance_to(feet) < spec.scare and a.wary <= 0.0
 	match a.state:
 		"idle":
 			a.anim = "idle"
@@ -700,7 +707,18 @@ func _step(a: Animal, speed: float, delta: float) -> bool:
 
 func _scare(a: Animal, feet: Vector2) -> void:
 	var spec := a.spec
+	var before := a.state
+	_react(a, feet)
+	if a.state == before:
+		# Nowhere to go (a penned animal at its fence): it stays put and looks
+		# again in a moment instead of every frame.
+		a.wary = 1.0
+		return
 	scared[a.kind] = scared.get(a.kind, 0) + 1
+
+
+func _react(a: Animal, feet: Vector2) -> void:
+	var spec := a.spec
 	match spec.react:
 		"curl":
 			a.state = "curl"

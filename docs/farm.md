@@ -15,8 +15,11 @@ Read this before touching `scripts/farm_terrain.gd`, `scripts/farm.gd`,
   the sheet for the whole map); never mix seasons, and never a Farm tile
   with a Forest (`TILESET_brighter.png`) ground tile on one map.
 - Every door opens: walk into it and the interior sub-map opens.
-- `tools/check_farm.gd` passes on a sweep, and a screenshot passes the reject
-  list at the end.
+- `tools/check_farm.gd` passes on a sweep, the headless walker test has no
+  snag on any map type, and a screenshot passes the reject list at the end.
+- A prop blocks every cell its collider overlaps (colliders are centered on
+  the prop's cell); a trunk collider stays in the trunk's cell. Otherwise the
+  walker snags on a collider in a cell the generator left open.
 
 **Coordinates:** `scripts/farm_tiles.gd` is authoritative (read from the sheet
 by script, then checked by eye); the notes below explain each piece.
@@ -117,13 +120,22 @@ the animals).
   walls; they fade to 55 % while the walker is behind them. The windmill is
   the animated sheet, sped up by the wind.
 - **Trees** are AnimatedSprite2D on the pack's sheets, standing on their
-  measured trunk (collider from the root flare), resting on frame 0. A gust's
-  onset sets most rustling (each tree a moment apart); the walker brushing a
-  trunk rustles it and plays the falling-leaves overlay; in a gust some
-  crowns shed the blowing-leaves sheet. Crowns fade while the walker is
-  behind them.
+  measured trunk (collider from the root flare, at most 14 px so it stays in
+  the trunk's cell), resting on frame 0. A gust sweeps across the farm with
+  the wind: when it arrives, four trees in five each get their own start, the
+  moment the gust front reaches them (0-3 s from the upwind edge to the
+  downwind one) plus their own jitter (up to 1.5 s), so no two shake
+  together. The walker brushing a trunk rustles it at once and plays the
+  falling-leaves overlay; in a gust some crowns shed the blowing-leaves sheet.
+  Crowns fade while the walker is behind them. Bare and dead trees shed
+  nothing.
 - **Crops** stand on their plot; stalked and leafy ones split in two and the
-  top nods with the wind (water_life.gd), as do reeds and wheat bunches.
+  top nods with the wind (water_life.gd), as do reeds and wheat bunches. The
+  walker wades through them (field cells are walkable, with no collider; the
+  animals keep out, and roads are routed round): every plant within 11 px of
+  its feet bends away from its step (a shear about the plant's foot, so the
+  top moves most) and springs back on a damped spring, swaying a few times as
+  it settles, and the step flicks leaves like tall grass.
 - **Gates** swing open (the four frames) when the walker comes within 30 px.
 - **Fish** leap from open water now and then (a pack fish arcs out and
   drops back with a ring).
@@ -146,8 +158,17 @@ the animals).
 
 Every building has a door (house_interiors.gd `reset_doors`): walk into it
 and the screen fades to a sub-map far below the farm. Farmhouses (2–4
-rooms), the manor (3–6), the barn (1–2), and the windmill (1) open on Cozy
-Cottage homes (docs/interiors.md). The **greenhouse** opens on the sheet's own
+rooms), the manor (3–6), and the windmill (1) open on Cozy Cottage homes
+(docs/interiors.md). The **barn** opens on a barn (14 x 11 cells): the
+farm sheet's barn-yard kit plank wall with its windows across the back
+(`BARN_WALL`, `BARN_WINDOW`), a Cozy Cottage plank floor strewn with loose
+straw (the wheat overlay's corner table over a noise mask), three stalls
+divided by fence rails with a trough and hay in each, hay piles and bales,
+crates, barrels, a bucket, and wheat bunches along the side walls, an aisle
+to the doorway, and two or three kinds of the Cozy Farm animals living inside
+(wildlife.gd with `local_walker`, so they amble off from the walker indoors
+too). It is drawn from the spring and summer sheet in every season (there is
+no weather indoors) and built once per map. The **greenhouse** opens on the sheet's own
 glasshouse (`GREENHOUSE_ROOM`): a glass back wall with vines, a tiled walk,
 two soil beds with crops in rows, and pots; the way out is the gap at the
 foot of the aisle. It is built once per map and kept.
@@ -157,7 +178,14 @@ foot of the aisle. It is built once per map and kept.
 The Painted Lands floor with frozen weights (water 6, tree 6, nodding crop 2,
 wheat 1.2, pen 0.25 per cell, flower 3, firefly swarm 60) over every camera
 window (43 x 18 cells), threshold 0.09 %. A weak window gets a small pond (up
-to two ponds on the map), else a wildflower carpet, else fireflies.
+to two ponds on the map), else a wildflower carpet, else fireflies; in winter
+(no flowers or fireflies) a pond or a stand of snowy trees. Bare and dead
+trees shed no leaves (they have no leaf colors).
+
+Measured (docs/liveliness-farm.md): local motion median 0.40 % at rest and
+0.51 % walking over 12 maps of all three seasons (winter 0.42 %, carried by the
+snow), level with the Painted Lands randomizer and above Green Caves and
+Pixel Crawler.
 
 ## Map types (48)
 
@@ -231,7 +259,9 @@ generates maps and prints each one's recipe, buildings, counts, floor notes,
 and checks: the walker reaches every door, gate, field, and the hub; every
 cell has a ground tile; every shore cell has a shore tile; every building the
 recipe names stands. 96 of 96 maps (190000–190095, every map type twice) pass
-on the first layout.
+on the first layout. `tools/walker_test.tscn -- farm` walks every map type
+headless (0 snags on all 48); the liveliness tools take `farm` too
+(docs/liveliness-farm.md).
 
 ## Reject list
 

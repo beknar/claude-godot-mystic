@@ -19,6 +19,8 @@ const PaintedFeatures := preload("res://scripts/liveliness_features.gd")
 const PaintedMaps := preload("res://scripts/forest_terrain.gd")
 const CaveFeatures := preload("res://scripts/cave_liveliness_features.gd")
 const CaveMaps := preload("res://scripts/cave_terrain.gd")
+const FarmFeatures := preload("res://scripts/farm_liveliness_features.gd")
+const FarmMaps := preload("res://scripts/farm_terrain.gd")
 const VIEW := Vector2i(43, 18)
 const SHADES := " .:-=+*#%@"
 
@@ -30,12 +32,15 @@ func _init() -> void:
 	var pinned := int(args[2]) if args.size() > 2 else -1
 	var heat := "heat" in args
 	var caves := "caves" in args
-	var Features = CaveFeatures if caves else PaintedFeatures
+	# `farm`: the farm randomizer's maps with the Painted Lands weights (not
+	# refitted; scripts/farm_liveliness_features.gd says what it misses).
+	var farm := "farm" in args
+	var Features = FarmFeatures if farm else (CaveFeatures if caves else PaintedFeatures)
 	if "cozy" in args:
 		PaintedFeatures.animals = "farm" # the cozy farm randomizer (its animals; buildings below)
 	elif "pack" in args or (caves and not "drawn" in args):
 		PaintedFeatures.animals = "pack"
-	var Terrain = CaveMaps if caves else PaintedMaps
+	var Terrain = FarmMaps if farm else (CaveMaps if caves else PaintedMaps)
 	var coef = JSON.parse_string(FileAccess.get_file_as_string("res://tools/liveliness_coef_caves.json" if caves else "res://tools/liveliness_coef.json"))
 	if coef == null:
 		push_error("no tools/liveliness_coef.json: run the capture and liveliness_analyze.py fit first")

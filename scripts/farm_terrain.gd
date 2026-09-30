@@ -30,7 +30,7 @@ const OPEN := 0
 const WATER := 1
 const CLIFF := 2 # plateau (blocks)
 const SOLID := 3 # building walls
-const FIELD := 4 # tilled plots with crops
+const FIELD := 4 # tilled plots with crops (walked through, never built on)
 const FENCE := 5
 
 # Recipes (map id % 48): 30 in spring and summer, 10 in autumn, 8 in winter;
@@ -1082,8 +1082,12 @@ func _place(art: String, cell: Vector2i, force := false) -> bool:
 	var p: Dictionary = FarmTiles.prop(season, art)
 	if p.is_empty():
 		return false # not drawn in this season
-	var w: int = maxi(1, int(ceil(p.block.x / 16.0)))
-	var r := Rect2i(cell - Vector2i(w / 2, 0), Vector2i(w, 1))
+	# The cells the collider (centered on the cell, farm.gd) actually
+	# overlaps, so the walk check and the walker's routes agree with physics.
+	var cx := cell.x * TILE + TILE / 2.0
+	var x0 := floori((cx - p.block.x / 2.0) / TILE) if p.block.x > 0.0 else cell.x
+	var x1 := floori((cx + p.block.x / 2.0 - 0.01) / TILE) if p.block.x > 0.0 else cell.x
+	var r := Rect2i(Vector2i(x0, cell.y), Vector2i(x1 - x0 + 1, 1))
 	for y in range(r.position.y, r.end.y):
 		for x in range(r.position.x, r.end.x):
 			var c := Vector2i(x, y)
@@ -1233,6 +1237,13 @@ func _liveliness_floor() -> void:
 		var r: Rect2i = weak.rect
 		if ponds.size() < 2 and _floor_pond(r):
 			floor_notes.append("pond")
+		elif season == "winter":
+			# No flowers or fireflies in the snow: a stand of snowy trees
+			# (they rustle and shed snow in the wind).
+			if _floor_trees(r):
+				floor_notes.append("trees")
+			else:
+				break
 		elif _floor_flowers(r):
 			floor_notes.append("flowers")
 		else:
@@ -1240,6 +1251,26 @@ func _liveliness_floor() -> void:
 			firefly_spots.append(c.clamp(Vector2i(1, 1), Vector2i(W - 2, H - 2)))
 			floor_notes.append("fireflies")
 	floor_notes.append("-> %.3f%%" % _weakest().value)
+
+
+## A stand of three or four trees of the season's wild set in the weak
+## window, where they keep every goal reachable.
+func _floor_trees(r: Rect2i) -> bool:
+	var set_ := _tree_set("wild")
+	var put := 0
+	for t in 60:
+		if put >= 4:
+			break
+		var c := r.get_center() + Vector2i(_rng.randi_range(-16, 16), _rng.randi_range(-6, 6))
+		if _taken.has(c) or not _inside(c):
+			continue
+		if _place_tree(set_[_rng.randi() % set_.size()], c):
+			if _reaches_all():
+				put += 1
+			else:
+				trees.pop_back()
+				blocked.erase(c)
+	return put >= 2
 
 
 ## A carpet of wildflowers in the weak window (butterflies and bees come).
@@ -1435,7 +1466,7 @@ func wildlife_plan(p_mode := "") -> Dictionary:
 	for y in H:
 		for x in W:
 			var c := Vector2i(x, y)
-			if walkable(c) and not gates.has(c):
+			if walkable(c) and not gates.has(c) and kind[_i(c)] != FIELD: # animals keep out of the crops
 				land[c] = true
 	var tr := trunks()
 	var clutter: Array[Vector2i] = []
@@ -1565,7 +1596,7 @@ func walkable(c: Vector2i) -> bool:
 		return false
 	if stones.has(c):
 		return true
-	return kind[_i(c)] == OPEN
+	return kind[_i(c)] == OPEN or kind[_i(c)] == FIELD # the walker wades through the crops
 
 
 func _reaches_all() -> bool:

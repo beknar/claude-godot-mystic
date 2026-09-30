@@ -14,12 +14,22 @@ extends Node2D
 ##   writes frames and a JSON per view to .liveliness_walk/raw/, measured by
 ##   python3 tools/liveliness_analyze.py watch .liveliness_walk
 ## Add `caves` to walk Green Caves maps (randomizer-greencaves) instead; the
-## results go to .liveliness_walk_caves.
+## results go to .liveliness_walk_caves. `farm` walks the farm randomizer
+## (randomizer-paintedlands-farm, every map type headless, doors shut so the
+## route never goes indoors) into .liveliness_walk_farm; `pc` the Pixel
+## Crawler randomizer into .liveliness_walk_pc. The six views tile each map
+## (a 64-cell farm is wider than a 60-cell Painted Lands map).
 
 const Wild := preload("res://scripts/wildlife.gd")
 const MAP_SCENE := preload("res://scenes/wilds/wilds.tscn")
 const CAVE_SCENE := preload("res://scenes/randomizer-greencaves/randomizer-greencaves.tscn")
 const CAVE_RENDERED_MAPS := [130021, 130022, 130023, 130025, 130026, 130027, 130004, 130009, 130010, 130014]
+const FARM_SCENE := preload("res://scenes/randomizer-paintedlands-farm/randomizer-paintedlands-farm.tscn")
+const PC_SCENE := preload("res://scenes/randomizer-pixelcrawler/randomizer-pixelcrawler.tscn")
+# Farm: four map types of each season's kind (summer 0-29, autumn 30-39,
+# winter 40-47 by id % 48).
+const FARM_RENDERED_MAPS := [190032, 190035, 190040, 190050, 190055, 190061, 190062, 190065, 190067, 190070, 190072, 190076]
+const PC_RENDERED_MAPS := [170000, 170003, 170004, 170006, 170008, 170011, 170013, 170015]
 const TILE := 16
 const ZOOM := 5
 const VIEW := Vector2i(43, 18)
@@ -36,6 +46,9 @@ const STUCK_TIME := 1.0 # s without getting closer before the walker is moved on
 
 var _headless := false
 var _caves := false
+var _farm := false
+var _pc := false
+var _views: Array = [] # view origins (cells), from the map's size
 var _forest: Node2D
 var _walker: CharacterBody2D
 var _camera: Camera2D
@@ -75,6 +88,10 @@ func _ready() -> void:
 	for a in OS.get_cmdline_user_args():
 		if a == "caves":
 			_caves = true
+		elif a == "farm":
+			_farm = true
+		elif a == "pc":
+			_pc = true
 		elif a == "cozy":
 			cozy = true
 		elif a == "pack" or a == "drawn":
@@ -85,16 +102,24 @@ func _ready() -> void:
 			_plan.append(int(a))
 	if _plan.is_empty():
 		if _headless:
-			for r in 30:
-				_plan.append((130000 if _caves else 120000) + r)
+			var first: int = 190000 if _farm else (170000 if _pc else (130000 if _caves else 120000))
+			for r in (48 if _farm else (17 if _pc else 30)):
+				_plan.append(first + r)
+		elif _farm:
+			_plan = FARM_RENDERED_MAPS.duplicate()
+		elif _pc:
+			_plan = PC_RENDERED_MAPS.duplicate()
 		else:
 			_plan = CAVE_RENDERED_MAPS.duplicate() if _caves else RENDERED_MAPS.duplicate()
-	_out = ProjectSettings.globalize_path("res://.liveliness_walk_caves" if _caves else "res://.liveliness_walk")
+	var suffix := "_farm" if _farm else ("_pc" if _pc else ("_caves" if _caves else ""))
+	_out = ProjectSettings.globalize_path("res://.liveliness_walk" + suffix)
 	if out_dir != "":
 		_out = ProjectSettings.globalize_path("res://" + out_dir)
 	DirAccess.make_dir_recursive_absolute(_out + "/raw")
 	DirAccess.remove_absolute(_out + "/raw/ALL_DONE")
-	_forest = (CAVE_SCENE if _caves else MAP_SCENE).instantiate()
+	_forest = (FARM_SCENE if _farm else (PC_SCENE if _pc else (CAVE_SCENE if _caves else MAP_SCENE))).instantiate()
+	if _farm:
+		_forest.interiors = false # the route never goes indoors
 	if cozy:
 		_forest.cozy_animals = true
 		_forest.cozy_buildings = true
@@ -120,6 +145,11 @@ func _next_map() -> void:
 	seed(id)
 	_walker = _forest.actors.get_node("Walker")
 	_walker.get_node("Camera").enabled = false
+	# Six views tiling the map: left and right, top, middle, and bottom.
+	var mw: int = 64 if (_farm or _pc) else 60 # FarmTerrain.W, PCTerrain.W; Painted Lands and caves 60
+	var mh: int = 40
+	_views = [Vector2i(0, 0), Vector2i(mw - VIEW.x, 0), Vector2i(0, (mh - VIEW.y) / 2), Vector2i(mw - VIEW.x, (mh - VIEW.y) / 2),
+		Vector2i(0, mh - VIEW.y), Vector2i(mw - VIEW.x, mh - VIEW.y)]
 	_camera.make_current()
 	_view_i = 0
 	_aim()
@@ -129,7 +159,7 @@ func _next_map() -> void:
 
 
 func _aim() -> void:
-	_camera.position = Vector2(VIEWS[_view_i] * TILE)
+	_camera.position = Vector2(_views[_view_i] * TILE)
 	_release()
 
 
@@ -204,9 +234,9 @@ func _release() -> void:
 # under a tree, joined by A* paths that stay inside the view.
 func _make_route() -> Array[Vector2]:
 	var t = _forest.terrain
-	var view := Rect2i(VIEWS[_view_i], VIEW)
+	var view := Rect2i(_views[_view_i], VIEW)
 	var inner := view.grow(-1)
-	var habitats: Dictionary = t.wildlife_plan(_forest.wildlife.mode).habitats if _caves else Wild.habitat_cells(t)
+	var habitats: Dictionary = (t.wildlife_plan() if _pc else t.wildlife_plan(_forest.wildlife.mode)).habitats if (_caves or _farm or _pc) else Wild.habitat_cells(t)
 	var land: Dictionary = habitats["_land"]
 	var astar := AStarGrid2D.new()
 	astar.region = view
@@ -235,7 +265,8 @@ func _make_route() -> Array[Vector2]:
 			animals += 1
 	var kinds := {"path": [], "dirt": [], "deco": [], "shore": [], "tree": []}
 	var water: Dictionary = t.water_cells() if _caves else t.water
-	var path: Dictionary = t.rails if _caves else t.path
+	var path: Dictionary = t.rails if _caves else (t.paths if (_farm or _pc) else t.path)
+	var deco: Dictionary = t.deco if "deco" in t else {}
 	for y in range(inner.position.y, inner.end.y):
 		for x in range(inner.position.x, inner.end.x):
 			var c := Vector2i(x, y)
@@ -243,13 +274,17 @@ func _make_route() -> Array[Vector2]:
 				continue
 			if path.has(c):
 				kinds.path.append(c)
-			if t.deco.has(c):
+			if deco.has(c):
 				kinds.deco.append(c)
 			for d in [Vector2i(1, 0), Vector2i(-1, 0), Vector2i(0, 1), Vector2i(0, -1)]:
 				if water.has(c + d):
 					kinds.shore.append(c)
 					break
-	if not _caves:
+	if _farm:
+		for c in t.wheat_cells(): # through the wheat and the tall grass
+			if inner.has_point(c) and land.has(c):
+				kinds.dirt.append(c)
+	elif not _caves and not _pc:
 		for b in t.blobs:
 			for c in b.cells:
 				if inner.has_point(c) and land.has(c):
@@ -261,8 +296,8 @@ func _make_route() -> Array[Vector2]:
 	for k in ["path", "dirt", "deco", "deco", "shore", "tree"]:
 		if not kinds[k].is_empty():
 			picks.append(kinds[k][rng.randi() % kinds[k].size()])
-	if _caves:
-		# Caves have fewer landmarks: three spots on the open floor as well.
+	if _caves or _pc:
+		# Fewer landmarks: three spots on the open ground as well.
 		var open: Array = []
 		for y in range(inner.position.y, inner.end.y):
 			for x in range(inner.position.x, inner.end.x):
@@ -371,7 +406,7 @@ func _capture() -> void:
 	_file.store_buffer(img.get_data())
 	_frames += 1
 	_times.append(_timer)
-	var local := _walker.position - Vector2(VIEWS[_view_i] * TILE)
+	var local := _walker.position - Vector2(_views[_view_i] * TILE)
 	_walk_log.append([snappedf(local.x, 0.01), snappedf(local.y, 0.01), _walker.get_node("Sprite").frame])
 
 
@@ -392,16 +427,23 @@ func _finish_view() -> void:
 	var id: int = _plan[_map_i]
 	var in_view := {}
 	for a in _forest.wildlife._animals:
-		if Rect2i(VIEWS[_view_i], VIEW).has_point(Vector2i(a.home / TILE)):
+		if Rect2i(_views[_view_i], VIEW).has_point(Vector2i(a.home / TILE)):
 			in_view[a.kind] = in_view.get(a.kind, 0) + 1
 	var row := {"map": id, "recipe": _forest.terrain.recipe_id, "recipe_name": _forest.terrain.recipe.name,
-		"view": _view_i, "origin": [VIEWS[_view_i].x, VIEWS[_view_i].y], "seconds": RECORD,
+		"view": _view_i, "origin": [_views[_view_i].x, _views[_view_i].y], "seconds": RECORD,
 		"route_points": _route.size(), "travel": snappedf(_travel, 0.1), "snags": _snags, "snag_at": str(_snag_at),
 		"animals_homed_here": in_view, "counts": got}
 	_results.append(row)
 	if not _headless:
 		_file.close()
 		var meta := row.duplicate()
+		# The pack's own cloud shade, so the analyzer tells cloud rims apart
+		# (caves have no clouds).
+		if not _caves and _forest.get("clouds"):
+			var sh: Color = _forest.clouds.shade
+			meta["shade"] = [sh.r * 255.0, sh.g * 255.0, sh.b * 255.0, sh.a]
+		else:
+			meta["pack"] = "caves"
 		meta.merge({"holdout": false, "size": [VIEW.x * TILE, VIEW.y * TILE], "block_px": BLOCK * TILE,
 			"blocks_xy": [BLOCKS.x, BLOCKS.y], "frames": _frames, "times": _times, "fps": FPS,
 			"walker": _walk_log, "blocks": []})
@@ -410,7 +452,7 @@ func _finish_view() -> void:
 		FileAccess.open(tmp, FileAccess.WRITE).store_string(JSON.stringify(meta))
 		DirAccess.rename_absolute(tmp, "%s/raw/%s.json" % [_out, stem])
 	_view_i += 1
-	if _view_i >= VIEWS.size():
+	if _view_i >= _views.size():
 		_print_map(id)
 		_next_map()
 	else:

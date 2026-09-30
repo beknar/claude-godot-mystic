@@ -14,6 +14,10 @@ extends Node2D
 ##   godot --path . res://tools/liveliness_capture.tscn [-- <map_id> ... [quick] [caves]]
 ## `caves` films Green Caves maps (randomizer-greencaves) into
 ## .liveliness_caves, with the cave features and cave_life.gd counts.
+## `farm` films the farm randomizer (randomizer-paintedlands-farm) into
+## .liveliness_farm and `pc` the Pixel Crawler randomizer into .liveliness_pc:
+## measured only (no proxy features per block), each view's cloud shade
+## recorded so the analyzer can tell cloud rims apart.
 
 const PaintedFeatures := preload("res://scripts/liveliness_features.gd")
 const CaveFeatures := preload("res://scripts/cave_liveliness_features.gd")
@@ -38,9 +42,18 @@ const HOLDOUT := [120000, 120010, 120020, 120001, 120004, 120009, 120013, 120015
 const CAVE_CALIBRATE := [130021, 130022, 130023, 130025, 130026, 130027, 130004, 130010]
 const CAVE_HOLDOUT := [130009, 130014, 130018, 130028]
 const VIEWS := [Vector2i(0, 0), Vector2i(17, 0), Vector2i(0, 11), Vector2i(17, 11), Vector2i(0, 22), Vector2i(17, 22)]
+const FARM_SCENE := preload("res://scenes/randomizer-paintedlands-farm/randomizer-paintedlands-farm.tscn")
+const PC_SCENE := preload("res://scenes/randomizer-pixelcrawler/randomizer-pixelcrawler.tscn")
+# Farm: twelve map types across the three seasons (id % 48: summer 0-29,
+# autumn 30-39, winter 40-47); Pixel Crawler: two of each biome's kinds.
+const FARM_MAPS := [190032, 190035, 190040, 190050, 190055, 190061, 190062, 190065, 190067, 190070, 190072, 190076]
+const PC_MAPS := [170000, 170003, 170004, 170006, 170008, 170011, 170013, 170015]
 
 var _forest: Node2D
 var _caves := false
+var _farm := false
+var _pc := false
+var _views: Array = VIEWS # from the map's size (a farm or Pixel Crawler map is 64 wide)
 var Features = PaintedFeatures
 var _camera: Camera2D
 var _plan: Array = []
@@ -73,13 +86,25 @@ func _ready() -> void:
 		elif a == "caves":
 			_caves = true
 			Features = CaveFeatures
+		elif a == "farm":
+			_farm = true
+		elif a == "pc":
+			_pc = true
 		elif a in ["cozy", "pack", "drawn"] or a.begins_with("out="):
 			pass
 		else:
 			_plan.append(int(a))
 	if _plan.is_empty():
-		_plan = CAVE_CALIBRATE + CAVE_HOLDOUT if _caves else CALIBRATE + HOLDOUT
-	_out = ProjectSettings.globalize_path("res://.liveliness_caves/raw" if _caves else "res://.liveliness/raw")
+		if _farm:
+			_plan = FARM_MAPS.duplicate()
+		elif _pc:
+			_plan = PC_MAPS.duplicate()
+		else:
+			_plan = CAVE_CALIBRATE + CAVE_HOLDOUT if _caves else CALIBRATE + HOLDOUT
+	var suffix := "_farm" if _farm else ("_pc" if _pc else ("_caves" if _caves else ""))
+	_out = ProjectSettings.globalize_path("res://.liveliness%s/raw" % suffix)
+	if _farm or _pc:
+		_views = [Vector2i(0, 0), Vector2i(21, 0), Vector2i(0, 11), Vector2i(21, 11), Vector2i(0, 22), Vector2i(21, 22)]
 	# `cozy`: the deprecated cozy farm randomizer's settings (Cozy Farm
 	# animals and buildings); `pack`: the Cozy Farm animals as
 	# randomizer-paintedlands draws them; `drawn`: the drawn animals (Green
@@ -91,7 +116,9 @@ func _ready() -> void:
 			_out = ProjectSettings.globalize_path("res://%s/raw" % a.substr(4))
 	DirAccess.make_dir_recursive_absolute(_out)
 	DirAccess.remove_absolute(_out + "/ALL_DONE")
-	_forest = (CAVE_SCENE if _caves else MAP_SCENE).instantiate()
+	_forest = (FARM_SCENE if _farm else (PC_SCENE if _pc else (CAVE_SCENE if _caves else MAP_SCENE))).instantiate()
+	if _farm:
+		_forest.interiors = false
 	if cozy:
 		_forest.cozy_animals = true
 		_forest.cozy_buildings = true
@@ -126,7 +153,8 @@ func _next_map() -> void:
 		["wind", "leaves", "streaks", "clouds", "fire", "water_life", "critters", "footsteps"]
 	for key in keys:
 		var node: Node = _forest.get(key)
-		node.get("_rng").seed = id * 31 + key.hash()
+		if node and node.get("_rng"):
+			node.get("_rng").seed = id * 31 + key.hash()
 	# Wind._ready() would reseed at random, so set its starting state here.
 	var w: Node = _forest.wind
 	var rng: RandomNumberGenerator = w.get("_rng")
@@ -139,7 +167,9 @@ func _next_map() -> void:
 	w.set("_gust_t", -1.0)
 	w.set("_next_turn", rng.randf_range(20.0, 40.0))
 	w.set("_next_gust", rng.randf_range(6.0, 16.0))
-	if not _caves:
+	if _farm or _pc:
+		_forest.clouds.reset(Rect2(0, 0, 64 * TILE, 40 * TILE))
+	elif not _caves:
 		_forest.clouds.reset(Rect2(0, 0, Features.W * TILE, Features.H * TILE))
 	var walker: Node2D = _forest.actors.get_node_or_null("Walker")
 	if walker:
@@ -149,7 +179,7 @@ func _next_map() -> void:
 		walker.position = Vector2(-9999, -9999) # nothing near it to scare
 	_forest.footsteps.process_mode = Node.PROCESS_MODE_DISABLED
 	_camera.make_current()
-	_grid = Features.grid(_forest.terrain)
+	_grid = {} if (_farm or _pc) else Features.grid(_forest.terrain)
 	_view_i = 0
 	_aim()
 	_state = "warm"
@@ -158,7 +188,7 @@ func _next_map() -> void:
 
 
 func _aim() -> void:
-	_camera.position = Vector2(VIEWS[_view_i] * TILE)
+	_camera.position = Vector2(_views[_view_i] * TILE)
 
 
 func _process(delta: float) -> void:
@@ -260,7 +290,7 @@ func _sample() -> void:
 		_count("smoke", p.pos)
 	for a in f.wildlife._animals:
 		if is_instance_valid(a) and a.visible:
-			_count_area("animals", a.pos, Features.sprite_area(a.kind))
+			_count_area("animals", a.pos, PaintedFeatures.sprite_area(a.kind) if not (_farm or _pc) else 30.0)
 	# A cloud shadow's moving rim is what changes pixels; count blocks its
 	# outline box cuts through.
 	for sprite in ([] if _caves else f.clouds._clouds):
@@ -290,12 +320,12 @@ func _sample_caves() -> void:
 
 
 func _block_rect(i: int) -> Rect2:
-	var cell: Vector2i = VIEWS[_view_i] + Vector2i(i % BLOCKS.x, i / BLOCKS.x) * BLOCK
+	var cell: Vector2i = _views[_view_i] + Vector2i(i % BLOCKS.x, i / BLOCKS.x) * BLOCK
 	return Rect2(Vector2(cell * TILE), Vector2(BLOCK * TILE, BLOCK * TILE))
 
 
 func _count(key: String, pos: Vector2) -> void:
-	var local := pos - Vector2(VIEWS[_view_i] * TILE)
+	var local := pos - Vector2(_views[_view_i] * TILE)
 	var bx := floori(local.x / (BLOCK * TILE))
 	var by := floori(local.y / (BLOCK * TILE))
 	if bx >= 0 and by >= 0 and bx < BLOCKS.x and by < BLOCKS.y:
@@ -303,7 +333,7 @@ func _count(key: String, pos: Vector2) -> void:
 
 
 func _count_area(key: String, pos: Vector2, area: float) -> void:
-	var local := pos - Vector2(VIEWS[_view_i] * TILE)
+	var local := pos - Vector2(_views[_view_i] * TILE)
 	var bx := floori(local.x / (BLOCK * TILE))
 	var by := floori(local.y / (BLOCK * TILE))
 	if bx >= 0 and by >= 0 and bx < BLOCKS.x and by < BLOCKS.y:
@@ -325,14 +355,16 @@ func _finish_view() -> void:
 	var blocks: Array = []
 	var cells := float(BLOCK * BLOCK)
 	for i in BLOCKS.x * BLOCKS.y:
-		var cell: Vector2i = VIEWS[_view_i] + Vector2i(i % BLOCKS.x, i / BLOCKS.x) * BLOCK
+		var cell: Vector2i = _views[_view_i] + Vector2i(i % BLOCKS.x, i / BLOCKS.x) * BLOCK
 		var obs := {}
 		for key in _obs:
 			obs[key] = _obs[key][i] / _samples / cells # per cell, per frame
-		blocks.append({"cell": [cell.x, cell.y], "features": Features.block(_grid, Rect2i(cell, Vector2i(BLOCK, BLOCK))), "observed": obs})
+		var feats: Dictionary = {} if _grid.is_empty() else Features.block(_grid, Rect2i(cell, Vector2i(BLOCK, BLOCK)))
+		blocks.append({"cell": [cell.x, cell.y], "features": feats, "observed": obs})
 	var meta := {
 		"map": id, "recipe": _forest.terrain.recipe_id, "recipe_name": _forest.terrain.recipe.name,
-		"holdout": id in (CAVE_HOLDOUT if _caves else HOLDOUT), "pack": "caves" if _caves else "painted", "view": _view_i, "origin": [VIEWS[_view_i].x, VIEWS[_view_i].y],
+		"holdout": id in (CAVE_HOLDOUT if _caves else HOLDOUT), "pack": "farm" if _farm else ("pc" if _pc else ("caves" if _caves else "painted")),
+		"shade": [_forest.clouds.shade.r * 255.0, _forest.clouds.shade.g * 255.0, _forest.clouds.shade.b * 255.0, _forest.clouds.shade.a] if not _caves else [], "view": _view_i, "origin": [_views[_view_i].x, _views[_view_i].y],
 		"size": [VIEW.x * TILE, VIEW.y * TILE], "block_px": BLOCK * TILE, "blocks_xy": [BLOCKS.x, BLOCKS.y],
 		"frames": _frames, "times": _times, "fps": FPS,
 		"wind": {"strength": _wind.x / _samples, "gust": _wind.y / _samples, "base": _wind.z / _samples},
@@ -345,7 +377,7 @@ func _finish_view() -> void:
 	DirAccess.rename_absolute(tmp, "%s/%s.json" % [_out, stem])
 	print("liveliness capture: map %d view %d, %d frames" % [id, _view_i, _frames])
 	_view_i += 1
-	if _view_i >= VIEWS.size():
+	if _view_i >= _views.size():
 		_next_map()
 	else:
 		_aim()

@@ -173,36 +173,37 @@ Farm and Cozy Farm animals only (no Cozy Cottage):
 
 ## Painted Lands Farm (spring and summer) + Cozy Cottage + Cozy Farm animals
 
-`randomizer-paintedlands-farm`: farmhouses, the manor, the barn, and the
-windmill open on Cozy Cottage homes; the greenhouse on the Farm sheet's own
-glasshouse.
+`randomizer-paintedlands-farm`: farmhouses, the manor, and the windmill open
+on Cozy Cottage homes; the barn on a barn (the Farm sheet's barn-yard kit, a
+Cozy Cottage plank floor, straw, stalls, hay, and animals inside); the
+greenhouse on the Farm sheet's own glasshouse.
 
 | # | Map type | Buildings (rooms) | Farm features |
 |---|---|---|---|
-| 0 | Homestead | farmhouse (2-4), barn (1-2) | fields, pen, pond |
+| 0 | Homestead | farmhouse (2-4), barn (its own barn interior) | fields, pen, pond |
 | 1 | Wheat valley | windmill (1), farmhouse (2-4) | wheat, crop rows, brook |
 | 2 | Windmill hill | windmill (1) | plateaus, wheat, corn rows |
 | 3 | Apple orchard | farmhouse (2-4) | apple orchard, pond |
 | 4 | Cherry blossom lane | manor (3-6) | cherry orchard |
-| 5 | Pumpkin patch | barn (1-2) | pumpkin and melon fields |
+| 5 | Pumpkin patch | barn (its own barn interior) | pumpkin and melon fields |
 | 6 | Kitchen garden | farmhouse (2-4) | small vegetable beds |
 | 7 | Greenhouse garden | greenhouse, farmhouse (2-4) | berry and tomato rows, peaches |
-| 8 | Barnyard | barn (1-2), farmhouse (2-4) | two pens, corn rows |
+| 8 | Barnyard | barn (its own barn interior), farmhouse (2-4) | two pens, corn rows |
 | 9 | Sheep meadow | farmhouse (2-4) | two big pens, pond |
 | 10 | Duck pond farm | farmhouse (2-4) | lake with an island |
 | 11 | Riverside fields | farmhouse (2-4) | brook, crop rows |
 | 12 | Farm village | two farmhouses (2-4), manor (3-6) | crossing roads, fields |
-| 13 | Market crossroads | manor (3-6), barn (1-2) | market |
+| 13 | Market crossroads | manor (3-6), barn (its own barn interior) | market |
 | 14 | Sunflower field | farmhouse (2-4) | sunflower rows |
-| 15 | Corn rows | windmill (1), barn (1-2) | corn rows |
+| 15 | Corn rows | windmill (1), barn (its own barn interior) | corn rows |
 | 16 | Berry patch | farmhouse (2-4) | berry rows, hedges |
 | 17 | Hillside terraces | farmhouse (2-4) | plateaus, crop rows |
 | 18 | Woodlot | farmhouse (2-4) | canopy wall, trees |
 | 19 | Pine ridge | farmhouse (2-4) | plateaus, pines, pond |
-| 21 | Old farm | barn (1-2) | dead trees, tall grass |
+| 21 | Old farm | barn (its own barn interior) | dead trees, tall grass |
 | 22 | Fishing lake | farmhouse (2-4) | lake with an island |
-| 23 | Cattle ranch | barn (1-2), farmhouse (2-4) | big pens |
-| 24 | Hayfield | barn (1-2) | wheat, hay |
+| 23 | Cattle ranch | barn (its own barn interior), farmhouse (2-4) | big pens |
+| 24 | Hayfield | barn (its own barn interior) | wheat, hay |
 | 25 | Scarecrow fields | windmill (1) | four fields |
 | 26 | Twin farms | two farmhouses (2-4) | fields, pen |
 | 27 | Stone quarry | farmhouse (2-4) | plateaus with a cave |
@@ -215,15 +216,15 @@ turning trees, straw, the harvest.
 
 | # | Map type | Buildings (rooms) | Farm features |
 |---|---|---|---|
-| 30 | Autumn homestead | farmhouse (2-4), barn (1-2) | pumpkin and cabbage fields, pen, pond |
-| 31 | Pumpkin harvest | barn (1-2) | pumpkin and melon fields |
+| 30 | Autumn homestead | farmhouse (2-4), barn (its own barn interior) | pumpkin and cabbage fields, pen, pond |
+| 31 | Pumpkin harvest | barn (its own barn interior) | pumpkin and melon fields |
 | 32 | Autumn orchard | farmhouse (2-4) | apple orchard, pond |
-| 33 | Golden wheat | windmill (1), barn (1-2) | straw, wheat rows, hay |
+| 33 | Golden wheat | windmill (1), barn (its own barn interior) | straw, wheat rows, hay |
 | 34 | Turning lane | manor (3-6) | turning trees |
-| 35 | Autumn market | manor (3-6), barn (1-2) | market, fields |
+| 35 | Autumn market | manor (3-6), barn (its own barn interior) | market, fields |
 | 36 | Misty lake | farmhouse (2-4) | lake with an island |
 | 37 | Cornfield | windmill (1) | corn rows |
-| 38 | Old barn in autumn | barn (1-2) | dead trees, straw, hedges |
+| 38 | Old barn in autumn | barn (its own barn interior) | dead trees, straw, hedges |
 | 39 | Cider farm | farmhouse (2-4), windmill (1) | mixed fruit orchard |
 
 ## Painted Lands Farm (winter) + Cozy Cottage + Cozy Farm animals
@@ -233,14 +234,14 @@ falling snow; no crops outdoors.
 
 | # | Map type | Buildings (rooms) | Farm features |
 |---|---|---|---|
-| 40 | Snowy homestead | farmhouse (2-4), barn (1-2) | pen, pond |
+| 40 | Snowy homestead | farmhouse (2-4), barn (its own barn interior) | pen, pond |
 | 41 | Winter pasture | farmhouse (2-4) | two big pens |
 | 42 | Frozen lake | farmhouse (2-4) | lake with an island |
 | 43 | Snowy woodlot | farmhouse (2-4) | snowy canopy wall |
 | 44 | Pine hills | farmhouse (2-4) | plateaus, pines, pond |
-| 45 | Winter village | farmhouse (2-4), manor (3-6), barn (1-2) | crossing roads |
+| 45 | Winter village | farmhouse (2-4), manor (3-6), barn (its own barn interior) | crossing roads |
 | 46 | Greenhouse in the snow | greenhouse (its own glasshouse), farmhouse (2-4) | bare orchard |
-| 47 | Winter windmill | windmill (1), barn (1-2) | pens, hay |
+| 47 | Winter windmill | windmill (1), barn (its own barn interior) | pens, hay |
 
 ## Pixel Crawler
 

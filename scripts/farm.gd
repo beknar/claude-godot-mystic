@@ -87,6 +87,9 @@ var _trees: Array[Dictionary] = [] # {sprite: AnimatedSprite2D, foot: Vector2, f
 var _gates: Array[Dictionary] = [] # {sprite: Sprite2D, pos, frame: float}
 var _mills: Array[AnimatedSprite2D] = []
 var _gust_was := false
+var _time := 0.0
+var _last_feet := Vector2.ZERO
+var _crops: Array[Dictionary] = [] # {node, foot: Vector2, skew, vel}
 
 
 func _ready() -> void:
@@ -349,7 +352,7 @@ func _build_collision() -> void:
 			if x < W:
 				var c := Vector2i(x, y)
 				var k := terrain.kind[y * W + x]
-				solid = (k == FarmTerrain.WATER and not terrain.stones.has(c)) or k == FarmTerrain.CLIFF or k == FarmTerrain.FIELD \
+				solid = (k == FarmTerrain.WATER and not terrain.stones.has(c)) or k == FarmTerrain.CLIFF \
 					or k == FarmTerrain.FENCE or terrain.blob_sig("hedge", c) == "1111"
 			if solid and run < 0:
 				run = x
@@ -423,6 +426,8 @@ func _doors() -> Array[Dictionary]:
 		var d := {"step": b.door, "house": {"id": 100 + ids.find(b.kind)}, "width": art.door_w, "rooms": art.rooms}
 		if art.get("custom", "") == "greenhouse":
 			d["custom"] = _build_greenhouse.bind(i)
+		elif b.kind == "barn":
+			d["custom"] = _build_barn.bind(i)
 		out.append(d)
 	return out
 
@@ -502,6 +507,183 @@ func _build_greenhouse(index: int) -> Dictionary:
 	return {"view": holder, "plan": plan, "fires": []}
 
 
+## The barn interior: a hayloft barn from the sheet's barn-yard kit (spring
+## and summer sheet; there is no weather indoors): a plank floor strewn with
+## straw (the wheat overlay as loose straw), the kit's plank wall with its
+## windows across the back, stalls divided by fence rails with a trough and
+## hay in each, hay piles, bales, crates, barrels, and a bucket along the
+## walls, an aisle down the middle to the doorway, and the farm's animals
+## living inside (Cozy Farm cows, pigs, sheep, goats, chickens), grazing,
+## dozing, and ambling off from the walker.
+const BARN_SIZE := Vector2i(14, 11)
+const BARN_WALL := [Vector2i(63, 34), Vector2i(64, 34), Vector2i(65, 34)] # the plank wall (upper row; the lower is a row down)
+const BARN_WINDOW := [Vector2i(60, 34), Vector2i(61, 34), Vector2i(62, 34)] # the wall with a band of windows
+const BARN_PLANKS := Vector2i(37, 20) # Cozy Cottage plank floor (2 x 4 tiles), a plain barn brown
+const BARN_RAIL := Vector2i(11, 13) # a fence post and rail, upright (a stall divider)
+
+func _build_barn(index: int) -> Dictionary:
+	var size := BARN_SIZE
+	var rng := RandomNumberGenerator.new()
+	rng.seed = hash([map_id, index, "barn"])
+	var view := Node2D.new()
+	view.name = "Barn"
+	var tiles := _summer_tiles()
+	var floor_layer := TileMapLayer.new()
+	floor_layer.tile_set = tiles
+	view.add_child(floor_layer)
+	var straw_layer := TileMapLayer.new()
+	straw_layer.tile_set = tiles
+	view.add_child(straw_layer)
+	var put := func(layer: TileMapLayer, c: Vector2i, a: Vector2i, sid: int) -> void:
+		var src: TileSetAtlasSource = tiles.get_source(sid)
+		if not src.has_tile(a):
+			src.create_tile(a)
+		layer.set_cell(c, sid, a)
+	# The back wall: two rows, windows in two places.
+	for x in size.x:
+		var win := (x >= 3 and x <= 5) or (x >= 8 and x <= 10)
+		var set_: Array = BARN_WINDOW if win else BARN_WALL
+		var a: Vector2i = set_[(x - (3 if x < 8 else 8)) % 3] if win else set_[x % 3]
+		put.call(floor_layer, Vector2i(x, 0), a, 0)
+		put.call(floor_layer, Vector2i(x, 1), a + Vector2i(0, 1), 0)
+	# The floor: Cozy Cottage planks (the pack's own seamless floor), and
+	# loose straw in patches (corner mask, the wheat overlay's corner table,
+	# so the straw has ragged edges).
+	for y in range(2, size.y):
+		for x in size.x:
+			put.call(floor_layer, Vector2i(x, y), BARN_PLANKS + Vector2i(posmod(x, 2), posmod(y, 4)), 1)
+	var noise := FastNoiseLite.new()
+	noise.seed = rng.randi()
+	noise.frequency = 0.28
+	var straw := {}
+	for y in range(3, size.y + 1):
+		for x in size.x + 1:
+			if noise.get_noise_2d(x, y) > 0.18:
+				straw[Vector2i(x, y)] = true
+	for y in range(2, size.y):
+		for x in size.x:
+			var sig := ""
+			for o in [Vector2i(0, 0), Vector2i(1, 0), Vector2i(0, 1), Vector2i(1, 1)]:
+				sig += "1" if straw.has(Vector2i(x, y) + o) else "0"
+			if sig != "0000" and FarmTiles.BLOB.has(sig):
+				put.call(straw_layer, Vector2i(x, y), FarmTiles.BLOB_BASE.wheat + FarmTiles.BLOB[sig], 0)
+	var acts := Node2D.new()
+	acts.name = "Actors"
+	acts.y_sort_enabled = true
+	view.add_child(acts)
+	var body := StaticBody2D.new()
+	body.collision_mask = 0
+	view.add_child(body)
+	var exit := Vector2i(size.x / 2, size.y - 1)
+	# Walls: the back wall, the sides, the front but for the doorway.
+	_add_box(body, Rect2(0, 0, size.x * TILE, 2 * TILE + 6))
+	_add_box(body, Rect2(-TILE, 0, TILE, size.y * TILE))
+	_add_box(body, Rect2(size.x * TILE, 0, TILE, size.y * TILE))
+	_add_box(body, Rect2(0, size.y * TILE - 2, exit.x * TILE, TILE))
+	_add_box(body, Rect2((exit.x + 1) * TILE, size.y * TILE - 2, (size.x - exit.x - 1) * TILE, TILE))
+	var taken := {}
+	var sheet := _tex(FarmTiles.SHEET)
+	var place := func(art: String, c: Vector2i) -> void:
+		var p: Dictionary = FarmTiles.prop("summer", art)
+		var rect: Rect2i = p.rect
+		var n := StaticBody2D.new()
+		n.collision_mask = 0
+		n.position = Vector2(c * TILE) + Vector2(TILE / 2.0, TILE - 1)
+		var sp := Sprite2D.new()
+		sp.texture = sheet
+		sp.region_enabled = true
+		sp.region_rect = Rect2(rect)
+		sp.centered = false
+		sp.offset = -Vector2(rect.size.x / 2.0, rect.size.y - 1)
+		sp.flip_h = rng.randf() < 0.5 and art.begins_with("hay")
+		n.add_child(sp)
+		if p.block != Vector2.ZERO:
+			_add_box(n, Rect2(Vector2(-p.block.x / 2.0, -p.block.y), p.block))
+			var w := int(ceil(p.block.x / TILE))
+			for dx in range(-(w / 2), w - w / 2):
+				taken[c + Vector2i(dx, 0)] = true
+		taken[c] = true
+		acts.add_child(n)
+	# Stalls along the back wall: fence rails dividing them, a trough and hay
+	# in each.
+	var rails := {}
+	for sx in [4, 9]:
+		for y in range(2, 5):
+			var r := Vector2i(sx, y)
+			put.call(straw_layer, r, BARN_RAIL, 0)
+			rails[r] = true
+			taken[r] = true
+		_add_box(body, Rect2(sx * TILE + 2, 2 * TILE, 5, 3 * TILE))
+	for stall in [Vector2i(1, 2), Vector2i(6, 2), Vector2i(11, 2)]:
+		place.call("trough_water" if rng.randf() < 0.5 else "trough", stall + Vector2i(1, 0))
+		place.call(["hay", "hay_crate", "wheat_bunch_b"][rng.randi() % 3], stall + Vector2i(rng.randi_range(0, 1) * 2, 2))
+	# Along the side walls: hay piles and bales, crates, barrels, a bucket.
+	var side := ["hay_big", "hay", "barrel", "barrel_b", "crate_stack", "crate", "box", "bucket", "wheat_bunch", "hay_crate"]
+	for y in range(6, size.y - 1, 2):
+		for x in [1, size.x - 2]:
+			if rng.randf() < 0.75:
+				place.call(side[rng.randi() % side.size()], Vector2i(x, y))
+	# The animals: two or three kinds of the farm's, a few of each, on the
+	# open floor (not the aisle's doorway).
+	var floor_cells := {}
+	for y in range(2, size.y):
+		for x in size.x:
+			var c := Vector2i(x, y)
+			if not taken.has(c) and not rails.has(c) and x > 0 and x < size.x - 1:
+				floor_cells[c] = true # (the outer columns stay clear: a cow is wider than a cell)
+	var habitats := {"_land": floor_cells, "_trunks": {}, "_w": size.x}
+	for k in ["lawn", "trees", "dark", "clutter", "bushes", "shore", "water", "open", "rocky", "roam", "yard", "pasture"]:
+		habitats[k] = floor_cells if k in ["yard", "pasture", "clutter", "roam"] else {}
+	var kinds := ["cow", "pig", "sheep", "goat", "chicken"]
+	for i in range(kinds.size() - 1, 0, -1):
+		var j := rng.randi_range(0, i)
+		var tmp = kinds[i]
+		kinds[i] = kinds[j]
+		kinds[j] = tmp
+	var cells: Array = floor_cells.keys().filter(func(c): return c.y < size.y - 2 or absi(c.x - exit.x) > 1)
+	var groups: Array = []
+	for k in kinds.slice(0, rng.randi_range(2, 3)):
+		var n := rng.randi_range(2, 3) if k != "cow" else rng.randi_range(1, 2)
+		var pick: Array = []
+		for t in n:
+			pick.append(cells[rng.randi() % cells.size()])
+		groups.append({"kind": k, "center": pick[0], "cells": pick})
+	var animals := Wildlife.new()
+	animals.name = "Animals"
+	animals.mode = "farmland"
+	animals.local_walker = true
+	view.add_child(animals)
+	var walker := actors.get_node_or_null("Walker")
+	animals.setup_from({"habitats": habitats, "groups": groups}, {}, acts, walker, _image(FarmTiles.SHEET), null)
+	var plan := InteriorPlan.new()
+	plan.size = size
+	plan.exit_cell = exit
+	var holder := GreenhouseView.new()
+	holder.name = "View"
+	holder.add_child(view)
+	holder.actors = acts
+	return {"view": holder, "plan": plan, "fires": []}
+
+
+var _summer_tileset: TileSet
+
+## A tileset on the spring and summer sheet (the barn's kit is drawn from it
+## in every season).
+func _summer_tiles() -> TileSet:
+	if _summer_tileset == null:
+		_summer_tileset = TileSet.new()
+		_summer_tileset.tile_size = Vector2i(TILE, TILE)
+		var src := TileSetAtlasSource.new()
+		src.texture = _tex(FarmTiles.SHEET)
+		src.texture_region_size = Vector2i(TILE, TILE)
+		_summer_tileset.add_source(src, 0)
+		var cozy := TileSetAtlasSource.new()
+		cozy.texture = InteriorArt.WALLS # Cozy Cottage walls and floors
+		cozy.texture_region_size = Vector2i(TILE, TILE)
+		_summer_tileset.add_source(cozy, 1)
+	return _summer_tileset
+
+
 ## The greenhouse interior's node for house_interiors.gd (it reads `actors`).
 class GreenhouseView extends Node2D:
 	var actors: Node2D
@@ -537,7 +719,9 @@ func _place_trees() -> void:
 		spr.frame = 0
 		spr.animation_finished.connect(func(): spr.frame = 0) # back to rest
 		body.add_child(spr)
-		var block := Vector2(maxf(trunk.y, 6.0), clampf(trunk.y * 0.5, 4.0, 8.0))
+		# The trunk's own cell (the generator blocks only it): a wide root
+		# flare is walked in front of rather than reaching into the next cell.
+		var block := Vector2(clampf(trunk.y, 6.0, 14.0), clampf(trunk.y * 0.5, 4.0, 8.0))
 		_add_box(body, Rect2(Vector2(-block.x / 2.0, -block.y), block))
 		actors.add_child(body)
 		var crown := Rect2(foot + spr.offset, Vector2(size.x, size.y * 0.75))
@@ -551,7 +735,7 @@ func _place_trees() -> void:
 			kind_key = "cherry_bloom"
 		var wind_leaves: Dictionary = FarmTiles.get_for(season, "wind_leaves")
 		_trees.append({"sprite": spr, "foot": foot, "falling": (tree_dir + falling) if falling != "" else "",
-			"size": size, "offset": spr.offset, "flip": flip, "leaves": wind_leaves.get(kind_key, wind_leaves.basic), "cool": randf() * 3.0,
+			"size": size, "offset": spr.offset, "flip": flip, "leaves": wind_leaves.get(kind_key, wind_leaves.basic), "cool": randf() * 3.0, "due": -1.0,
 			"crown": crown, "sheet": sheet})
 		# A soft shadow under the crown, in the deep grass tone.
 		var sh := Sprite2D.new()
@@ -605,6 +789,7 @@ var _crop_tops: Array[Sprite2D] = []
 
 func _place_crops() -> void:
 	_crop_tops.clear()
+	_crops.clear()
 	var tex := _tex(FarmTiles.CROPS_SHEET)
 	for cr in terrain.crops:
 		var r := FarmTiles.crop_rect(cr.crop, cr.stage)
@@ -621,6 +806,10 @@ func _place_crops() -> void:
 		else:
 			node.add_child(_crop_sprite(tex, Rect2(r), Vector2(0, -r.size.y + 1)))
 		actors.add_child(node)
+		node.position.x += TILE / 2.0 # the node stands on the plot's middle, so it bends at its foot
+		for ch in node.get_children():
+			ch.offset.x -= TILE / 2.0
+		_crops.append({"node": node, "foot": node.position, "skew": 0.0, "vel": 0.0})
 
 
 func _crop_sprite(tex: Texture2D, region: Rect2, offset: Vector2) -> Sprite2D:
@@ -739,15 +928,33 @@ func _process(delta: float) -> void:
 	var ws := wind.strength() if wind else 0.5
 	for m in _mills:
 		m.speed_scale = 0.4 + ws * 1.4
-	# Trees rustle as a gust arrives (each a moment apart) and when brushed.
+	# Trees rustle as a gust arrives and when brushed. A gust sweeps across the
+	# farm with the wind: each tree's turn comes when the gust front reaches
+	# it (0-3 s from the upwind edge to the downwind one) plus its own jitter
+	# (up to 1.5 s), so no two trees shake together.
+	_time += delta
 	var gusting := wind != null and wind.gust > 0.25
+	if gusting and not _gust_was and not _trees.is_empty():
+		var dir := wind.direction()
+		var lo := INF
+		var hi := -INF
+		for t in _trees:
+			var along: float = t.foot.dot(dir)
+			lo = minf(lo, along)
+			hi = maxf(hi, along)
+		for t in _trees:
+			if randf() < 0.8:
+				var k: float = (float(t.foot.dot(dir)) - lo) / maxf(hi - lo, 1.0)
+				t.due = _time + k * 3.0 + randf_range(0.0, 1.5)
 	for t in _trees:
 		t.cool -= delta
 		var spr: AnimatedSprite2D = t.sprite
 		if not is_instance_valid(spr):
 			continue
 		var brushed: bool = feet.distance_to(t.foot) < BRUSH
-		if t.cool <= 0.0 and (brushed or (gusting and not _gust_was and randf() < 0.7) or (gusting and randf() < delta * 0.25)):
+		var due: bool = t.due >= 0.0 and _time >= t.due
+		if t.cool <= 0.0 and (brushed or due):
+			t.due = -1.0
 			spr.frame = 0
 			spr.play("default")
 			t.cool = randf_range(2.5, 5.0)
@@ -756,12 +963,44 @@ func _process(delta: float) -> void:
 			if gusting and not brushed and randf() < 0.5:
 				_wind_leaves(t)
 	_gust_was = gusting
+	_sway_crops(delta, feet)
 	# Gates swing open for the walker, and shut after.
 	for g in _gates:
 		var near: bool = feet.distance_to(g.pos) < GATE_OPEN
 		g.frame = move_toward(g.frame, 3.0 if near else 0.0, delta * 10.0)
 		var s: Sprite2D = g.sprite
 		s.region_rect = Rect2(int(round(g.frame)) * 16, 0, 16, 16)
+
+
+## The walker wades through the crops: each plant it brushes bends away from
+## its step (a shear about its foot, the top moving most) and springs back,
+## swaying a few times as it settles; a tall stalk bends further.
+const CROP_REACH := Vector2(11.0, 7.0) # px from a plant's foot that brushes it
+const CROP_SPRING := 140.0
+const CROP_DAMP := 7.0
+
+func _sway_crops(delta: float, feet: Vector2) -> void:
+	var step := feet - _last_feet
+	_last_feet = feet
+	var moving := step.length() > 0.05 and step.length() < 8.0
+	for c in _crops:
+		var node: Node2D = c.node
+		if not is_instance_valid(node):
+			continue
+		var off: Vector2 = feet - c.foot
+		if moving and absf(off.x) < CROP_REACH.x and absf(off.y) < CROP_REACH.y:
+			# Pushed away from the walker's side and along its step.
+			var away := -signf(off.x) if absf(off.x) > 1.0 else signf(step.x)
+			var push: float = away * 0.5 + step.x * 0.08
+			c.vel = clampf(c.vel + push * 60.0 * delta, -6.0, 6.0)
+			c.skew = clampf(c.skew + push * 2.5 * delta, -0.55, 0.55)
+		if absf(c.skew) < 0.002 and absf(c.vel) < 0.01:
+			if node.skew != 0.0:
+				node.skew = 0.0
+			continue
+		c.vel += (-CROP_SPRING * c.skew - CROP_DAMP * c.vel) * delta
+		c.skew = clampf(c.skew + c.vel * delta, -0.55, 0.55)
+		node.skew = c.skew
 
 
 ## An animation played once where it is needed, then gone (falling leaves
@@ -846,8 +1085,11 @@ func _reset_ambience() -> void:
 	var dark: Array[Vector2] = []
 	for t in _trees:
 		var crown: Rect2 = t.crown
+		var colors := _colors_of(t.sheet, t.size)
+		if colors.light.is_empty():
+			continue # a bare or dead tree: no leaves to shed
 		sources.append({"crown": Rect2(crown.position + Vector2(crown.size.x * 0.12, 4), Vector2(crown.size.x * 0.76, crown.size.y * 0.55)),
-			"base_y": t.foot.y}.merged(_colors_of(t.sheet, t.size)))
+			"base_y": t.foot.y}.merged(colors))
 		if t.sheet.contains("bloom") or t.sheet.contains("flowers"):
 			flowers.append(crown.get_center())
 	leaves.set_sources(sources)
@@ -901,7 +1143,10 @@ const SEASON_FX := {
 func _surface(cell: Vector2i) -> String:
 	if cell.x < 0 or cell.y < 0 or cell.x >= W or cell.y >= H:
 		return "none"
-	if terrain.kind[cell.y * W + cell.x] != FarmTerrain.OPEN and not terrain.stones.has(cell):
+	var k := terrain.kind[cell.y * W + cell.x]
+	if k == FarmTerrain.FIELD:
+		return "tuft" # wading through the crops: leaves flick
+	if k != FarmTerrain.OPEN and not terrain.stones.has(cell):
 		return "none"
 	if _wheat.has(cell) or terrain.deco.has(cell):
 		return "tuft"
