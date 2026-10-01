@@ -201,7 +201,9 @@ grain, a mill cat and mice, and in winter a hearth; up the ladder, the cap
 with the brake wheel turning the wallower, the sack trap, and the sails'
 shadows sweeping past the windows), and the greenhouse on the sheet's own
 glasshouse with crops in its beds. Front doors swing open as the walker
-comes up and shut behind it, in this randomizer and the Painted Lands one. `tools/check_farm.gd` sweeps it
+comes up and shut behind it, in this randomizer and the Painted Lands one,
+and inside every way out is a door that swings open the same way, letting
+daylight in. `tools/check_farm.gd` sweeps it
 headless (docs/farm.md).
 
 The Painted Lands forest and farm randomizer

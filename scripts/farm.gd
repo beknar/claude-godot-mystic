@@ -556,6 +556,8 @@ func _build_greenhouse(index: int) -> Dictionary:
 	holder.add_child(view)
 	holder.actors = acts
 	holder.crops = indoor_crops
+	# The way out: a glass-house door in the gap of the foot frame.
+	holder.exit_door = _exit_door(view, acts, Vector2(ex.x * TILE, (h - 1) * TILE + 12 - ExitDoor.THICK), Color("#317747"))
 	return {"view": holder, "plan": plan, "fires": []}
 
 
@@ -714,6 +716,10 @@ func _build_barn(index: int) -> Dictionary:
 	holder.name = "View"
 	holder.add_child(view)
 	holder.actors = acts
+	# The front wall and the barn door in it.
+	var barn_wood := Color(0.42, 0.27, 0.2)
+	_front_wall(view, acts, size.x * TILE, size.y * TILE - ExitDoor.THICK, Vector2(exit.x * TILE, TILE), barn_wood)
+	holder.exit_door = _exit_door(view, acts, Vector2(exit.x * TILE, size.y * TILE - ExitDoor.THICK), barn_wood)
 	return {"view": holder, "plan": plan, "fires": []}
 
 
@@ -953,6 +959,10 @@ func _build_mill(index: int) -> Dictionary:
 	view.add_child(animals)
 	var walker := actors.get_node_or_null("Walker")
 	animals.setup_from({"habitats": habitats, "groups": groups}, {}, acts, walker, _image(FarmTiles.SHEET), null)
+	# The front wall and the mill door in it.
+	var mill_wood := Color(0.42, 0.3, 0.23)
+	_front_wall(view, acts, size.x * TILE, size.y * TILE - ExitDoor.THICK, Vector2(exit.x * TILE, TILE), mill_wood)
+	mv.exit_door = _exit_door(view, acts, Vector2(exit.x * TILE, size.y * TILE - ExitDoor.THICK), mill_wood)
 	mv.name = "View"
 	mv.add_child(view)
 	mv.actors = acts
@@ -1033,6 +1043,7 @@ func _build_cap(mv: MillView, rng: RandomNumberGenerator, walker: Node2D) -> Nod
 	_add_box(body, Rect2(-TILE, 0, TILE, size.y * TILE))
 	_add_box(body, Rect2(size.x * TILE, 0, TILE, size.y * TILE))
 	_add_box(body, Rect2(0, bottom - 2, size.x * TILE, TILE))
+	_front_wall(cap, acts, size.x * TILE, bottom - ExitDoor.THICK, Vector2(-99, 0), Color(0.36, 0.24, 0.19))
 	var kit := _mill_tex()
 	var blocked := {}
 	var stand := func(tex: Texture2D, rect: Rect2i, base: Vector2, block: Vector2, foot: Vector2, flip: bool) -> StaticBody2D:
@@ -1365,6 +1376,43 @@ class SailShadow extends Node2D:
 					draw_rect(Rect2(x, y, 1, 1), Color(0.1, 0.06, 0.06, 0.3 if not on_floor else 0.2))
 
 
+## The way out of a custom interior: a door at `at` (the doorway's
+## top-left on the front wall's line), placed under the actors.
+func _exit_door(parent: Node2D, before: Node, at: Vector2, wood: Color) -> ExitDoor:
+	var ed := ExitDoor.new()
+	ed.name = "ExitDoor"
+	ed.position = at
+	ed.set_wood(wood)
+	ed.stub = true
+	ed.depth = 14
+	parent.add_child(ed)
+	parent.move_child(ed, before.get_index())
+	return ed
+
+
+## The front wall's top along the foot of a custom interior, seen from above
+## as the Cozy Cottage homes draw theirs: a beam with a lit edge and a dark
+## underside, `gap` px left open for the doorway (x from, width), placed
+## under the actors.
+func _front_wall(parent: Node2D, before: Node, width: int, y: float, gap: Vector2, wood: Color) -> void:
+	var img := Image.create(width, 6, false, Image.FORMAT_RGBA8)
+	var rows := [wood.lightened(0.28), wood, wood, wood.darkened(0.2), wood.darkened(0.45), Color(0, 0, 0, 0.55)]
+	for x in width:
+		if x >= gap.x - 2 and x < gap.x + gap.y + 2:
+			continue
+		for r in rows.size():
+			var c: Color = rows[r]
+			if r in [1, 2] and x % 7 == 3:
+				c = wood.darkened(0.12)
+			img.set_pixel(x, r, c)
+	var spr := Sprite2D.new()
+	spr.texture = ImageTexture.create_from_image(img)
+	spr.centered = false
+	spr.position = Vector2(0, y)
+	parent.add_child(spr)
+	parent.move_child(spr, before.get_index())
+
+
 var _summer_tileset: TileSet
 
 ## A tileset on the spring and summer sheet (the barn's kit is drawn from it
@@ -1388,6 +1436,7 @@ func _summer_tiles() -> TileSet:
 class GreenhouseView extends Node2D:
 	var actors: Node2D
 	var crops: Array[Dictionary] = [] # plants the walker wades through (as _crops)
+	var exit_door: ExitDoor # the way out's door (house_interiors.gd opens it)
 
 
 # ---------------------------------------------------------------- trees

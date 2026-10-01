@@ -144,7 +144,13 @@ func _physics_process(delta: float) -> void:
 # Front doors (DoorLeaf) swing open while the walker is on or just before
 # the doorstep, and shut once it has walked off.
 func _process(_delta: float) -> void:
-	if inside >= 0 or not is_instance_valid(walker):
+	if not is_instance_valid(walker):
+		return
+	if inside >= 0:
+		# Indoors: the way out's door opens as the walker comes up to it.
+		var ed = view.get("exit_door") if is_instance_valid(view) else null
+		if ed != null and is_instance_valid(ed) and ed.is_visible_in_tree():
+			ed.open = ed.near(walker.global_position - ed.global_position)
 		return
 	var feet := walker.global_position - map.global_position
 	for d in doors:
@@ -202,6 +208,8 @@ func enter(i: int, instant := false) -> void:
 	walker.position = Vector2(p.exit_cell.x * TILE + 8, (p.exit_cell.y - 1) * TILE + 12)
 	walker.set("facing", 3) # up
 	life.setup([view], iv.actors, walker, true)
+	if iv.exit_door:
+		iv.exit_door.snap_open() # in through the door; it shuts behind the walker
 	root.visible = true
 	_set_camera(Rect2(root.position + view.position, Vector2(p.size * TILE)))
 	entered += 1
@@ -242,6 +250,9 @@ func _enter_custom(i: int) -> void:
 	walker.reparent(acts, false)
 	walker.position = Vector2(p.exit_cell.x * TILE + 8, (p.exit_cell.y - 1) * TILE + 12)
 	walker.set("facing", 3)
+	var ed = view.get("exit_door")
+	if ed != null and is_instance_valid(ed):
+		ed.snap_open()
 	root.visible = true
 	_set_camera(Rect2(root.position + view.position, Vector2(p.size * TILE)))
 	entered += 1

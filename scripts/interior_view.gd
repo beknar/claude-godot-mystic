@@ -30,6 +30,7 @@ var windows: Array[Dictionary] = []
 var steam: Array[Vector2] = []
 var room_rects: Array[Rect2] = []
 var exit_point := Vector2.ZERO
+var exit_door: ExitDoor # the way out's door (none in a cave home)
 
 var _walls_img: Image
 var _cave_img: Image
@@ -83,6 +84,20 @@ func build(p_plan: InteriorPlan, p_actors: Node2D = null) -> void:
 		room_rects.append(Rect2(position + Vector2(rr.position.x, rr.position.y + InteriorPlan.FACE_ROWS) * TILE,
 			Vector2(rr.size.x, rr.size.y - InteriorPlan.FACE_ROWS) * TILE))
 	exit_point = position + Vector2(plan.exit_cell * TILE) + Vector2(8, 8)
+	# The way out: a wooden door in the front wall (exit_door.gd), under the
+	# actors. Cave homes open on an arch instead.
+	exit_door = null
+	if not cave_sheet:
+		exit_door = ExitDoor.new()
+		exit_door.name = "ExitDoor"
+		exit_door.position = Vector2(plan.exit_cell * TILE)
+		exit_door.set_wood(DOOR_WOOD)
+		add_child(exit_door)
+		if actors.get_parent() == self:
+			move_child(exit_door, actors.get_index())
+
+
+const DOOR_WOOD := Color(0.56, 0.38, 0.26) # the pack's mid furniture brown
 
 
 func _image(tex: Texture2D) -> Image:

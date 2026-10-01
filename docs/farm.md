@@ -238,7 +238,10 @@ own drawn doors open as the walker comes up (`door_px`, in the season's
 sheet); the Forest houses on the farmsteads get plank doors made in their
 doorway frame's colors (`made_leaf`), and the gable cottage the flower
 cottage's doorway (it has none of its own). The barn's and the greenhouse's
-doorways stand open. See docs/interiors.md. At rest the mill floor measured 0.91 %
+doorways stand open. Inside, every way out is a door too (the barn's, the
+mill floor's, and the greenhouse's in a front-wall beam drawn along the
+foot, with a doorstep), swinging open as the walker comes up to it; the cap
+has a front wall and no door. See docs/interiors.md. At rest the mill floor measured 0.91 %
 of its pixels moving per frame, between the barn (0.49 %) and a farmhouse
 home with its fire (1.68 %).
 

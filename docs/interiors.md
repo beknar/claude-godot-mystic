@@ -25,6 +25,20 @@ planks in the colors of an open doorway's frame (the Painted Lands Forest
 houses, `DoorLeaf.make_leaf`). Doorways that stand open (the Farm barn and
 greenhouse) have none.
 
+**The way out** (`scripts/exit_door.gd`): every home's exit, and the Farm
+barn's, mill floor's, and greenhouse's, is a door in the front wall, seen
+from above as the room is: shut, its leaf lies across the doorway in the
+wall's line (planks, a lit top edge, a brass latch, the jambs either side);
+as the walker comes up to it the leaf swings out on its left hinge in three
+steps until it lies along the jamb, and daylight falls in through the gap
+(the doorway lit, a dithered fan of light on the floor inside). It stands
+open as the walker comes in and shuts behind it (`house_interiors.gd`
+sets `open` while the walker is within a cell or so of it). Homes take the
+pack's mid furniture brown (`InteriorView.DOOR_WOOD`); the custom
+interiors draw a front-wall beam along their foot (`farm.gd _front_wall`)
+and a plank doorstep out into the dark under the door (`stub`), the
+greenhouse in its frame's green. The cave homes keep their open arches.
+
 Pack: The Painted Lands – Interior Cozy Cottage Tileset (antarcticbees),
 `assets/pack/cozy_cottage/` (git-ignored). Sheets: `wallpapers_and_floors.png`,
 `furniture.png` (five wood tones, 288 px apart), `decoration.png`. Catalog
