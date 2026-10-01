@@ -44,9 +44,10 @@ const CAVE_HOLDOUT := [130009, 130014, 130018, 130028]
 const VIEWS := [Vector2i(0, 0), Vector2i(17, 0), Vector2i(0, 11), Vector2i(17, 11), Vector2i(0, 22), Vector2i(17, 22)]
 const FARM_SCENE := preload("res://scenes/randomizer-paintedlands-farm/randomizer-paintedlands-farm.tscn")
 const PC_SCENE := preload("res://scenes/randomizer-pixelcrawler/randomizer-pixelcrawler.tscn")
-# Farm: twelve map types across the three seasons (id % 48: summer 0-29,
-# autumn 30-39, winter 40-47); Pixel Crawler: two of each biome's kinds.
-const FARM_MAPS := [190032, 190035, 190040, 190050, 190055, 190061, 190062, 190065, 190067, 190070, 190072, 190076]
+# Farm: twelve map types across the three seasons (id % 52: summer 0-29,
+# autumn 30-39, winter 40-47, rivers 48-51; the same twelve as measured
+# before the rivers, at new ids); Pixel Crawler: two of each biome's kinds.
+const FARM_MAPS := [190008, 190011, 190016, 190026, 190031, 190037, 190038, 190041, 190043, 190046, 190048, 190052]
 const PC_MAPS := [170000, 170003, 170004, 170006, 170008, 170011, 170013, 170015]
 
 var _forest: Node2D

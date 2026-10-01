@@ -75,10 +75,12 @@ windmill (four 96 x 128 frames), the gate (four 16 px frames), and the fish.
 
 ## Generator (`scripts/farm_terrain.gd`, `FarmTerrain`, 64 x 40)
 
-Recipe = map id % 48 (30 spring and summer, 10 autumn, 8 winter); the
+Recipe = map id % 52 (30 spring and summer, 10 autumn, 8 winter, then 4
+rivers: 2 summer, 1 autumn, 1 winter); the
 recipe's `season` picks the sheet for the whole map. Layout, in order: canopy wall (woodlot), plateaus,
-water (pond, lake with an island, or a brook with stepping stones where the
-road crosses), buildings (facing south, walls block, roofs walkable behind),
+water (pond, lake with an island, a brook, or a river three blocks wide;
+where a lane crosses a brook or a river it goes over a bridge, else on
+stepping stones: docs/bridges.md), buildings (facing south, walls block, roofs walkable behind),
 roads and yards (dirt or sand by recipe; edge to edge, crossing, or lanes;
 long routes wind through an offset waypoint; routes keep off locked lawn
 corners), pens, fields, orchard, wheat / tall grass / hedge blobs (lumpy
@@ -237,8 +239,12 @@ cap floor cell reachable from where the ladder lands).
 own drawn doors open as the walker comes up (`door_px`, in the season's
 sheet); the Forest houses on the farmsteads get plank doors made in their
 doorway frame's colors (`made_leaf`), and the gable cottage the flower
-cottage's doorway (it has none of its own). The barn's and the greenhouse's
-doorways stand open. Inside, every way out is a door too (the barn's, the
+cottage's doorway (it has none of its own). The barn's way in is its
+X-braced double door (`door_pair`: two leaves, hinged at the outer jambs,
+both swinging in; its doorstep is cells 3-4 under it, the dark openings
+either side are stalls); the greenhouse's doorway stands open. A building
+does not fade while the walker stands in its doorway, so the door is seen
+opening. Inside, every way out is a door too (the barn's, the
 mill floor's, and the greenhouse's in a front-wall beam drawn along the
 foot, with a doorstep), swinging open as the walker comes up to it; the cap
 has a front wall and no door. See docs/interiors.md. At rest the mill floor measured 0.91 %
@@ -259,7 +265,7 @@ Measured (docs/liveliness-farm.md): local motion median 0.40 % at rest and
 snow), level with the Painted Lands randomizer and above Green Caves and
 Pixel Crawler.
 
-## Map types (48)
+## Map types (52)
 
 Spring and summer (0-29):
 
@@ -324,12 +330,23 @@ Winter (40-47):
 | 46 | Greenhouse in the snow | greenhouse, farmhouse | bare orchard, crops growing inside the greenhouse |
 | 47 | Winter windmill | windmill, barn | pens, hay |
 
+Rivers (48-51): a river three blocks wide from the north edge to the south,
+the farm on both banks, every lane that crosses it on a bridge (one is
+routed across if none does).
+
+| # | Map type | Season | Buildings | Features |
+|---|---|---|---|---|
+| 48 | River farm | summer | farmhouse, barn | fields, pen, bridges |
+| 49 | Mill on the river | summer | windmill, farmhouse | wheat, fields, bridges |
+| 50 | Russet river | autumn | farmhouse, barn | apple orchard, field, bridges |
+| 51 | Frozen river | winter | farmhouse, barn | pen, pines, snowy bridges |
+
 ## Farmsteads (`randomizer-paintedlands-forest-farm`)
 
 `scripts/forest_farm.gd` holds both Painted Lands pipelines (the Forest
 randomizer and this one, each without its own menu) and builds every map
-type of both from one menu, id % 93: 0-32 Forest, 33-80 Farm (0-47 here),
-81-92 the farmsteads (`FarmTerrain.MIXED_RECIPES`, Farm ids 48-59, built only
+type of both from one menu, id % 100: 0-35 Forest, 36-87 Farm (0-51 here),
+88-99 the farmsteads (`FarmTerrain.MIXED_RECIPES`, Farm ids 52-63, built only
 when the painter's `mixed` is on). The pipeline not in use is hidden and
 paused (its colliders leave the physics space) and its walker camera
 switched off, or the viewport falls back to it when the walker goes indoors.
@@ -361,18 +378,18 @@ and 0.71 % walking over all 12, the liveliest Painted Lands maps measured;
 
 | # | Map type | Season | Buildings | Features |
 |---|---|---|---|---|
-| 48 | Cottage homestead | summer | porch house, barn | fields, pen, pond, campfire |
-| 49 | Blossom cottage | summer | flower cottage | cherry orchard, strawberry rows |
-| 50 | Hamlet by the mill | summer | gabled cottage, hut, windmill | wheat and corn rows, brook, campfire |
-| 51 | Woodcutter's clearing | summer | hut | canopy wall, big fire, logs |
-| 52 | Village fair | summer | porch house, flower cottage, manor | market, two campfires |
-| 53 | Greenhouse cottage | summer | greenhouse, hut | peach orchard, strawberry rows |
-| 54 | Lantern lane | autumn | porch house, flower cottage | apple orchard, lantern road |
-| 55 | Harvest bonfire | autumn | barn, hut | pumpkin and corn fields, big fire |
-| 56 | Autumn hearths | autumn | gabled cottage, hut, windmill | crossing roads, pen |
-| 57 | Winter hearth | winter | porch house, barn | pen, pond, campfire |
-| 58 | Snowbound hamlet | winter | gabled cottage, hut, flower cottage | pines, two campfires |
-| 59 | Frozen mill | winter | windmill, hut | frozen lake, pen |
+| 52 | Cottage homestead | summer | porch house, barn | fields, pen, pond, campfire |
+| 53 | Blossom cottage | summer | flower cottage | cherry orchard, strawberry rows |
+| 54 | Hamlet by the mill | summer | gabled cottage, hut, windmill | wheat and corn rows, brook, campfire |
+| 55 | Woodcutter's clearing | summer | hut | canopy wall, big fire, logs |
+| 56 | Village fair | summer | porch house, flower cottage, manor | market, two campfires |
+| 57 | Greenhouse cottage | summer | greenhouse, hut | peach orchard, strawberry rows |
+| 58 | Lantern lane | autumn | porch house, flower cottage | apple orchard, lantern road |
+| 59 | Harvest bonfire | autumn | barn, hut | pumpkin and corn fields, big fire |
+| 60 | Autumn hearths | autumn | gabled cottage, hut, windmill | crossing roads, pen |
+| 61 | Winter hearth | winter | porch house, barn | pen, pond, campfire |
+| 62 | Snowbound hamlet | winter | gabled cottage, hut, flower cottage | pines, two campfires |
+| 63 | Frozen mill | winter | windmill, hut | frozen lake, pen |
 
 ## Checks
 
@@ -380,9 +397,10 @@ and 0.71 % walking over all 12, the liveliest Painted Lands maps measured;
 generates maps and prints each one's recipe, buildings, counts, floor notes,
 and checks: the walker reaches every door, gate, field, and the hub; every
 cell has a ground tile; every shore cell has a shore tile; every building the
-recipe names stands. 96 of 96 maps (190000–190095, every map type twice) pass
-on the first layout; with `mixed` (the farmsteads too), 120 of 120
-(200000-200119). `tools/walker_test.tscn -- farm` walks every map type
+recipe names stands. 104 of 104 maps (190000–190103, every map type twice)
+pass on the first layout; with `mixed` (the farmsteads too), 128 of 128
+(200000-200127). It prints each map's bridges (design and span) and any
+stepping stones left. `tools/walker_test.tscn -- farm` walks every map type
 headless (0 snags on all 48); the liveliness tools take `farm` too
 (docs/liveliness-farm.md).
 

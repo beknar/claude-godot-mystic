@@ -33,6 +33,7 @@ changing its generator, painter, or scenes.
 | Painted Lands, Green Caves | `randomizer-greencaves` | `cave_terrain.gd`, `caves.gd`, `cave_life.gd` | `docs/green-caves.md` |
 | Painted Lands, Farm – 4 Seasons (spring and summer, autumn, winter; one season per map, never mixed) | `randomizer-paintedlands-farm` | `farm_terrain.gd`, `farm.gd`, `farm_tiles.gd` | `docs/farm.md` |
 | Painted Lands, Forest and Farm combined (every Forest and Farm map type, plus farmsteads: Farm ground with Forest houses, fires, and clutter) | `randomizer-paintedlands-forest-farm` | `forest_farm.gd`, `farm_terrain.gd` (`MIXED_RECIPES`), `farm_tiles.gd` (`FOREST_PROPS`) | `docs/farm.md` (Farmsteads) |
+| Bridges (generated in the Forest's and the Farm's colors; the packs draw none) | rivers and brooks in `randomizer-paintedlands`, `randomizer-paintedlands-farm`, `randomizer-paintedlands-forest-farm` | `bridges.gd`, `tools/gen_bridges.py` | `docs/bridges.md` |
 | Painted Lands, Cozy Cottage | homes in the Painted Lands, Green Caves, farm, and forest-and-farm randomizers | `interior_*.gd`, `house_interiors.gd` | `docs/interiors.md` |
 | Cozy Farm (animals only) | `randomizer-paintedlands`, `randomizer-greencaves`, `randomizer-paintedlands-farm`, `randomizer-paintedlands-forest-farm` | `wildlife.gd` (`PACK_SPECIES`), `cave_terrain.gd` (`wildlife_plan`) | `docs/painted-lands.md` (Cozy Farm animals) |
 | Pixel Crawler | `randomizer-pixelcrawler` | `pc_terrain.gd`, `pixelcrawler.gd`, `pc_tiles.gd` | `docs/pixel-crawler.md` |

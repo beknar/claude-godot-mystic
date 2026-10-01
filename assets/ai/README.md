@@ -1,6 +1,6 @@
 # AI-generated art
 
-Everything under `assets/ai/` is generated art, not from a purchased pack and not hand-painted: the character sheets were generated in Grok Build, the mill kit by a script in this repository.
+Everything under `assets/ai/` is generated art, not from a purchased pack and not hand-painted: the character sheets were generated in Grok Build, the mill kit and the bridge kits by scripts in this repository.
 
 | File | What it is |
 |---|---|
@@ -10,5 +10,7 @@ Everything under `assets/ai/` is generated art, not from a purchased pack and no
 | `characters/red-fighter-16x16.png` | A red fighter on that same 16×16, ten-row layout. The heath scene uses it with `frame_size` 16. |
 
 | `mill/mill_kit.png` | The windmill interior kit (drawn by `tools/gen_mill_kit.py` in the Farm – 4 Seasons sheet's colors, because no Painted Lands pack has mill machinery): the mill machine in 16 frames of 64×112 (spur wheel, shaft, hopper, runner stone on its hurst, flour spout), sacks, a sack stack, a ladder to a trapdoor, a spare millstone, the hoist hook in 3 frames, two flour spills; and for the cap up the ladder, the brake wheel and wallower in 16 frames of 80×96, the sack trap, and the ladder's top in its hatch. Rects in `FarmTiles.MILL`; used by the farm randomizers' windmill interior (docs/farm.md). |
+
+| `bridges/bridges_forest.png`, `bridges_farm.png`, `bridges_farm_winter.png` | The bridge kits (drawn by `tools/gen_bridges.py` in the Painted Lands Forest's and Farm's own colors, the winter set with snow): 24 designs, each in east-west pieces (16×56, a base and a front-rail layer) and north-south pieces (36×16). Used where roads cross rivers and brooks (docs/bridges.md). |
 
 Hand-painted pack art stays in `assets/pack/`. Do not move AI files into that folder.

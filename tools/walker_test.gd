@@ -27,8 +27,8 @@ const CAVE_RENDERED_MAPS := [130021, 130022, 130023, 130025, 130026, 130027, 130
 const FARM_SCENE := preload("res://scenes/randomizer-paintedlands-farm/randomizer-paintedlands-farm.tscn")
 const PC_SCENE := preload("res://scenes/randomizer-pixelcrawler/randomizer-pixelcrawler.tscn")
 # Farm: four map types of each season's kind (summer 0-29, autumn 30-39,
-# winter 40-47 by id % 48).
-const FARM_RENDERED_MAPS := [190032, 190035, 190040, 190050, 190055, 190061, 190062, 190065, 190067, 190070, 190072, 190076]
+# winter 40-47 by id % 52; the rivers are 48-51).
+const FARM_RENDERED_MAPS := [190008, 190011, 190016, 190026, 190031, 190037, 190038, 190041, 190043, 190046, 190048, 190052]
 const PC_RENDERED_MAPS := [170000, 170003, 170004, 170006, 170008, 170011, 170013, 170015]
 const TILE := 16
 const ZOOM := 5
@@ -103,7 +103,7 @@ func _ready() -> void:
 	if _plan.is_empty():
 		if _headless:
 			var first: int = 190000 if _farm else (170000 if _pc else (130000 if _caves else 120000))
-			for r in (48 if _farm else (17 if _pc else 30)):
+			for r in (FarmTerrain.RECIPES.size() if _farm else (17 if _pc else 30)):
 				_plan.append(first + r)
 		elif _farm:
 			_plan = FARM_RENDERED_MAPS.duplicate()

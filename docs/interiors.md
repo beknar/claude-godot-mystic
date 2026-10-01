@@ -22,8 +22,9 @@ turns from the light, shows its edge, and the dark of the room opens up
 behind it. A `pack` leaf is the building's own drawn door (the Farm
 farmhouses, manor, and windmill, in the season's sheet); a `made` leaf is
 planks in the colors of an open doorway's frame (the Painted Lands Forest
-houses, `DoorLeaf.make_leaf`). Doorways that stand open (the Farm barn and
-greenhouse) have none.
+houses, `DoorLeaf.make_leaf`). A double door (the Farm barn) is two
+leaves, hinged at the outer jambs, passed as an Array. A doorway that
+stands open (the Farm greenhouse) has none.
 
 **The way out** (`scripts/exit_door.gd`): every home's exit, and the Farm
 barn's, mill floor's, and greenhouse's, is a door in the front wall, seen

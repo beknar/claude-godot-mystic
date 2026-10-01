@@ -1,19 +1,19 @@
 extends Node2D
 ## randomizer-paintedlands-forest-farm: every Painted Lands map (the forest
-## randomizer, 33 types), every farm map (48 types in three seasons), and the
+## randomizer, 36 types), every farm map (52 types in three seasons), and the
 ## farmsteads (12 types: Farm ground with the Forest's houses, fires, torches,
 ## clutter, and summer trees), all with the Cozy Farm animals. The map id picks
 ## the type; each pipeline keeps its own ground (a map has one ground: Forest
 ## lawn and Farm lawn never meet), and the one not in use is hidden and
 ## paused, which also takes its colliders out of the physics space.
-##   recipe 0-32   Painted Lands (forest.gd, randomizer-paintedlands)
-##   recipe 33-80  farm (farm.gd, randomizer-paintedlands-farm)
-##   recipe 81-92  farmsteads (farm.gd with `mixed`)
+##   recipe 0-35   Painted Lands (forest.gd, randomizer-paintedlands; 33-35 rivers)
+##   recipe 36-87  farm (farm.gd, randomizer-paintedlands-farm; 84-87 rivers)
+##   recipe 88-99  farmsteads (farm.gd with `mixed`)
 
 const FOREST_SCENE := preload("res://scenes/randomizer-paintedlands/randomizer-paintedlands.tscn")
 const FARM_SCENE := preload("res://scenes/randomizer-paintedlands-farm/randomizer-paintedlands-farm.tscn")
 
-@export var map_id := 200031 # recipe 81 (200031 % 93): the first farmstead, Cottage homestead
+@export var map_id := 200088 # recipe 88 (200088 % 100): the first farmstead, Cottage homestead
 
 var forest: Node2D
 var farm: Node2D

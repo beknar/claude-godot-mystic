@@ -253,15 +253,19 @@ const BUILDINGS := {
 	# door_px: the front door in the building's art (px from its corner): it
 	# swings open as the walker comes up (door_leaf.gd); made_leaf: the sheet
 	# leaves the doorway open, so a plank leaf is made in its frame's colors.
-	# The barn's and the greenhouse's doorways stand open.
+	# door_pair: a double door, its left leaf hinged left, its right leaf
+	# right (the barn). The greenhouse's doorway stands open.
 	"farmhouse": {"region": Rect2i(816, 384, 96, 96), "door": Vector2i(2, 5), "door_w": 1,
 		"blocks": [Rect2i(4, 50, 86, 30)], "rooms": [2, 4], "door_px": Rect2i(36, 64, 12, 17)},
 	"farmhouse_b": {"region": Rect2i(912, 384, 96, 96), "door": Vector2i(2, 5), "door_w": 1,
 		"blocks": [Rect2i(4, 50, 86, 30)], "rooms": [2, 4], "door_px": Rect2i(36, 64, 12, 17)},
 	"manor": {"region": Rect2i(1008, 384, 112, 112), "door": Vector2i(3, 6), "door_w": 1,
 		"blocks": [Rect2i(8, 52, 100, 44)], "rooms": [3, 6], "door_px": Rect2i(49, 71, 14, 23)},
-	"barn": {"region": Rect2i(816, 480, 128, 96), "door": Vector2i(2, 5), "door_w": 2,
-		"blocks": [Rect2i(13, 52, 102, 28), Rect2i(13, 80, 19, 16), Rect2i(64, 80, 51, 16)], "rooms": [1, 2]},
+	# The barn's way in is its X-braced double door (cells 3-4); the dark
+	# openings either side are stalls. Its two leaves swing open (door_pair).
+	"barn": {"region": Rect2i(816, 480, 128, 96), "door": Vector2i(3, 5), "door_w": 2,
+		"blocks": [Rect2i(13, 52, 102, 28), Rect2i(13, 80, 35, 16), Rect2i(80, 80, 35, 16)], "rooms": [1, 2],
+		"door_pair": [Rect2i(48, 64, 16, 29), Rect2i(64, 64, 17, 29)]},
 	"greenhouse": {"region": Rect2i(1024, 96, 96, 80), "door": Vector2i(2, 4), "door_w": 2,
 		"blocks": [Rect2i(4, 24, 88, 40), Rect2i(4, 64, 28, 16), Rect2i(64, 64, 28, 16)], "rooms": [1, 1], "custom": "greenhouse"},
 	"windmill": {"anim": "windmill animations/windmill_spring_summerSheet", "frames": 4, "frame": Vector2i(96, 128), "shift": Vector2i(-8, 0),

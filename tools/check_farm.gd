@@ -5,12 +5,12 @@ extends SceneTree
 ## ground tile and every shore cell a shore tile).
 ##   godot --headless -s res://tools/check_farm.gd -- <first_id> [count] [recipe] [mixed]
 ## `mixed`: with the farmstead map types (randomizer-paintedlands-forest-farm),
-## recipe ids 48-59; a pinned recipe over the whole list.
+## recipe ids 52-63; a pinned recipe over the whole list.
 
 func _init() -> void:
 	var args := OS.get_cmdline_user_args()
 	var first := int(args[0]) if args.size() > 0 else 190000
-	var count := int(args[1]) if args.size() > 1 else 48
+	var count := int(args[1]) if args.size() > 1 else 52
 	var pinned := int(args[2]) if args.size() > 2 else -1
 	var gen = load("res://scripts/farm_terrain.gd")
 	if gen == null or not gen.can_instantiate():
@@ -30,7 +30,13 @@ func _init() -> void:
 				checks = line.strip_edges()
 			elif line.begins_with("  buildings") or line.begins_with("  floor:"):
 				notes.append(line.strip_edges())
-		print("%d r%d %s a%d | %s | %s" % [id, t.recipe_id, t.recipe.name, t.attempt, " | ".join(notes), checks])
+		var crossing := ""
+		if not t.bridges.is_empty() or not t.stones.is_empty():
+			var names := PackedStringArray()
+			for b in t.bridges:
+				names.append("%s x%d" % [Bridges.DESIGNS[b.design], b.span])
+			crossing = " | bridges: %s%s" % [", ".join(names) if not names.is_empty() else "none", ", stones %d" % t.stones.size() if not t.stones.is_empty() else ""]
+		print("%d r%d %s a%d | %s%s | %s" % [id, t.recipe_id, t.recipe.name, t.attempt, " | ".join(notes), crossing, checks])
 		var ok := checks == "checks: ok"
 		if ok:
 			passed += 1

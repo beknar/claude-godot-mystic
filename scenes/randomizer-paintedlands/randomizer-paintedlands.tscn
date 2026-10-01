@@ -6,7 +6,7 @@
 [node name="RandomizerPaintedLands" type="Node2D" unique_id=1440325705]
 texture_filter = 1
 script = ExtResource("1_script")
-map_id = 75125
+map_id = 75101
 recipe = 5
 interiors = true
 cozy_animals = true

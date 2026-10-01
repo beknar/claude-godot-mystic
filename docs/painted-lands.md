@@ -34,7 +34,7 @@ Two jobs, one sheet:
 1. **How each system draws** — cobble path table, patch islands,
    water shores, four house prefabs, y-sort. Methods never change.
    Do not invent pixels or swap in Mystic Woods dirt from `plains.png`.
-2. **Where systems go** — the recipe generator (33 recipes). A new seed changes
+2. **Where systems go** — the recipe generator (36 recipes). A new seed changes
    recipe, house prefab, path graph, dirt *islands* (not just roads),
    bushes, rocks, signs, and fires.
 
@@ -310,7 +310,8 @@ Upper: outer (21,0) / north (22,0)
 ## Houses (0 or 1, unless the recipe names more)
 
 Default is **zero or one** house per map. Two only on recipes 10 (West
-hamlet), 23 (Woodcutter camp), 31 (Twin cottages), and 32 (Manor green),
+hamlet), 23 (Woodcutter camp), 31 (Twin cottages), 32 (Manor green), and
+35 (Twin bridges),
 three only on 26 (Village square) and 30 (Cottage row); those recipes name
 every prefab. In the randomizer every house has a door into an interior
 (`docs/interiors.md`).
@@ -643,6 +644,27 @@ never needs a bridge, and it is dropped if it would cut the spawn off from a
 goal. Tiles, the scrolling surface on open cells, and water plants are the
 pond's. Its middle row is open water, so it ripples and fish jump there, and
 frogs and ducks can live on it. Streams do not count as ponds.
+
+## Rivers and bridges
+
+The river map types (33 River crossing, 34 River lane, 35 Twin bridges,
+`"layout": 33-35`, water `R`) lay a river four cells wide from one edge to
+the other before the roads (`_river`): it wanders a cell sideways now and
+then (runs of four to seven), but runs straight for four cells either side
+of each crossing so the road crosses it square; eight to fourteen of the
+brook's 2 x 2 bulges break up its banks (none at the crossings); its tiles,
+surface, and water plants are the pond's. The roads, two cells wide, are
+routed over the crossing cells, which are kept dry; then those cells take
+their water tiles back and a bridge is laid over each crossing from bank to
+bank (`_bridge_rivers`, `bridges`): one of the 24 designs drawn in this
+sheet's colors (docs/bridges.md), a different one per bridge. The deck's
+cells are not water for the walker (no collider). River crossing runs north
+to south with the road west to east and a cottage north of the road; River
+lane runs west to east with a lane north to south (the bridge's along
+pieces) and a cottage by the lane; Twin bridges has two roads and two
+bridges, a cottage on each bank. The other brooks still keep off the paths.
+The deprecated cozy farm randomizer numbers its own map types from 33 as
+before (the rivers are left out of it).
 
 ## Liveliness floor
 

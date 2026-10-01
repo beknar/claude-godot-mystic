@@ -106,7 +106,7 @@ func build(id: int, pinned := -1) -> void:
 	report = terrain.generate(map_id, recipe)
 	for layer in [ground, features_layer, deco_layer, accent_layer] + tone_layers:
 		layer.clear()
-	for node in [patches, actors, collision]:
+	for node in [patches, actors, collision, _bridge_under]:
 		for child in node.get_children():
 			node.remove_child(child)
 			child.queue_free()
@@ -114,6 +114,7 @@ func build(id: int, pinned := -1) -> void:
 	_paint_patches()
 	_build_collision()
 	_place_houses()
+	_place_bridges()
 	_place_ridges()
 	_place_props()
 	_spawn_walker()
@@ -126,7 +127,7 @@ func build(id: int, pinned := -1) -> void:
 ## For the randomizer menu: the recipe names, in recipe-id order.
 func recipe_names() -> Array[String]:
 	var out: Array[String] = []
-	for r in PaintedTerrain.RECIPES:
+	for r in (PaintedTerrain.RECIPES.slice(0, PaintedTerrain.RIVER_FIRST) if cozy_buildings else PaintedTerrain.RECIPES):
 		out.append(r.name)
 	if cozy_buildings:
 		for r in PaintedTerrain.COZY_RECIPES:
@@ -171,6 +172,10 @@ func _add_ambience() -> void:
 	critters.name = "Critters"
 	critters.wind = wind
 	add_child(critters)
+	_bridge_under = Node2D.new()
+	_bridge_under.name = "Bridges"
+	add_child(_bridge_under)
+	move_child(_bridge_under, actors.get_index()) # decks under the y-sorted actors
 	fire = FireAmbience.new()
 	fire.name = "FireAmbience"
 	fire.wind = wind
@@ -231,6 +236,8 @@ func _reset_ambience() -> void:
 	for house in terrain.houses:
 		if PaintedTerrain.CHIMNEYS.has(house.id):
 			fires.append({"pos": Vector2(house.origin * TILE + PaintedTerrain.CHIMNEYS[house.id]), "kind": "chimney"})
+	for flame in _bridge_lanterns:
+		fires.append({"pos": flame + Vector2(0, 6), "kind": "lamp", "flame": flame, "radius": 16, "smoke": false})
 	fire.set_fires(fires)
 	var open: Array[Vector2i] = []
 	for cell in terrain.water:
@@ -495,6 +502,19 @@ func _build_collision() -> void:
 # Each prefab splits into HOUSE_ROOF (no collision, sorted at the eave) and
 # HOUSE_BODY (walls, door, porch; collides; sorted at the doorstep).
 var _door_leaves := {} # house -> DoorLeaf
+var _bridge_under: Node2D # the bridges' decks, under the actors
+var _bridge_lanterns: Array[Vector2] = []
+
+## Bridges where the roads cross the rivers (bridges.gd, the Forest kit): the
+## deck and its back rail under the walker, the front rail over it.
+func _place_bridges() -> void:
+	_bridge_lanterns.clear()
+	if terrain.bridges.is_empty():
+		return
+	var tex: Texture2D = load(Bridges.SHEETS.forest)
+	for b in terrain.bridges:
+		_bridge_lanterns.append_array(Bridges.build(b, tex, _bridge_under, actors))
+
 
 func _place_houses() -> void:
 	_door_leaves.clear()

@@ -54,7 +54,7 @@ Painted Lands maps (docs/painted-lands.md):
   No house. A straight cobble road runs from edge to edge. Round dirt
   blobs, bushes, and land rocks. No pond and no signs.
 - `scenes/randomizer-paintedlands/randomizer-paintedlands.tscn` — the wilds
-  settings (starts at map id `75125`) plus an Esc menu that regenerates from a
+  settings (starts at map id `75101`, recipe 5 Open meadow) plus an Esc menu that regenerates from a
   random new id with the same generator. Any of the 30 recipes can come up, or
   be pinned. Its first map is pinned to recipe 5.
 
@@ -89,8 +89,8 @@ Painted Lands farm randomizer (docs/farm.md):
 
 - `scenes/randomizer-paintedlands-farm/randomizer-paintedlands-farm.tscn` —
   the Farm – 4 Seasons pipeline (`farm_terrain.gd` + `farm.gd`, tables in
-  `farm_tiles.gd`), starting at map id `190032` (recipe 0 Homestead;
-  `recipe = -1`: id % 48), in spring and summer, autumn, or winter (one
+  `farm_tiles.gd`), starting at map id `190008` (recipe 0 Homestead;
+  `recipe = -1`: id % 52), in spring and summer, autumn, or winter (one
   season per map, by recipe), with the Painted Lands walker,
   interiors behind every door, the Cozy Farm animals, and the same Esc menu,
   titled "Painted Lands farm randomizer".
@@ -99,9 +99,9 @@ Painted Lands forest and farm randomizer (docs/farm.md, Farmsteads):
 
 - `scenes/randomizer-paintedlands-forest-farm/randomizer-paintedlands-forest-farm.tscn` —
   `forest_farm.gd` holds the Forest and Farm pipelines (each scene embedded
-  without its own menu) and builds all 93 Painted Lands map types, id % 93:
-  0-32 Forest, 33-80 Farm, 81-92 the farmsteads (Farm ground with Forest
-  houses, fires, lanterns, and clutter). Starts at map id `200031` (recipe 81,
+  without its own menu) and builds all 100 Painted Lands map types, id % 100:
+  0-35 Forest, 36-87 Farm, 88-99 the farmsteads (Farm ground with Forest
+  houses, fires, lanterns, and clutter). Starts at map id `200088` (recipe 88,
   Cottage homestead). The pipeline not in use is hidden and paused. Same
   walker, interiors, Cozy Farm animals, and Esc menu, titled "Painted Lands
   forest and farm randomizer".

@@ -23,7 +23,7 @@ const BRUSH := 14.0 # px from a trunk that shakes the tree
 const GATE_OPEN := 30.0 # px: a gate swings open for the walker this close
 const SHADE := Color(0.08, 0.24, 0.2, 0.28) # tree shadows, the deep grass tone
 
-@export var map_id := 190032 # recipe 0, Homestead (id % 48)
+@export var map_id := 190008 # recipe 0, Homestead (id % 52)
 @export var recipe := -1
 ## Buildings open onto interiors (house_interiors.gd): a sub-map per door.
 @export var interiors := true
@@ -85,7 +85,7 @@ var snow: Snowfall
 
 # Things that move in _process.
 var _crowns: Array[Dictionary] = [] # {sprite, foot: y, crown: Rect2}
-var _houses: Array[Dictionary] = [] # {node, foot: y, rect: Rect2}
+var _houses: Array[Dictionary] = [] # {node, foot: y, rect: Rect2, door: Rect2 (the doorway, never faded for)}
 var _trees: Array[Dictionary] = [] # {sprite: AnimatedSprite2D, foot: Vector2, falling: String, leaves: String, cool, crown: Rect2}
 var _gates: Array[Dictionary] = [] # {sprite: Sprite2D, pos, frame: float}
 var _mills: Array[AnimatedSprite2D] = []
@@ -138,6 +138,7 @@ func build(id: int, pinned := -1) -> void:
 	_paint()
 	_build_collision()
 	_place_buildings()
+	_place_bridges()
 	_place_trees()
 	_place_crops()
 	_place_props()
@@ -356,7 +357,7 @@ func _build_collision() -> void:
 			if x < W:
 				var c := Vector2i(x, y)
 				var k := terrain.kind[y * W + x]
-				solid = (k == FarmTerrain.WATER and not terrain.stones.has(c)) or k == FarmTerrain.CLIFF \
+				solid = (k == FarmTerrain.WATER and not terrain.stones.has(c) and not terrain.bridge_cells.has(c)) or k == FarmTerrain.CLIFF \
 					or k == FarmTerrain.FENCE or terrain.blob_sig("hedge", c) == "1111"
 			if solid and run < 0:
 				run = x
@@ -383,6 +384,18 @@ func _add_box(parent: Node, r: Rect2) -> void:
 ## the walker is behind it, it fades so the walker stays in sight. The
 ## windmill's sails turn faster in a stronger wind.
 var _door_leaves: Array = [] # by building index: its DoorLeaf, or null
+
+## Bridges where the lanes cross the brook or the river (bridges.gd): the
+## deck and its back rail under the walker, the front rail over it, the
+## lanterns' flames glowing.
+func _place_bridges() -> void:
+	if terrain.bridges.is_empty():
+		return
+	var tex: Texture2D = load(Bridges.SHEETS["farm_winter" if season == "winter" else "farm"])
+	for b in terrain.bridges:
+		for flame in Bridges.build(b, tex, under, actors):
+			_fires.append({"pos": flame + Vector2(0, 6), "kind": "lamp", "flame": flame, "radius": 16, "smoke": false})
+
 
 func _place_buildings() -> void:
 	_fires.clear()
@@ -453,10 +466,31 @@ func _place_buildings() -> void:
 			leaf.position = (sprite as Node2D).get("offset") + Vector2(opening.position)
 			sprite.add_child(leaf)
 			_door_leaves[-1] = leaf
+		elif art.has("door_pair") and interiors:
+			# A double door: both leaves, the sheet's own, turning inward on
+			# their outer hinges.
+			var pair: Array = []
+			for k in 2:
+				var half: Rect2i = art.door_pair[k]
+				var leaf := DoorLeaf.new()
+				leaf.size = half.size
+				leaf.hinge_left = k == 0
+				var at := AtlasTexture.new()
+				at.atlas = _tex(_sheet)
+				at.region = Rect2(Rect2i(region.position + half.position, half.size))
+				leaf.leaf = at
+				leaf.position = (sprite as Node2D).get("offset") + Vector2(half.position)
+				sprite.add_child(leaf)
+				pair.append(leaf)
+			_door_leaves[-1] = pair
 		for block: Rect2i in art.blocks:
 			_add_box(body, Rect2(Vector2(block.position) - Vector2(0, size.y), Vector2(block.size)))
 		actors.add_child(body)
-		_houses.append({"node": sprite, "foot": origin.y + size.y, "rect": Rect2(origin, size)})
+		# (The doorstep and the doorway above it do not fade the building: the
+		# walker going in watches the door open.)
+		var step_px := Vector2(b.door * TILE)
+		_houses.append({"node": sprite, "foot": origin.y + size.y, "rect": Rect2(origin, size),
+			"door": Rect2(step_px + Vector2(-4, -20), Vector2(art.door_w * TILE + 8, 40))})
 		if art.has("chimney"):
 			_fires.append({"pos": origin + Vector2(art.chimney), "kind": "chimney"})
 
@@ -1732,7 +1766,7 @@ func _process(delta: float) -> void:
 			spr.modulate.a = move_toward(spr.modulate.a, want, delta * FADE_RATE)
 	for hs in _houses:
 		var n: CanvasItem = hs.node
-		var behind: bool = feet.y < hs.foot - 2.0 and hs.rect.intersects(body)
+		var behind: bool = feet.y < hs.foot - 2.0 and hs.rect.intersects(body) and not hs.door.has_point(feet)
 		var want := HOUSE_FADE if behind else 1.0
 		if not is_equal_approx(n.modulate.a, want):
 			n.modulate.a = move_toward(n.modulate.a, want, delta * FADE_RATE)
@@ -1945,7 +1979,7 @@ func _reset_ambience() -> void:
 	grass_waves.setup(waves if season != "winter" else {})
 	var water := {}
 	for c in terrain.water:
-		if not terrain.stones.has(c):
+		if not terrain.stones.has(c) and not terrain.bridge_cells.has(c):
 			water[c] = true
 	footsteps.setup_generic(_surface, water, walker)
 	wildlife.mode = "farmland" if cozy_animals else ""
@@ -1966,6 +2000,8 @@ func _surface(cell: Vector2i) -> String:
 	var k := terrain.kind[cell.y * W + cell.x]
 	if k == FarmTerrain.FIELD:
 		return "tuft" # wading through the crops: leaves flick
+	if terrain.bridge_cells.has(cell):
+		return "none" # boards and stone: no dust, no splash
 	if k != FarmTerrain.OPEN and not terrain.stones.has(cell):
 		return "none"
 	if _wheat.has(cell) or terrain.deco.has(cell):

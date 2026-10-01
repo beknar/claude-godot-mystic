@@ -29,13 +29,14 @@ Rules for each pack: `docs/painted-lands.md`, `docs/green-caves.md`,
 | Painted Lands Forest | `forest` (fixed map), `wilds` (fixed map) | 2 fixed maps |
 | Painted Lands Forest + Cozy Farm (bunnies) | `randomizer-paintedlands` | 8 |
 | Painted Lands Forest + Cozy Cottage (interiors) + Cozy Farm (bunnies, farm animals) | `randomizer-paintedlands` | 25 |
+| Painted Lands Forest + bridges (generated, Forest colors) + Cozy Cottage (interiors) + Cozy Farm (bunnies, farm animals) | `randomizer-paintedlands` (rivers) | 3 |
 | Painted Lands Green Caves | `randomizer-greencaves` | 23 |
 | Painted Lands Green Caves + Cozy Farm (bunnies) | `randomizer-greencaves` | 3 |
 | Painted Lands Green Caves + Cozy Cottage (homes) + Cozy Farm (farm animals) | `randomizer-greencaves` | 7 |
 | Painted Lands Farm (spring and summer) + Cozy Farm (animals) | `randomizer-paintedlands-farm` | 2 |
-| Painted Lands Farm (spring and summer) + Cozy Cottage (interiors) + Cozy Farm (animals) | `randomizer-paintedlands-farm` | 28 |
-| Painted Lands Farm (autumn) + Cozy Cottage (interiors) + Cozy Farm (animals) | `randomizer-paintedlands-farm` | 10 |
-| Painted Lands Farm (winter) + Cozy Cottage (interiors) + Cozy Farm (animals) | `randomizer-paintedlands-farm` | 8 |
+| Painted Lands Farm (spring and summer) + Cozy Cottage (interiors) + Cozy Farm (animals) | `randomizer-paintedlands-farm` | 30 (2 of them rivers with bridges) |
+| Painted Lands Farm (autumn) + Cozy Cottage (interiors) + Cozy Farm (animals) | `randomizer-paintedlands-farm` | 11 (1 river with bridges) |
+| Painted Lands Farm (winter) + Cozy Cottage (interiors) + Cozy Farm (animals) | `randomizer-paintedlands-farm` | 9 (1 river with bridges) |
 | Painted Lands Farm (spring and summer) + Forest (houses, fires, clutter, summer trees) + Cozy Cottage (interiors) + Cozy Farm (animals) | `randomizer-paintedlands-forest-farm` | 6 |
 | Painted Lands Farm (autumn) + Forest (houses, fires, clutter) + Cozy Cottage (interiors) + Cozy Farm (animals) | `randomizer-paintedlands-forest-farm` | 3 |
 | Painted Lands Farm (winter) + Forest (houses, fires, clutter) + Cozy Cottage (interiors) + Cozy Farm (animals) | `randomizer-paintedlands-forest-farm` | 3 |
@@ -44,10 +45,20 @@ Rules for each pack: `docs/painted-lands.md`, `docs/green-caves.md`,
 | Pixel Crawler Cemetery | `randomizer-pixelcrawler` | 3 |
 | Pixel Crawler Desert | `randomizer-pixelcrawler` | 3 |
 
-143 map types in all (33 Painted Lands, 33 Green Caves, 48 Farm in three
+150 map types in all (36 Painted Lands, 33 Green Caves, 52 Farm in three
 seasons, 12 farmsteads, 17 Pixel Crawler) and 2 fixed maps.
-`randomizer-paintedlands-forest-farm` builds all 93 Painted Lands map types
-(the 33 Forest, the 48 Farm, and the 12 farmsteads, which only it builds). Painted Lands and Pixel Crawler never share a map, and
+`randomizer-paintedlands-forest-farm` builds all 100 Painted Lands map types
+(the 36 Forest, the 52 Farm, and the 12 farmsteads, which only it builds).
+
+**Bridges.** Where a road or lane crosses a river or a brook on the Painted
+Lands maps it goes over a bridge: 24 designs (plank, rope, boards, logs,
+boardwalk, clapper slabs, stone, mossy, and sandstone arches, lanterns,
+lattice, flowers, trestle, painted rails, and more) drawn for the purpose in
+the Forest's and the Farm's own colors, with a snowy Farm set for winter
+(`assets/ai/bridges/`, `scripts/bridges.gd`, docs/bridges.md). The Forest
+rivers are map types 33-35; the Farm brooks (1 Wheat valley, 11 Riverside
+fields, farmstead 54 Hamlet by the mill) and rivers (48-51) bridge every
+crossing whose banks allow it (the rest keep stepping stones). Painted Lands and Pixel Crawler never share a map, and
 the Cozy Farm animals never go on a Pixel Crawler map.
 
 ## Painted Lands Forest
@@ -59,7 +70,7 @@ the Cozy Farm animals never go on a Pixel Crawler map.
 | `scenes/forest/forest.tscn` | 91003 | 3 Garden (hut in a fence yard with a gate) |
 | `scenes/wilds/wilds.tscn` | 75125 | 5 Open meadow |
 
-`randomizer-paintedlands` map types with no house (id % 33), with Cozy Farm
+`randomizer-paintedlands` map types with no house (id % 36), with Cozy Farm
 bunnies but no farm animals:
 
 | # | Map type |
@@ -108,6 +119,9 @@ on the other maps.
 | 30 | Cottage row | flower cottage, gable cottage, hut |
 | 31 | Twin cottages | porch cottage, gable cottage |
 | 32 | Manor green | porch cottage, hut |
+| 33 | River crossing | hut (a river north to south, the road over a bridge) |
+| 34 | River lane | flower cottage (a river west to east, the lane over a bridge) |
+| 35 | Twin bridges | porch cottage, hut (two roads, two bridges) |
 
 ## Painted Lands Green Caves
 
@@ -160,7 +174,7 @@ or cows round it too, and bunnies.
 
 ## Painted Lands Farm – 4 Seasons (spring and summer)
 
-`randomizer-paintedlands-farm` (id % 48), `assets/pack/farm/` (the spring
+`randomizer-paintedlands-farm` (id % 52), `assets/pack/farm/` (the spring
 and summer, autumn, and winter tilesets, `crops.png`, the tree, windmill,
 and gate animations of each season, and the fish). Each map is wholly one
 season: its ground, trees, buildings, windmill, gate, and props all come
@@ -217,6 +231,8 @@ glasshouse.
 | 26 | Twin farms | two farmhouses (2-4) | fields, pen |
 | 27 | Stone quarry | farmhouse (2-4) | plateaus with a cave |
 | 29 | Harvest fair | manor (3-6), farmhouse (2-4), windmill (its own mill floor) | fields, market |
+| 48 | River farm | farmhouse (2-4), barn (its own barn interior) | a river, bridges, fields, pen |
+| 49 | Mill on the river | windmill (its own mill floor), farmhouse (2-4) | a river, bridges, wheat |
 
 ## Painted Lands Farm (autumn) + Cozy Cottage + Cozy Farm animals
 
@@ -235,6 +251,7 @@ turning trees, straw, the harvest.
 | 37 | Cornfield | windmill (its own mill floor) | corn rows |
 | 38 | Old barn in autumn | barn (its own barn interior) | dead trees, straw, hedges |
 | 39 | Cider farm | farmhouse (2-4), windmill (its own mill floor) | mixed fruit orchard |
+| 50 | Russet river | farmhouse (2-4), barn (its own barn interior) | a river, bridges, apple orchard |
 
 ## Painted Lands Farm (winter) + Cozy Cottage + Cozy Farm animals
 
@@ -251,14 +268,15 @@ falling snow; no crops outdoors.
 | 45 | Winter village | farmhouse (2-4), manor (3-6), barn (its own barn interior) | crossing roads |
 | 46 | Greenhouse in the snow | greenhouse (its own glasshouse), farmhouse (2-4) | bare orchard |
 | 47 | Winter windmill | windmill (its own mill floor), barn (its own barn interior) | pens, hay |
+| 51 | Frozen river | farmhouse (2-4), barn (its own barn interior) | a river, snowy bridges, pen |
 
 ## Painted Lands forest and farm: the combined randomizer
 
-`randomizer-paintedlands-forest-farm` (id % 93; `scripts/forest_farm.gd`)
+`randomizer-paintedlands-forest-farm` (id % 100; `scripts/forest_farm.gd`)
 holds both Painted Lands pipelines and builds every map type of the two
-randomizers above, with the Cozy Farm animals in both: recipes 0-32 are the
-Forest map types (`randomizer-paintedlands`, same numbers), 33-80 the Farm
-map types (Farm 0-47, in three seasons), and 81-92 the farmsteads below. A
+randomizers above, with the Cozy Farm animals in both: recipes 0-35 are the
+Forest map types (`randomizer-paintedlands`, same numbers), 36-87 the Farm
+map types (Farm 0-51, in three seasons), and 88-99 the farmsteads below. A
 map keeps one ground: Forest lawn and Farm lawn never meet, so the pipeline
 not in use is hidden and paused.
 
@@ -274,18 +292,18 @@ Farm trees (Forest trees are summer green only).
 
 | # (Farm #) | Map type | Season | Buildings (rooms) | Features |
 |---|---|---|---|---|
-| 81 (48) | Cottage homestead | summer | porch house (3-6), barn (barn interior) | fields, pen, pond, campfire |
-| 82 (49) | Blossom cottage | summer | flower cottage (2-4) | cherry orchard, strawberry rows |
-| 83 (50) | Hamlet by the mill | summer | gabled cottage (2-5), hut (1-2), windmill (its own mill floor) | wheat and corn rows, brook, campfire |
-| 84 (51) | Woodcutter's clearing | summer | hut (1-2) | canopy wall, big fire, log piles |
-| 85 (52) | Village fair | summer | porch house (3-6), flower cottage (2-4), manor (3-6) | market, two campfires |
-| 86 (53) | Greenhouse cottage | summer | greenhouse (its own glasshouse), hut (1-2) | peach orchard, strawberry rows |
-| 87 (54) | Lantern lane | autumn | porch house (3-6), flower cottage (2-4) | apple orchard, lantern road |
-| 88 (55) | Harvest bonfire | autumn | barn (barn interior), hut (1-2) | pumpkin and corn fields, big fire |
-| 89 (56) | Autumn hearths | autumn | gabled cottage (2-5), hut (1-2), windmill (its own mill floor) | crossing roads, pen |
-| 90 (57) | Winter hearth | winter | porch house (3-6), barn (barn interior) | pen, pond, campfire |
-| 91 (58) | Snowbound hamlet | winter | gabled cottage (2-5), hut (1-2), flower cottage (2-4) | pines, two campfires |
-| 92 (59) | Frozen mill | winter | windmill (its own mill floor), hut (1-2) | frozen lake, pen |
+| 88 (52) | Cottage homestead | summer | porch house (3-6), barn (barn interior) | fields, pen, pond, campfire |
+| 89 (53) | Blossom cottage | summer | flower cottage (2-4) | cherry orchard, strawberry rows |
+| 90 (54) | Hamlet by the mill | summer | gabled cottage (2-5), hut (1-2), windmill (its own mill floor) | wheat and corn rows, brook, campfire |
+| 91 (55) | Woodcutter's clearing | summer | hut (1-2) | canopy wall, big fire, log piles |
+| 92 (56) | Village fair | summer | porch house (3-6), flower cottage (2-4), manor (3-6) | market, two campfires |
+| 93 (57) | Greenhouse cottage | summer | greenhouse (its own glasshouse), hut (1-2) | peach orchard, strawberry rows |
+| 94 (58) | Lantern lane | autumn | porch house (3-6), flower cottage (2-4) | apple orchard, lantern road |
+| 95 (59) | Harvest bonfire | autumn | barn (barn interior), hut (1-2) | pumpkin and corn fields, big fire |
+| 96 (60) | Autumn hearths | autumn | gabled cottage (2-5), hut (1-2), windmill (its own mill floor) | crossing roads, pen |
+| 97 (61) | Winter hearth | winter | porch house (3-6), barn (barn interior) | pen, pond, campfire |
+| 98 (62) | Snowbound hamlet | winter | gabled cottage (2-5), hut (1-2), flower cottage (2-4) | pines, two campfires |
+| 99 (63) | Frozen mill | winter | windmill (its own mill floor), hut (1-2) | frozen lake, pen |
 
 ## Pixel Crawler
 

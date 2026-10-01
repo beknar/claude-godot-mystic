@@ -73,8 +73,8 @@ func reset(terrain: PaintedTerrain, p_walker: CharacterBody2D, leaves := {}) -> 
 
 ## Any map: `list` of doors, each {step: the doorstep cell under the door,
 ## house: {id, ...} (seeds the interior), width (cells, default 1), rooms
-## ([min, max], else ROOMS by house id), leaf (optional DoorLeaf: the front
-## door, opened as the walker comes up), custom (optional Callable returning
+## ([min, max], else ROOMS by house id), leaf (optional DoorLeaf, or an
+## Array of two for a double door: opened as the walker comes up), custom (optional Callable returning
 ## {view: Node2D with `actors`, plan: InteriorPlan with size and exit_cell,
 ## fires: Array} for an interior of its own)}.
 func reset_doors(list: Array[Dictionary], p_walker: CharacterBody2D) -> void:
@@ -154,12 +154,20 @@ func _process(_delta: float) -> void:
 		return
 	var feet := walker.global_position - map.global_position
 	for d in doors:
-		var leaf = d.get("leaf")
-		if leaf == null or not is_instance_valid(leaf):
+		if not d.has("leaf"):
 			continue
 		var s: Vector2 = d.step
 		var half: float = d.rect.size.x / 2.0 + 9.0
-		leaf.open = absf(feet.x - s.x) < half and feet.y > s.y - 16.0 and feet.y < s.y + 22.0
+		var near := absf(feet.x - s.x) < half and feet.y > s.y - 16.0 and feet.y < s.y + 22.0
+		for leaf in _leaves(d):
+			leaf.open = near
+
+
+# A door's leaves (one, or a double door's two) still in the tree.
+func _leaves(d: Dictionary) -> Array:
+	var lv = d.get("leaf")
+	var list: Array = lv if lv is Array else [lv]
+	return list.filter(func(l): return l != null and is_instance_valid(l))
 
 
 ## Goes in through door `i` (fades, builds or reuses the interior).
@@ -269,8 +277,8 @@ func leave(instant := false) -> void:
 	walker.reparent(map.actors, false)
 	walker.position = d.step
 	walker.set("facing", 2) # down
-	if d.has("leaf") and is_instance_valid(d.leaf):
-		d.leaf.snap_open() # out through the open door; it shuts behind the walker
+	for leaf in _leaves(d):
+		leaf.snap_open() # out through the open door; it shuts behind the walker
 	if _custom.has(inside) and view and view.get_parent() == root:
 		root.remove_child(view) # kept for the next visit
 	inside = -1

@@ -1,5 +1,10 @@
 # Liveliness: the farm randomizer against the other randomizers
 
+(Measured before the four river map types came in, 2026-09-30. The farm's
+map ids now select by `id % 52`, so the ids below build other maps today;
+`tools/walker_test.gd` and `tools/liveliness_capture.gd` take the same
+twelve map types at new ids.)
+
 `randomizer-paintedlands-farm` (all three seasons), measured 2026-09-30 with
 three tests, and set against the Painted Lands, Green Caves, and Pixel
 Crawler randomizers:
@@ -83,7 +88,7 @@ What it says:
 
 ## Farmsteads (`randomizer-paintedlands-forest-farm`)
 
-The 12 farmsteads (Farm ids 48-59, maps 200088-200099, run with `mixed`),
+The 12 farmsteads (Farm ids 48-59 then, 52-63 since the rivers came in; maps 200088-200099, run with `mixed`),
 measured 2026-09-30 with the same four tests: the headless walker on all 12,
 the slow capture and the slow walker test on all 12 (rendered), and the
 fast estimate. The combined scene's Forest and Farm map types are the two
@@ -189,7 +194,9 @@ godot --headless -s res://tools/liveliness.gd -- 190000 48 -1 farm
 python3 tools/liveliness_analyze.py compare .liveliness_farm,<dir>,...
 ```
 
-`farm mixed` (ids 200088-200099) runs the farmsteads; `pc` in place of
+`farm mixed` runs the farmsteads (ids 200088-200099 measured them when
+they were Farm ids 48-59; with the rivers, 52-63, they are ids whose
+`id % 64` is 52-63); `pc` in place of
 `farm` runs the Pixel Crawler randomizer. The rendered runs
 need the game window visible for their whole length (about 3 minutes a map);
 one farm capture stopped silently at map 5 and was resumed from there.

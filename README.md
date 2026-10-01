@@ -126,11 +126,11 @@ generator.
 | `scenes/heath/heath.tscn` | 91003, no water | Lineup of all five Mystic Woods sheets, no control |
 | `scenes/forest/forest.tscn` | 91003 | `character_sprite_sheet.png` (3×4 of 32px) |
 | `scenes/wilds/wilds.tscn` | 75125 (recipe 5, Open meadow) | `character_sprite_sheet.png` |
-| `scenes/randomizer-paintedlands/randomizer-paintedlands.tscn` | starts at 75125, then any | `character_sprite_sheet.png` |
+| `scenes/randomizer-paintedlands/randomizer-paintedlands.tscn` | starts at 75101 (recipe 5, Open meadow), then any | `character_sprite_sheet.png` |
 | `scenes/randomizer-mysticwoods/randomizer-mysticwoods.tscn` | starts at 21021, then any | `player.png` |
 | `scenes/randomizer-greencaves/randomizer-greencaves.tscn` | starts at 130021, then any | `character_sprite_sheet.png` (the Painted Lands walker) |
-| `scenes/randomizer-paintedlands-farm/randomizer-paintedlands-farm.tscn` | starts at 190032 (recipe 0, Homestead), then any | `character_sprite_sheet.png` (the Painted Lands walker) |
-| `scenes/randomizer-paintedlands-forest-farm/randomizer-paintedlands-forest-farm.tscn` | starts at 200031 (recipe 81, Cottage homestead), then any | `character_sprite_sheet.png` (the Painted Lands walker) |
+| `scenes/randomizer-paintedlands-farm/randomizer-paintedlands-farm.tscn` | starts at 190008 (recipe 0, Homestead), then any | `character_sprite_sheet.png` (the Painted Lands walker) |
+| `scenes/randomizer-paintedlands-forest-farm/randomizer-paintedlands-forest-farm.tscn` | starts at 200088 (recipe 88, Cottage homestead), then any | `character_sprite_sheet.png` (the Painted Lands walker) |
 | `scenes/randomizer-manaseed/randomizer-manaseed.tscn` | starts at 160000, then any | `character_sprite_sheet.png` (the Painted Lands walker) |
 | `scenes/randomizer-painted-cozyfarm/randomizer-painted-cozyfarm.tscn` (deprecated) | starts at 180033 (recipe 33 Farmstead), then any | `character_sprite_sheet.png` |
 | `scenes/randomizer-pixelcrawler/randomizer-pixelcrawler.tscn` | starts at 170000, then any | `character_sprite_sheet.png` (the Painted Lands walker) |
@@ -166,7 +166,9 @@ not been measured yet.
 > the homes; see the small-animals paragraph below).
 
 The Painted Lands farm randomizer builds farms from antarcticbees' Farm – 4
-Seasons tileset with 48 recipes in three seasons, each map wholly in one
+Seasons tileset with 52 recipes in three seasons (four of them rivers
+crossed on bridges: river farm, mill on the river, russet river, frozen
+river), each map wholly in one
 season (the seasons are never mixed): 30 in spring and summer (homestead, wheat valley,
 windmill hill, apple orchard, cherry blossom lane, pumpkin patch, kitchen
 garden, greenhouse garden, barnyard, sheep meadow, duck pond farm, riverside
@@ -206,9 +208,22 @@ and inside every way out is a door that swings open the same way, letting
 daylight in. `tools/check_farm.gd` sweeps it
 headless (docs/farm.md).
 
+**Bridges.** Where a road or a lane crosses a river or a brook on the
+Painted Lands maps it goes over a bridge: 24 designs (plank, rope and plank,
+boards, log decks and log rails, boardwalk on stilts, clapper slabs, stone,
+mossy, and sandstone arches, lantern bridges in stone and in wood, lattice,
+flower-planted rails, branch rails, trestle, stone piers, painted rails, a
+rustic one-rope bridge, gate posts, mossy slabs, cobbles with bollards, and
+a felled trunk), drawn by `tools/gen_bridges.py` in the Forest's and the
+Farm's own colors with a snowy set for winter (`assets/ai/bridges/`; the
+packs draw none), built piece by piece to span any width, the walker
+crossing between the back rail and the front one, the lanterns glowing.
+The Painted Lands randomizer has three river map types (river crossing,
+river lane, twin bridges) and the farm four (docs/bridges.md).
+
 The Painted Lands forest and farm randomizer
-(`randomizer-paintedlands-forest-farm`) builds all 93 Painted Lands map
-types from one menu: the 33 Forest map types, the 48 Farm map types, and 12
+(`randomizer-paintedlands-forest-farm`) builds all 100 Painted Lands map
+types from one menu: the 36 Forest map types, the 52 Farm map types, and 12
 farmsteads of its own, all with the Cozy Farm animals. A farmstead is Farm
 ground in one season with the Forest's houses (porch house, flower cottage,
 gabled cottage, hut) in place of the farmhouses, chimney smoke, campfires
@@ -449,10 +464,12 @@ report repeated 3×3 windows. The clearing report prints that count.
 
 ## Painted Lands pipeline
 
-`recipe = seed % 30` selects one of 30 recipes (Pastoral, Crossroads,
+`recipe = seed % 36` selects one of 36 recipes (Pastoral, Crossroads,
 Pond walk, …, Switchback, then Cave mouth, Terraces, Stone ruins, Woodcutter
 camp, Rock garden, Deep forest, Village square, Hedge garden, Ridgeline,
-Walled mesa). The forest and wilds scenes pin recipes 3 and 5. The
+Walled mesa, Cottage row, Twin cottages, Manor green, then the rivers River
+crossing, River lane, Twin bridges). The forest and wilds scenes pin recipes
+3 and 5. The
 recipe sets houses (0, 1, 2 on recipes 10 and 23, 3 on 26
 only), water, fences, gates, plateau, path shape, dirt-patch blobs, and
 props. The full table is in `docs/painted-lands.md`.

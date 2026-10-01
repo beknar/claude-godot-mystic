@@ -92,6 +92,12 @@ const RECIPES := [
 	{"name": "Winter village", "season": "winter", "buildings": ["farmhouse", "manor", "barn"], "trees": ["wild", 8], "zones": 0.12, "pale": 0.18, "path": "cross", "ground": "e", "piece": "village"},
 	{"name": "Greenhouse in the snow", "season": "winter", "buildings": ["greenhouse", "farmhouse"], "orchard": ["orchard", 10], "trees": ["wild", 6], "zones": 0.13, "pale": 0.16, "path": "lane", "ground": "s", "piece": "garden"},
 	{"name": "Winter windmill", "season": "winter", "buildings": ["windmill", "barn"], "pens": [1, 2], "trees": ["wild", 8], "zones": 0.13, "pale": 0.18, "path": "road", "ground": "e", "piece": "hay"},
+	# Rivers (48-51): a wide river from the north edge to the south, the farm
+	# on both banks, the lanes crossing it on bridges (Bridges, 24 designs).
+	{"name": "River farm", "buildings": ["farmhouse", "barn"], "fields": [2, 2], "crops": ["cabbage", "carrot", "wheat"], "rows": true, "pens": [1, 1], "water": "river", "trees": ["wild", 8], "zones": 0.2, "pale": 0.14, "path": "road", "ground": "e", "piece": "shore"},
+	{"name": "Mill on the river", "buildings": ["windmill", "farmhouse_b"], "fields": [1, 2], "crops": ["wheat", "corn"], "rows": true, "wheat": [2, 3], "water": "river", "trees": ["wild", 6], "zones": 0.18, "pale": 0.16, "path": "lane", "ground": "e", "piece": "hay"},
+	{"name": "Russet river", "season": "autumn", "buildings": ["farmhouse", "barn"], "orchard": ["apple", 8], "fields": [1, 1], "crops": ["pumpkin", "cabbage"], "rows": false, "water": "river", "trees": ["wild", 10], "zones": 0.22, "pale": 0.14, "path": "road", "ground": "e", "piece": "harvest"},
+	{"name": "Frozen river", "season": "winter", "buildings": ["farmhouse", "barn"], "pens": [1, 1], "water": "river", "trees": ["pines", 10], "zones": 0.14, "pale": 0.16, "path": "road", "ground": "e", "piece": "farmyard"},
 ]
 
 # Farmstead map types (randomizer-paintedlands-forest-farm only, `mixed`):
@@ -134,6 +140,8 @@ var kind := PackedByteArray()
 var water := {} # cell -> true
 var stream := {} # stream cells
 var stones := {} # stream cells the path crosses on stepping stones
+var bridges: Array[Dictionary] = [] # {design, origin, span, across} (Bridges)
+var bridge_cells := {} # water cells a bridge's deck covers: walkable
 var ponds: Array[Rect2i] = []
 var islands: Array[Vector2i] = [] # a cell near the middle of each lake island
 var plateaus: Array[Dictionary] = [] # {rect, pieces: [{cell, atlas}]}
@@ -200,8 +208,9 @@ func _layout() -> bool:
 	kind = PackedByteArray()
 	kind.resize(W * H)
 	kind.fill(OPEN)
-	for d in [water, stream, stones, paths, blocked, _taken, _no_tree, _locked, plots, fence, deco]:
+	for d in [water, stream, stones, paths, blocked, _taken, _no_tree, _locked, plots, fence, deco, bridge_cells]:
 		d.clear()
+	bridges.clear()
 	for k in blobs:
 		blobs[k].clear()
 	for a in [ponds, islands, plateaus, buildings, fields, crops, pens, gates, trees, canopy, props, goals, firefly_spots]:
@@ -223,10 +232,16 @@ func _layout() -> bool:
 			_pond(Vector2i(_rng.randi_range(8, 10), _rng.randi_range(5, 6)), true)
 		"stream":
 			_stream()
+		"river":
+			_stream(3)
 	for b in recipe.buildings:
 		if not _building(b):
 			return false
 	_lay_paths()
+	_bridge_crossings()
+	if recipe.get("water", "") == "river" and bridges.is_empty():
+		_lane_across()
+		_bridge_crossings()
 	var pr: Array = recipe.get("pens", [0, 0])
 	for i in _rng.randi_range(pr[0], pr[1]):
 		_pen()
@@ -443,25 +458,28 @@ func _pond(bsize: Vector2i, lake := false) -> void:
 
 
 ## A brook from the north edge to the south, two cells wide (one block),
-## widening to two blocks where it shifts sideways so no corner-only join.
-func _stream() -> void:
+## widening to two blocks where it shifts sideways so no corner-only join;
+## `wide` blocks across for a river (3: six cells).
+func _stream(wide := 1) -> void:
 	for t in 30:
-		var bx := _rng.randi_range(6, W / 2 - 7)
+		var bx := _rng.randi_range(6, W / 2 - 7 - (wide - 1))
 		var blocks := {}
 		var ok := true
 		var run := _rng.randi_range(3, 6) # blocks before the next jog
 		var lean := 1 if _rng.randf() < 0.5 else -1
 		for by in range(0 if canopy.is_empty() else 2, H / 2):
-			blocks[Vector2i(bx, by)] = true
+			for k in wide:
+				blocks[Vector2i(bx + k, by)] = true
 			run -= 1
 			if run <= 0 and by < H / 2 - 1:
 				# A jog of one block, mostly the same way (a lazy bend).
 				if _rng.randf() < 0.25:
 					lean = -lean
-				var nx := clampi(bx + lean, 4, W / 2 - 5)
-				blocks[Vector2i(nx, by)] = true
+				var nx := clampi(bx + lean, 4, W / 2 - 5 - (wide - 1))
+				for k in wide:
+					blocks[Vector2i(nx + k, by)] = true
 				bx = nx
-				run = _rng.randi_range(3, 6)
+				run = _rng.randi_range(4, 7) if wide > 1 else _rng.randi_range(3, 6)
 		_clean_blocks(blocks)
 		var cells := _block_cells(blocks)
 		for c in cells:
@@ -476,7 +494,7 @@ func _stream() -> void:
 			kind[_i(c)] = WATER
 			_claim(Rect2i(c - Vector2i(1, 0), Vector2i(3, 1)))
 		_lock_round(cells, 1.0)
-		notes.append("stream")
+		notes.append("river" if wide > 1 else "stream")
 		return
 
 
@@ -682,6 +700,146 @@ func _near_water(c: Vector2i) -> bool:
 			if water.has(c + Vector2i(dx, dy)):
 				return true
 	return false
+
+
+## Where a lane crosses the brook or the river on stepping stones, a bridge
+## instead (Bridges): its deck two cells wide over the crossing's two rows,
+## from the bank before the water to the bank after it, the lane joined to
+## both ends. A crossing whose ends would not stand on open bank keeps its
+## stones. Each bridge on a map is a different design (a map's first by its
+## id); the mossy and flowered ones are kept off the snow.
+func _bridge_crossings() -> void:
+	var seen := {}
+	var pick := map_id * 7 + _rng.randi_range(0, 23)
+	for c0: Vector2i in stones.keys():
+		if seen.has(c0) or not stones.has(c0):
+			continue
+		var comp: Array[Vector2i] = []
+		var queue: Array[Vector2i] = [c0]
+		seen[c0] = true
+		while not queue.is_empty():
+			var c: Vector2i = queue.pop_back()
+			comp.append(c)
+			for d in [Vector2i.UP, Vector2i.RIGHT, Vector2i.DOWN, Vector2i.LEFT]:
+				var n: Vector2i = c + d
+				if stones.has(n) and not seen.has(n):
+					seen[n] = true
+					queue.append(n)
+		var b := _bridge_for(comp, Bridges.pick_design(pick, season == "winter"))
+		if b.is_empty():
+			continue
+		pick += 5
+		for c in comp:
+			stones.erase(c)
+		for c in Bridges.deck_cells(b):
+			if water.has(c):
+				bridge_cells[c] = true
+		bridges.append(b)
+	if not bridges.is_empty():
+		notes.append("%d bridge%s" % [bridges.size(), "" if bridges.size() == 1 else "s"])
+
+
+## A river map whose lanes all keep to one bank: a lane from the nearest
+## path over the river to the far bank (where it can be bridged), so every
+## river has its crossing.
+func _lane_across() -> void:
+	var t: String = recipe.ground
+	for tries in 12:
+		var y := _rng.randi_range(8, H - 9)
+		var lo := W
+		var hi := -1
+		for x in W:
+			if stream.has(Vector2i(x, y)):
+				lo = mini(lo, x)
+				hi = maxi(hi, x)
+		if hi < 0:
+			continue
+		var far := hi + _rng.randi_range(4, 7) if spawn.x < lo else lo - _rng.randi_range(4, 7)
+		var target := Vector2i(far, y)
+		if not _inside(target) or kind[_i(target)] != OPEN or _taken.has(target):
+			continue
+		_route(_nearest_path(target), target, t)
+		return
+
+
+func _bridge_for(comp: Array[Vector2i], design: int) -> Dictionary:
+	# The rows: the crossing's busiest row and the one beside it.
+	var rows := {}
+	for c in comp:
+		rows[c.y] = rows.get(c.y, 0) + 1
+	var r: int = comp[0].y
+	for y in rows:
+		if rows[y] > rows.get(r, 0):
+			r = y
+	var a := r if rows.get(r + 1, 0) >= rows.get(r - 1, 0) else r - 1
+	if a < 1 or a + 1 > H - 2:
+		return {}
+	# The water across both rows, from the crossing outward.
+	var x0 := W
+	var x1 := -1
+	for c in comp:
+		x0 = mini(x0, c.x)
+		x1 = maxi(x1, c.x)
+	for y in [a, a + 1]:
+		while x0 - 1 >= 0 and water.has(Vector2i(x0 - 1, y)):
+			x0 -= 1
+		while x1 + 1 < W and water.has(Vector2i(x1 + 1, y)):
+			x1 += 1
+	for y in [a, a + 1]:
+		for x in range(x0, x1 + 1):
+			if not water.has(Vector2i(x, y)):
+				return {} # a gap in the water: not one crossing
+	# The ends stand a cell back from the water: the corners beside the
+	# water are kept for the shore, so the lane's ground can only meet the
+	# bridge there.
+	var west := x0 - 2
+	var east := x1 + 2
+	if west < 1 or east > W - 2:
+		return {}
+	for y in [a, a + 1]:
+		for x in [west, west + 1, east - 1, east]:
+			var e := Vector2i(x, y)
+			if water.has(e) or kind[_i(e)] != OPEN or blocked.has(e):
+				return {}
+	# Join the lane to both ends: from the lane's bank cell on each side,
+	# straight along the bank to the end of the deck.
+	var joins: Array[Vector2i] = []
+	for c in comp:
+		for d in [Vector2i.UP, Vector2i.RIGHT, Vector2i.DOWN, Vector2i.LEFT]:
+			var n: Vector2i = c + d
+			if paths.has(n) and not water.has(n):
+				joins.append(n)
+	var t: String = recipe.ground
+	for j in joins:
+		var end := Vector2i(west if j.x <= (x0 + x1) / 2 else east, clampi(j.y, a, a + 1))
+		var p := j
+		while p != end:
+			if p.y != end.y:
+				p.y += signi(end.y - p.y)
+			else:
+				p.x += signi(end.x - p.x)
+			if water.has(p) or kind[_i(p)] != OPEN:
+				return {}
+	for j in joins:
+		var end := Vector2i(west if j.x <= (x0 + x1) / 2 else east, clampi(j.y, a, a + 1))
+		var p := j
+		while true:
+			paths[p] = true
+			for o in [Vector2i(0, 0), Vector2i(1, 0), Vector2i(0, 1), Vector2i(1, 1)]:
+				_set_corner(p.x + o.x, p.y + o.y, t)
+			if p == end:
+				break
+			if p.y != end.y:
+				p.y += signi(end.y - p.y)
+			else:
+				p.x += signi(end.x - p.x)
+	for y in [a, a + 1]:
+		for x in [west, east]:
+			paths[Vector2i(x, y)] = true
+			for o in [Vector2i(0, 0), Vector2i(1, 0), Vector2i(0, 1), Vector2i(1, 1)]:
+				_set_corner(x + o.x, y + o.y, t)
+	_claim(Rect2i(west, a - 1, east - west + 1, 4))
+	return {"design": design, "origin": Vector2i(west, a), "span": east - west + 1, "across": true}
 
 
 ## A rounded yard of path ground in front of a door.
@@ -1509,7 +1667,7 @@ func _weakest() -> Dictionary:
 func open_water() -> Array[Vector2i]:
 	var out: Array[Vector2i] = []
 	for c: Vector2i in water:
-		if stones.has(c):
+		if stones.has(c) or bridge_cells.has(c):
 			continue
 		var all := true
 		for dy in range(-1, 2):
@@ -1709,7 +1867,7 @@ func _near_any(c: Vector2i, cells: Array[Vector2i], r: int) -> bool:
 func walkable(c: Vector2i) -> bool:
 	if not _inside(c) or blocked.has(c):
 		return false
-	if stones.has(c):
+	if stones.has(c) or bridge_cells.has(c):
 		return true
 	return kind[_i(c)] == OPEN or kind[_i(c)] == FIELD # the walker wades through the crops
 

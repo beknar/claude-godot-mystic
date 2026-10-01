@@ -51,6 +51,12 @@ const RECIPES := [
 	{"name": "Cottage row", "houses": [1, 2, 3], "water": "S if room", "height": "", "path": "plaza + 2 trunks", "patch": ["R", 1, 2], "props": ["bushes", "carpets heavy", "T"], "signs": 2},
 	{"name": "Twin cottages", "houses": [0, 2], "water": "P+WP", "height": "F", "path": "from east, L", "patch": ["RI", 2, 2], "props": ["bushes", "T"], "signs": 1},
 	{"name": "Manor green", "houses": [0, 3], "water": "S if room", "height": "", "path": "plaza + 2 trunks", "patch": ["R", 2, 3], "props": ["bushes", "LR", "T"], "signs": 2},
+	# Rivers (33-35): a river four cells wide from one edge to the other, the
+	# road crossing it on a bridge (Bridges, 24 designs); the river runs
+	# straight where it is crossed and wanders between.
+	{"name": "River crossing", "houses": [3], "water": "R", "height": "", "path": "edge-to-edge over a bridge", "patch": ["R", 2, 3], "props": ["bushes", "LR", "T"], "signs": 1, "layout": 33},
+	{"name": "River lane", "houses": [1], "water": "R", "height": "", "path": "north-south over a bridge", "patch": ["R", 2, 3], "props": ["bushes", "LR", "T"], "signs": 1, "layout": 34},
+	{"name": "Twin bridges", "houses": [0, 3], "water": "R", "height": "", "path": "two roads, two bridges", "patch": ["I", 2, 3], "props": ["bushes", "LR", "T"], "signs": 2, "layout": 35},
 ]
 
 # FLAT_GRASS: one plain cell and three quiet speckles.
@@ -278,6 +284,7 @@ const COZY_FARM := {
 # Map types only in the cozy farm randomizer, after the Painted Lands ones
 # (recipe = seed % (33 + 3) there; the Painted Lands scenes keep % 33). Each
 # borrows a Painted Lands layout (`layout`) with Cozy Farm buildings.
+const RIVER_FIRST := 33 # the first river map type (33-35)
 const COZY_RECIPES := [
 	{"name": "Farmstead", "layout": 0, "swap": {0: 11}, "houses": [11], "farm": [20, 21, 22, 23], "water": "P+WP+WR", "height": "F", "path": "trunk + L", "patch": ["R", 2, 3], "props": ["bushes", "LR", "T"], "signs": 1},
 	{"name": "Windmill road", "layout": 7, "swap": {2: 14}, "houses": [14], "farm": [24, 23, 21], "water": "S if room", "height": "", "path": "south third", "patch": ["I", 2, 3], "props": ["bushes", "CF", "T"], "signs": 1},
@@ -416,6 +423,7 @@ var tones: Array[Dictionary] = [] # per level: cell -> {atlas, alt}
 var blobs: Array[Dictionary] = [] # {rect, cells, shape, mode, tiles, baked}
 var ponds: Array[Rect2i] = []
 var streams: Array[Dictionary] = [] # {cells: {cell: true}}, water cells of each stream
+var bridges: Array[Dictionary] = [] # {design, origin, span, across} (Bridges): where a road crosses a river
 var deep := {} # cell -> true
 var hedge := {} # cell -> atlas
 var accents := {} # cell -> atlas
@@ -453,9 +461,12 @@ var _blocked := {} # cells the walker cannot enter
 # forest and wilds scenes do, so their maps survive new recipes).
 func generate(p_map_id: int, p_recipe := -1) -> String:
 	map_id = p_map_id
-	var count := RECIPES.size() + (COZY_RECIPES.size() if cozy else 0)
+	# The deprecated cozy farm randomizer keeps its record: the map types
+	# before the rivers, then its own.
+	var base := RIVER_FIRST if cozy else RECIPES.size()
+	var count := base + (COZY_RECIPES.size() if cozy else 0)
 	recipe_id = p_recipe if p_recipe >= 0 and p_recipe < count else map_id % count
-	recipe = RECIPES[recipe_id] if recipe_id < RECIPES.size() else COZY_RECIPES[recipe_id - RECIPES.size()]
+	recipe = RECIPES[recipe_id] if recipe_id < base else COZY_RECIPES[recipe_id - base]
 	if cozy:
 		# The recipe's houses become its Cozy Farm homes, and its farmyard.
 		recipe = recipe.duplicate(true)
@@ -669,7 +680,7 @@ func _reset(seed_value: int) -> void:
 	_rng.seed = seed_value
 	for d in [lawn, features, path, water, deep, hedge, accents, canopy, ridge, ridge_rock, plateau, ledge, stairs, ramps, deco, fence, _taken, _solid, _blocked]:
 		d.clear()
-	for a in [blobs, ponds, streams, props, houses, goals, tones, caves, plateaus, outbuildings]:
+	for a in [blobs, ponds, streams, props, houses, goals, tones, caves, plateaus, outbuildings, bridges]:
 		a.clear()
 	dropped.clear()
 	floor_notes.clear()
@@ -730,7 +741,218 @@ func _layout() -> bool:
 		30: return _lay_village()
 		31: return _lay_hamlet(false)
 		32: return _lay_village()
+		33: return _lay_river_road()
+		34: return _lay_river_lane()
+		35: return _lay_twin_bridges()
 	return false
+
+
+# ---------------------------------------------------------------- rivers
+
+const RIVER_WIDTH := 4
+
+# A river four cells wide from edge to edge (`across`: running north-south;
+# else west-east), wandering a cell at a time but straight for four cells
+# either side of each `crossing` (a row, or a column) so the road crosses it
+# square. Its water is the pond's tiles; the crossings' cells stay dry for the
+# roads (the bridges cover them). Returns false if it does not fit.
+func _river(across: bool, crossings: Array[int]) -> bool:
+	var span := HEIGHT if across else WIDTH
+	var breadth := WIDTH if across else HEIGHT
+	for attempt in 40:
+		var lo := breadth / 3 - 2
+		var hi := breadth * 2 / 3 - RIVER_WIDTH + 2
+		var at := _rng.randi_range(lo, hi)
+		var lean := 1 if _rng.randf() < 0.5 else -1
+		var run := _rng.randi_range(4, 7)
+		var cells := {}
+		for t in range(-1, span + 1):
+			var near := false
+			for k in crossings:
+				if absi(t - k) <= 4 or absi(t - (k + 1)) <= 4:
+					near = true
+			run -= 1
+			if run <= 0 and not near:
+				if _rng.randf() < 0.3:
+					lean = -lean
+				var nat := clampi(at + lean, 3, breadth - RIVER_WIDTH - 3)
+				for w in RIVER_WIDTH:
+					var c0 := Vector2i(at + w, t) if across else Vector2i(t, at + w)
+					cells[c0] = true
+				at = nat
+				run = _rng.randi_range(4, 7)
+			for w in RIVER_WIDTH:
+				cells[Vector2i(at + w, t) if across else Vector2i(t, at + w)] = true
+		# Bulges on the banks so they wander instead of running straight (the
+		# brook's), kept off the crossings so the bridges stay square.
+		var before := cells.duplicate()
+		_stream_bumps(cells, _rng.randi_range(8, 14))
+		for c in cells.keys():
+			if not before.has(c) and _near_crossing(c, across, crossings):
+				cells.erase(c)
+		var inside := {}
+		for c in cells:
+			if _inside(c):
+				inside[c] = true
+		var dry := {}
+		for k in crossings:
+			for c in inside:
+				var t2: int = c.y if across else c.x
+				if t2 == k or t2 == k + 1:
+					dry[c] = true
+		var ok := true
+		for c in inside:
+			if _taken.has(c) or plateau.has(c):
+				ok = false
+				break
+		if not ok:
+			continue
+		var tiles := {}
+		for c in inside:
+			var tl := _pool_tile(c, cells, WATER_SET, WATER_INNER)
+			if tl == NONE:
+				ok = false
+				break
+			tiles[c] = tl
+		if not ok:
+			continue
+		var wet := {}
+		for c in inside:
+			if not dry.has(c):
+				wet[c] = true
+		var wet_props: Array[Dictionary] = []
+		for pr in _water_props(wet, "WP"):
+			if not _near_crossing(pr.cell, across, crossings):
+				wet_props.append(pr)
+		for c in inside:
+			if dry.has(c):
+				continue
+			var tl: Vector2i = tiles[c]
+			if tl == WATER_SET + Vector2i(1, 1):
+				tl = SHALLOW_SURFACE
+			features[c] = tl
+			water[c] = true
+			_solid[c] = true
+			_blocked[c] = true
+		_river_tiles = tiles
+		props.append_array(wet_props)
+		for c in inside:
+			for y in range(-1, 2):
+				for x in range(-1, 2):
+					var n: Vector2i = c + Vector2i(x, y)
+					if _inside(n) and not dry.has(n):
+						_taken[n] = true
+		streams.append({"cells": wet})
+		_river_dry = dry
+		return true
+	return false
+
+
+var _river_tiles := {} # the river's water tiles, the dry crossing cells too
+var _river_dry := {} # the crossing cells (the roads go over them)
+
+
+func _near_crossing(c: Vector2i, across: bool, crossings: Array[int]) -> bool:
+	var t: int = c.y if across else c.x
+	for k in crossings:
+		if t >= k - 2 and t <= k + 3:
+			return true
+	return false
+
+
+# After the roads: a bridge over each crossing, from the bank before the
+# water to the bank after it; the crossing cells take the river's water
+# tiles again (the deck covers them) and stay walkable. Each bridge on a map
+# is a different design.
+func _bridge_rivers(across: bool, crossings: Array[int]) -> bool:
+	var pick := map_id * 5 + _rng.randi_range(0, 23)
+	for k in crossings:
+		var lo := 999
+		var hi := -1
+		for c in _river_dry:
+			var t: int = c.y if across else c.x
+			if t != k:
+				continue
+			var along: int = c.x if across else c.y
+			lo = mini(lo, along)
+			hi = maxi(hi, along)
+		if hi < 0:
+			return false
+		var origin := Vector2i(lo - 1, k) if across else Vector2i(k, lo - 1)
+		bridges.append({"design": Bridges.pick_design(pick, false), "origin": origin, "span": hi - lo + 3, "across": across})
+		pick += 7
+	for c in _river_dry:
+		features[c] = _river_tiles[c] if _river_tiles[c] != WATER_SET + Vector2i(1, 1) else SHALLOW_SURFACE
+		path.erase(c) # under the deck: water, not road
+	return true
+
+
+# 33: a river north to south, the road edge to edge over a bridge, a cottage
+# beside the road on one bank.
+func _lay_river_road() -> bool:
+	var row := _rng.randi_range(HEIGHT / 2 - 4, HEIGHT / 2 + 4)
+	if not _river(true, [row]):
+		return false
+	if not _route([Vector2i(0, row), Vector2i(WIDTH - 2, row)]):
+		return false
+	var west := _rng.randf() < 0.5
+	var zone := Rect2i(4 if west else WIDTH / 2 + 8, 3, WIDTH / 2 - 16, row - 12) # north of the road, its door toward it
+	var h := _place_house(recipe.houses[0], zone)
+	if h.is_empty():
+		return false
+	var door := _door(h)
+	var toward := row if door.y < row else row + 1
+	if not _route([door, Vector2i(door.x, toward)], true):
+		return false
+	spawn = Vector2i(2, row)
+	goals = [door, Vector2i(WIDTH - 2, row)]
+	return _bridge_rivers(true, [row])
+
+
+# 34: a river west to east, a lane south to north over a bridge, a cottage
+# by the lane.
+func _lay_river_lane() -> bool:
+	var col := _rng.randi_range(WIDTH / 2 - 8, WIDTH / 2 + 6)
+	if not _river(false, [col]):
+		return false
+	if not _route([Vector2i(col, HEIGHT - 2), Vector2i(col, 0)]):
+		return false
+	var east := _rng.randf() < 0.5
+	var h := _place_house(recipe.houses[0], Rect2i(col + 5 if east else 3, 3, WIDTH / 2 - 14, 4))
+	if h.is_empty():
+		return false
+	var door := _door(h)
+	var side := col + 1 if door.x > col else col
+	if not _route([door, Vector2i(door.x, door.y + 2), Vector2i(side, door.y + 2)], true):
+		return false
+	spawn = Vector2i(col, HEIGHT - 3)
+	goals = [door, Vector2i(col, 1)]
+	return _bridge_rivers(false, [col])
+
+
+# 35: a river north to south, two roads edge to edge over two bridges, a
+# cottage on each bank.
+func _lay_twin_bridges() -> bool:
+	var r1 := _rng.randi_range(9, 13)
+	var r2 := _rng.randi_range(HEIGHT - 14, HEIGHT - 10)
+	if not _river(true, [r1, r2]):
+		return false
+	for r in [r1, r2]:
+		if not _route([Vector2i(0, r), Vector2i(WIDTH - 2, r)]):
+			return false
+	var doors: Array[Vector2i] = []
+	var sides := [Rect2i(4, r1 + 4, WIDTH / 2 - 18, r2 - r1 - 12), Rect2i(WIDTH / 2 + 10, r1 + 4, WIDTH / 2 - 18, r2 - r1 - 12)]
+	for i in 2:
+		var h := _place_house(recipe.houses[i], sides[i])
+		if h.is_empty():
+			return false
+		var door := _door(h)
+		if not _route([door, Vector2i(door.x, r2)], true):
+			return false
+		doors.append(door)
+	spawn = Vector2i(2, r2)
+	goals.assign(doors + [Vector2i(WIDTH - 2, r1), Vector2i(WIDTH - 2, r2)])
+	return _bridge_rivers(true, [r1, r2])
 
 
 # 0: trunk from the west edge with one lean, into a fenced yard. Pond south.
