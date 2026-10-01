@@ -27,6 +27,9 @@ const RIDGE_FRONT := 8
 @export var recipe := -1
 ## Houses open onto generated interiors (house_interiors.gd): the randomizer.
 @export var interiors := false
+## maze-forest: the maze map types (forest_maze.gd) instead of the
+## randomizer's.
+@export var maze := false
 ## The Cozy Farm art pack's animals (wildlife.gd `mode`): the bunny for the
 ## drawn rabbit and farm animals round the homes ("pack"), or with
 ## `cozy_buildings` the deprecated cozy farm table ("farm"). The only Cozy
@@ -103,6 +106,7 @@ func build(id: int, pinned := -1) -> void:
 	recipe = pinned
 	terrain = PaintedTerrain.new()
 	terrain.cozy = cozy_buildings
+	terrain.maze = maze
 	report = terrain.generate(map_id, recipe)
 	for layer in [ground, features_layer, deco_layer, accent_layer] + tone_layers:
 		layer.clear()
@@ -127,6 +131,10 @@ func build(id: int, pinned := -1) -> void:
 ## For the randomizer menu: the recipe names, in recipe-id order.
 func recipe_names() -> Array[String]:
 	var out: Array[String] = []
+	if maze:
+		for r in ForestMaze.MAZE_RECIPES:
+			out.append(r.name)
+		return out
 	for r in (PaintedTerrain.RECIPES.slice(0, PaintedTerrain.RIVER_FIRST) if cozy_buildings else PaintedTerrain.RECIPES):
 		out.append(r.name)
 	if cozy_buildings:
@@ -478,15 +486,24 @@ func _chamfer(mask: PackedByteArray, size: Vector2i) -> PackedInt32Array:
 
 
 func _build_collision() -> void:
+	# A maze's walls collide where they are drawn: the hedge (or the water)
+	# sits inside its tiles with a margin of grass, so each wall cell on the
+	# wall's edge blocks only its tile's drawn part (forest_maze.gd).
+	var maze_walls: Dictionary = terrain.maze_info.get("walls", {})
+	for cell in maze_walls:
+		var atlas: Vector2i = terrain.hedge.get(cell, terrain.features.get(cell, PaintedTerrain.NONE))
+		var r := _drawn_rect(atlas) if _wall_edge(cell, maze_walls) else Rect2i(0, 0, TILE, TILE)
+		if r.size.x > 0 and r.size.y > 0:
+			_add_box(collision, Rect2(Vector2(cell * TILE + r.position), Vector2(r.size)))
 	# Water and plateau: one rectangle per horizontal run.
 	for y in PaintedTerrain.HEIGHT:
 		var x := 0
 		while x < PaintedTerrain.WIDTH:
-			if not _solid_ground(Vector2i(x, y)):
+			if not _solid_ground(Vector2i(x, y)) or maze_walls.has(Vector2i(x, y)):
 				x += 1
 				continue
 			var start := x
-			while x < PaintedTerrain.WIDTH and _solid_ground(Vector2i(x, y)):
+			while x < PaintedTerrain.WIDTH and _solid_ground(Vector2i(x, y)) and not maze_walls.has(Vector2i(x, y)):
 				x += 1
 			_add_box(collision, Rect2(start * TILE, y * TILE, (x - start) * TILE, TILE))
 	for cell in terrain.fence:
@@ -497,6 +514,32 @@ func _build_collision() -> void:
 	_add_box(collision, Rect2(-TILE, h, w + 2 * TILE, TILE))
 	_add_box(collision, Rect2(-TILE, 0, TILE, h))
 	_add_box(collision, Rect2(w, 0, TILE, h))
+
+
+func _wall_edge(cell: Vector2i, walls: Dictionary) -> bool:
+	for d in [Vector2i.UP, Vector2i.RIGHT, Vector2i.DOWN, Vector2i.LEFT]:
+		if not walls.has(cell + d):
+			return true
+	return false
+
+
+var _drawn_cache := {}
+
+# The opaque part of a sheet tile, in pixels inside its cell.
+func _drawn_rect(atlas: Vector2i) -> Rect2i:
+	if _drawn_cache.has(atlas):
+		return _drawn_cache[atlas]
+	var lo := Vector2i(TILE, TILE)
+	var hi := Vector2i(-1, -1)
+	if atlas.x >= 0:
+		for y in TILE:
+			for x in TILE:
+				if _pixels.get_pixel(atlas.x * TILE + x, atlas.y * TILE + y).a > 0.5:
+					lo = lo.min(Vector2i(x, y))
+					hi = hi.max(Vector2i(x, y))
+	var r := Rect2i(lo, hi - lo + Vector2i.ONE) if hi.x >= 0 else Rect2i()
+	_drawn_cache[atlas] = r
+	return r
 
 
 # Each prefab splits into HOUSE_ROOF (no collision, sorted at the eave) and

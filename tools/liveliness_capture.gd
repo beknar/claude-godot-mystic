@@ -91,10 +91,14 @@ func _ready() -> void:
 			_farm = true
 		elif a == "pc":
 			_pc = true
-		elif a in ["cozy", "pack", "drawn", "mixed"] or a.begins_with("out="):
+		elif a in ["cozy", "pack", "drawn", "mixed", "maze"] or a.begins_with("out="):
 			pass
 		else:
 			_plan.append(int(a))
+	var maze := "maze" in args # maze-forest: twelve of the maze types
+	if _plan.is_empty() and maze:
+		for r in [0, 1, 4, 5, 7, 8, 11, 13, 15, 18, 20, 23]:
+			_plan.append(400008 + r)
 	if _plan.is_empty():
 		if _farm:
 			_plan = FARM_MAPS.duplicate()
@@ -102,7 +106,7 @@ func _ready() -> void:
 			_plan = PC_MAPS.duplicate()
 		else:
 			_plan = CAVE_CALIBRATE + CAVE_HOLDOUT if _caves else CALIBRATE + HOLDOUT
-	var suffix := "_farm" if _farm else ("_pc" if _pc else ("_caves" if _caves else ""))
+	var suffix := "_farm" if _farm else ("_pc" if _pc else ("_caves" if _caves else ("_maze" if maze else "")))
 	_out = ProjectSettings.globalize_path("res://.liveliness%s/raw" % suffix)
 	if _farm or _pc:
 		_views = [Vector2i(0, 0), Vector2i(21, 0), Vector2i(0, 11), Vector2i(21, 11), Vector2i(0, 22), Vector2i(21, 22)]
@@ -122,6 +126,10 @@ func _ready() -> void:
 		_forest.interiors = false
 		# `mixed`: with the farmsteads (randomizer-paintedlands-forest-farm).
 		_forest.mixed = "mixed" in OS.get_cmdline_user_args()
+	if maze:
+		_forest.maze = true
+		_forest.cozy_animals = true
+		PaintedFeatures.animals = "pack"
 	if cozy:
 		_forest.cozy_animals = true
 		_forest.cozy_buildings = true

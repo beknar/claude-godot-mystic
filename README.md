@@ -127,6 +127,7 @@ generator.
 | `scenes/forest/forest.tscn` | 91003 | `character_sprite_sheet.png` (3×4 of 32px) |
 | `scenes/wilds/wilds.tscn` | 75125 (recipe 5, Open meadow) | `character_sprite_sheet.png` |
 | `scenes/randomizer-paintedlands/randomizer-paintedlands.tscn` | starts at 75101 (recipe 5, Open meadow), then any | `character_sprite_sheet.png` |
+| `scenes/maze-forest/maze-forest.tscn` | starts at 400000 (maze type 16, Firefly maze; id % 24), then any | `character_sprite_sheet.png` (the Painted Lands walker) |
 | `scenes/randomizer-mysticwoods/randomizer-mysticwoods.tscn` | starts at 21021, then any | `player.png` |
 | `scenes/randomizer-greencaves/randomizer-greencaves.tscn` | starts at 130021, then any | `character_sprite_sheet.png` (the Painted Lands walker) |
 | `scenes/randomizer-paintedlands-farm/randomizer-paintedlands-farm.tscn` | starts at 190008 (recipe 0, Homestead), then any | `character_sprite_sheet.png` (the Painted Lands walker) |
@@ -220,6 +221,21 @@ packs draw none), built piece by piece to span any width, the walker
 crossing between the back rail and the front one, the lanterns glowing.
 The Painted Lands randomizer has three river map types (river crossing,
 river lane, twin bridges) and the farm four (docs/bridges.md).
+
+**Forest mazes.** `maze-forest` builds hedge and canal mazes on the Painted
+Lands Forest sheet, 24 types from the same Esc menu (each regenerate a new
+maze of the type): long winding labyrinths, branching and braided ones,
+windswept runs, rings round an old tree, gardens, a camp, a pond court, a
+cottage or two in their clearings (Cozy Cottage interiors, the Cozy Farm
+animals round them), paved paths and wide avenues, wooded hedges with trees
+growing out of them, a treasure maze with chests in its dead ends, a lantern
+maze, pale-hedge mazes on dark grass with fireflies, canals with lilies and
+bridges, and a maze in a moat. Walls are three cells thick so the sheet's
+hedge draws full, and they collide where they are drawn; every room is
+reachable from the one entrance (a road, lanterns, a signpost) to the one
+exit. The rest is the Painted Lands pipeline: grass tones, dirt patches,
+flowers, bunnies, butterflies, wind, clouds, leaves, lanterns lifting the
+quiet stretches (docs/maze-forest.md; `tools/check_maze.gd`).
 
 The Painted Lands forest and farm randomizer
 (`randomizer-paintedlands-forest-farm`) builds all 100 Painted Lands map

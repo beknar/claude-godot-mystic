@@ -15,8 +15,8 @@ changing its generator, painter, or scenes.
   props, or in palettes.
 - **Cozy Farm** (shubibubi) is used for its **animals only**, in
   `randomizer-paintedlands`, `randomizer-greencaves`,
-  `randomizer-paintedlands-farm`, and `randomizer-paintedlands-forest-farm`
-  (`cozy_animals`):
+  `randomizer-paintedlands-farm`, `randomizer-paintedlands-forest-farm`, and
+  `maze-forest` (`cozy_animals`):
   the bunny for the drawn rabbit, farm animals only by homes and in pens.
   Insects, birds, tiny animals, and effects stay as drawn. Its buildings
   and other art are not used; `randomizer-painted-cozyfarm` is deprecated.
@@ -30,6 +30,7 @@ changing its generator, painter, or scenes.
 | Pack | Scenes | Code | Doc |
 |---|---|---|---|
 | Painted Lands, Forest | `forest`, `wilds`, `randomizer-paintedlands` | `forest_terrain.gd`, `forest.gd` | `docs/painted-lands.md` |
+| Painted Lands, Forest mazes (hedges, canals) | `maze-forest` | `forest_maze.gd` (with `forest_terrain.gd`, `forest.gd`) | `docs/maze-forest.md` |
 | Painted Lands, Green Caves | `randomizer-greencaves` | `cave_terrain.gd`, `caves.gd`, `cave_life.gd` | `docs/green-caves.md` |
 | Painted Lands, Farm – 4 Seasons (spring and summer, autumn, winter; one season per map, never mixed) | `randomizer-paintedlands-farm` | `farm_terrain.gd`, `farm.gd`, `farm_tiles.gd` | `docs/farm.md` |
 | Painted Lands, Forest and Farm combined (every Forest and Farm map type, plus farmsteads: Farm ground with Forest houses, fires, and clutter) | `randomizer-paintedlands-forest-farm` | `forest_farm.gd`, `farm_terrain.gd` (`MIXED_RECIPES`), `farm_tiles.gd` (`FOREST_PROPS`) | `docs/farm.md` (Farmsteads) |

@@ -440,6 +440,11 @@ var houses: Array[Dictionary] = [] # {id, origin}
 ## The cozy farm randomizer: Cozy Farm homes for the recipe's prefabs, its
 ## outbuildings, and the cozy-only map types (set before generate()).
 var cozy := false
+## maze-forest: the maze map types (forest_maze.gd) instead (set before
+## generate()); maze_info: {entrance, exit, corridors, rooms, dead_ends,
+## clearings} of the maze laid.
+var maze := false
+var maze_info := {}
 var outbuildings: Array[Dictionary] = [] # {id, origin}: farm buildings, not entered
 var fence := {} # cell -> {atlas, flip}
 var gate := Vector2i(-1, -1) # left cell of a two-cell gate
@@ -465,8 +470,13 @@ func generate(p_map_id: int, p_recipe := -1) -> String:
 	# before the rivers, then its own.
 	var base := RIVER_FIRST if cozy else RECIPES.size()
 	var count := base + (COZY_RECIPES.size() if cozy else 0)
+	if maze:
+		count = ForestMaze.MAZE_RECIPES.size()
 	recipe_id = p_recipe if p_recipe >= 0 and p_recipe < count else map_id % count
-	recipe = RECIPES[recipe_id] if recipe_id < base else COZY_RECIPES[recipe_id - base]
+	if maze:
+		recipe = ForestMaze.recipes()[recipe_id]
+	else:
+		recipe = RECIPES[recipe_id] if recipe_id < base else COZY_RECIPES[recipe_id - base]
 	if cozy:
 		# The recipe's houses become its Cozy Farm homes, and its farmyard.
 		recipe = recipe.duplicate(true)
@@ -684,6 +694,7 @@ func _reset(seed_value: int) -> void:
 		a.clear()
 	dropped.clear()
 	floor_notes.clear()
+	maze_info = {}
 	gate = Vector2i(-1, -1)
 	leans = 0
 	hedgerows = 0
@@ -707,6 +718,8 @@ func _paint_lawn() -> void:
 # next attempt seed.
 
 func _layout() -> bool:
+	if maze:
+		return ForestMaze.new(self, _rng).lay()
 	match recipe.get("layout", recipe_id):
 		0: return _lay_pastoral()
 		1: return _lay_crossroads()
@@ -3007,12 +3020,13 @@ func _liveliness_floor() -> void:
 	var features = load("res://scripts/liveliness_features.gd") # load, not preload: it preloads this script
 	floor_notes.clear()
 	var tried := {}
-	for n in FLOOR_ANCHORS + 2:
+	var most := FLOOR_ANCHORS * 2 if maze else FLOOR_ANCHORS # a maze is many small rooms
+	for n in most + 2:
 		var weakest := _weakest_window(features, tried)
 		if n == 0:
 			floor_before = weakest.value
 		floor_after = weakest.value
-		if weakest.value >= FLOOR or floor_notes.size() >= FLOOR_ANCHORS or weakest.rect.size == Vector2i.ZERO:
+		if weakest.value >= FLOOR or floor_notes.size() >= most or weakest.rect.size == Vector2i.ZERO:
 			return
 		var note := _floor_anchor(weakest.rect, weakest.value < FLOOR * 0.5)
 		if note == "":
@@ -3061,12 +3075,55 @@ func _weakest_window(features, tried: Dictionary) -> Dictionary:
 # note, or "" if nothing fit.
 func _floor_anchor(win: Rect2i, big: bool) -> String:
 	var inner := win.grow_individual(-6, -3, -6, -3)
+	if maze and not maze_info.is_empty():
+		return _floor_maze(inner)
 	var order := ["campfire", "lanterns"] if big else ["lanterns", "campfire"]
 	for kind in order:
 		if kind == "lanterns" and _floor_lanterns(inner):
 			return "lanterns"
 		if kind == "campfire" and _floor_campfire(inner):
 			return "campfire"
+	return ""
+
+
+# A maze's anchor: lanterns standing in the hedge (or on a canal's bank) at
+# a corridor bend, never in the corridor; else a bed of flowers in a
+# corridor (butterflies come to it).
+func _floor_maze(inner: Rect2i) -> String:
+	var walls: Dictionary = maze_info.get("walls", {})
+	var spots: Array[Vector2i] = []
+	for c: Vector2i in walls:
+		if not inner.has_point(c) or not hedge.has(c) or _blocked.has(c + Vector2i.UP) == false:
+			continue
+		# A hedge cell right beside a corridor (its lantern lights the way),
+		# the cell above it hedge too (the lantern's top stands on it).
+		var beside := false
+		for d in [Vector2i.LEFT, Vector2i.RIGHT, Vector2i.DOWN]:
+			if maze_info.corridors.has(c + d) and not _blocked.has(c + d):
+				beside = true
+		if beside:
+			spots.append(c)
+	spots.shuffle()
+	var placed := 0
+	for c in spots:
+		if placed >= 2:
+			break
+		var near := false
+		for p in props:
+			if p.has("art") and String(p.art).begins_with("torch") and Vector2(p.cell - c).length() < 5.0:
+				near = true
+		if near:
+			continue
+		var torch := {"art": TORCHES[_rng.randi() % TORCHES.size()], "cell": c, "block": true}
+		props.append(torch)
+		_block_collider(torch)
+		placed += 1
+	if placed > 0:
+		return "maze lanterns"
+	for c: Vector2i in maze_info.corridors:
+		if inner.has_point(c) and not _blocked.has(c) and not path.has(c) and not deco.has(c):
+			deco[c] = FLOWERS[_rng.randi() % FLOWERS.size()]
+			return "maze flowers"
 	return ""
 
 
@@ -3271,6 +3328,28 @@ func _tone_level(c: Vector2i) -> int:
 
 func _verify() -> String:
 	var fails := PackedStringArray()
+	if maze:
+		if maze_info.is_empty():
+			fails.append("no maze")
+		else:
+			# Every corridor cell and the exit reachable from the entrance.
+			var seen := {spawn: true}
+			var queue: Array[Vector2i] = [spawn]
+			while not queue.is_empty():
+				var q: Vector2i = queue.pop_back()
+				for d in [Vector2i.UP, Vector2i.RIGHT, Vector2i.DOWN, Vector2i.LEFT]:
+					var n: Vector2i = q + d
+					if walkable(n) and not seen.has(n):
+						seen[n] = true
+						queue.append(n)
+			var cut := 0
+			for c in maze_info.corridors:
+				if not _blocked.has(c) and not seen.has(c):
+					cut += 1
+			if not seen.has(maze_info.exit):
+				fails.append("the exit is cut off")
+			if cut > 0:
+				fails.append("%d maze cells cut off" % cut)
 	for c in path:
 		var t: Vector2i = features.get(c, NONE)
 		if t == NONE:
@@ -3387,8 +3466,9 @@ func _verify() -> String:
 		fails.append("no water plants")
 	if want_ponds > 0 and "WR" in recipe.water and counts.get("water rock", 0) == 0:
 		fails.append("no water rocks")
-	if sign_ids.size() != recipe.signs:
-		fails.append("signs %d distinct, recipe wants %d" % [sign_ids.size(), recipe.signs])
+	var want_signs: int = recipe.signs + (2 if maze else 0) # a maze: one at the entrance, one at the exit
+	if sign_ids.size() != want_signs:
+		fails.append("signs %d distinct, recipe wants %d" % [sign_ids.size(), want_signs])
 	for c in path:
 		if _blocked.has(c):
 			fails.append("path cell %s is blocked" % c)

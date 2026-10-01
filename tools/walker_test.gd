@@ -94,12 +94,16 @@ func _ready() -> void:
 			_pc = true
 		elif a == "cozy":
 			cozy = true
-		elif a in ["pack", "drawn", "mixed"]:
+		elif a in ["pack", "drawn", "mixed", "maze"]:
 			pass
 		elif a.begins_with("out="):
 			out_dir = a.substr(4)
 		else:
 			_plan.append(int(a))
+	var maze := "maze" in OS.get_cmdline_user_args() # maze-forest (forest_maze.gd), the Cozy Farm animals
+	if _plan.is_empty() and maze:
+		for r in ForestMaze.MAZE_RECIPES.size():
+			_plan.append(400000 + r)
 	if _plan.is_empty():
 		if _headless:
 			var first: int = 190000 if _farm else (170000 if _pc else (130000 if _caves else 120000))
@@ -111,7 +115,7 @@ func _ready() -> void:
 			_plan = PC_RENDERED_MAPS.duplicate()
 		else:
 			_plan = CAVE_RENDERED_MAPS.duplicate() if _caves else RENDERED_MAPS.duplicate()
-	var suffix := "_farm" if _farm else ("_pc" if _pc else ("_caves" if _caves else ""))
+	var suffix := "_farm" if _farm else ("_pc" if _pc else ("_caves" if _caves else ("_maze" if maze else "")))
 	_out = ProjectSettings.globalize_path("res://.liveliness_walk" + suffix)
 	if out_dir != "":
 		_out = ProjectSettings.globalize_path("res://" + out_dir)
@@ -122,6 +126,9 @@ func _ready() -> void:
 		_forest.interiors = false # the route never goes indoors
 		# `mixed`: with the farmsteads (randomizer-paintedlands-forest-farm).
 		_forest.mixed = "mixed" in OS.get_cmdline_user_args()
+	if maze:
+		_forest.maze = true
+		_forest.cozy_animals = true
 	if cozy:
 		_forest.cozy_animals = true
 		_forest.cozy_buildings = true

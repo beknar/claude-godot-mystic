@@ -30,6 +30,9 @@ Rules for each pack: `docs/painted-lands.md`, `docs/green-caves.md`,
 | Painted Lands Forest + Cozy Farm (bunnies) | `randomizer-paintedlands` | 8 |
 | Painted Lands Forest + Cozy Cottage (interiors) + Cozy Farm (bunnies, farm animals) | `randomizer-paintedlands` | 25 |
 | Painted Lands Forest + bridges (generated, Forest colors) + Cozy Cottage (interiors) + Cozy Farm (bunnies, farm animals) | `randomizer-paintedlands` (rivers) | 3 |
+| Painted Lands Forest (hedge and canal mazes) + Cozy Farm (bunnies) | `maze-forest` | 19 |
+| Painted Lands Forest (mazes with a cottage) + Cozy Cottage (interiors) + Cozy Farm (bunnies, farm animals) | `maze-forest` | 3 |
+| Painted Lands Forest (mazes crossed on bridges) + bridges (generated) + Cozy Farm (bunnies) | `maze-forest` | 2 (Lily canals, Moat maze; Canal cottage has its cottage and bridges) |
 | Painted Lands Green Caves | `randomizer-greencaves` | 23 |
 | Painted Lands Green Caves + Cozy Farm (bunnies) | `randomizer-greencaves` | 3 |
 | Painted Lands Green Caves + Cozy Cottage (homes) + Cozy Farm (farm animals) | `randomizer-greencaves` | 7 |
@@ -45,8 +48,8 @@ Rules for each pack: `docs/painted-lands.md`, `docs/green-caves.md`,
 | Pixel Crawler Cemetery | `randomizer-pixelcrawler` | 3 |
 | Pixel Crawler Desert | `randomizer-pixelcrawler` | 3 |
 
-150 map types in all (36 Painted Lands, 33 Green Caves, 52 Farm in three
-seasons, 12 farmsteads, 17 Pixel Crawler) and 2 fixed maps.
+174 map types in all (36 Painted Lands, 24 Forest mazes, 33 Green Caves,
+52 Farm in three seasons, 12 farmsteads, 17 Pixel Crawler) and 2 fixed maps.
 `randomizer-paintedlands-forest-farm` builds all 100 Painted Lands map types
 (the 36 Forest, the 52 Farm, and the 12 farmsteads, which only it builds).
 
@@ -122,6 +125,42 @@ on the other maps.
 | 33 | River crossing | hut (a river north to south, the road over a bridge) |
 | 34 | River lane | flower cottage (a river west to east, the lane over a bridge) |
 | 35 | Twin bridges | porch cottage, hut (two roads, two bridges) |
+
+## Painted Lands Forest mazes
+
+`maze-forest` (id % 24, docs/maze-forest.md): hedge mazes (the Forest
+sheet's dark hedge on plain lawn, or its pale hedge on dark grass) and canal
+mazes (the pond's water set), walls three cells thick, one visible entrance
+in the west wall and one exit in the east (a road in, lanterns, a
+signpost), every room reachable. Cozy Farm bunnies throughout; farm animals
+round the cottages (Cozy Cottage interiors).
+
+| # | Map type | Walls | Clearings |
+|---|---|---|---|
+| 0 | Hedge labyrinth | dark hedge | |
+| 1 | Branching hedges | dark hedge | |
+| 2 | Braided hedges | dark hedge (loops) | |
+| 3 | Windswept hedges | dark hedge | |
+| 4 | Garden maze | dark hedge | garden |
+| 5 | Cottage maze | dark hedge | cottage (hut, Cozy Cottage interior) |
+| 6 | Campfire maze | dark hedge | camp |
+| 7 | Pond court | dark hedge | pond |
+| 8 | Wide avenues | dark hedge, paved avenues | |
+| 9 | Path maze | dark hedge, paved | |
+| 10 | Rings maze | dark hedge (rings) | old tree |
+| 11 | Wooded maze | dark hedge, many trees | |
+| 12 | Treasure maze | dark hedge, chests | |
+| 13 | Twin cottages | dark hedge | two cottages (huts, Cozy Cottage interiors) |
+| 14 | Lantern maze | dark hedge, paved, lanterns | camp |
+| 15 | Shade maze | pale hedge on dark grass | |
+| 16 | Firefly maze | pale hedge on dark grass | old tree |
+| 17 | Moss garden | pale hedge on dark grass (loops) | pond |
+| 18 | Canal maze | canals | |
+| 19 | Lily canals | canals, bridges | |
+| 20 | Moat maze | dark hedge in a moat, bridges | garden |
+| 21 | Meadow maze | dark hedge (loops) | three meadows |
+| 22 | Canal cottage | canals, paved, bridges | cottage (hut, Cozy Cottage interior) |
+| 23 | Stone court | dark hedge (rings), paved | camp |
 
 ## Painted Lands Green Caves
 

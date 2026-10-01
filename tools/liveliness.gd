@@ -57,6 +57,8 @@ func _init() -> void:
 		var t = Terrain.new()
 		if not caves and "cozy" in args:
 			t.cozy = true # the cozy farm randomizer's buildings and map types
+		if not caves and not farm and "maze" in args:
+			t.maze = true # maze-forest (forest_maze.gd)
 		if farm and "mixed" in args:
 			t.mixed = true # with the farmsteads (randomizer-paintedlands-forest-farm)
 		t.generate(id, pinned)
