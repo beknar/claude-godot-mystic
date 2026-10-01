@@ -158,8 +158,7 @@ the animals).
 
 Every building has a door (house_interiors.gd `reset_doors`): walk into it
 and the screen fades to a sub-map far below the farm. Farmhouses (2–4
-rooms), the manor (3–6), and the windmill (1) open on Cozy Cottage homes
-(docs/interiors.md). The **barn** opens on a barn (14 x 11 cells): the
+rooms) and the manor (3–6) open on Cozy Cottage homes (docs/interiors.md). The **barn** opens on a barn (14 x 11 cells): the
 farm sheet's barn-yard kit plank wall with its windows across the back
 (`BARN_WALL`, `BARN_WINDOW`), a Cozy Cottage plank floor strewn with loose
 straw (the wheat overlay's corner table over a noise mask), three stalls
@@ -176,6 +175,46 @@ and they bend away and spring back as they do outdoors (`GreenhouseView.crops`,
 swayed by farm.gd with the walker's position inside the interior). It is the
 same greenhouse on every map that has one (Greenhouse garden, Orchard and
 greenhouse, Greenhouse in the snow); no other interior grows crops. It is built once per map and kept.
+
+The **windmill** opens on the mill floor (`_build_mill`, 13 x 12 cells, the
+same on the farm and the farmstead maps):
+
+- **Room:** Cozy Cottage plaster over a wooden dado (wallpaper column 1 of
+  the brown group) and a plank floor, two Cozy Cottage windows throwing
+  sunbeams with dust turning in them (interior_life.gd).
+- **The machinery** (the mill kit, below): the great spur wheel under the
+  ceiling, the upright shaft, the hopper on its frame trickling grain into
+  the eye of the runner stone, which turns on its wooden case (the hurst),
+  and a spout at the front dribbling flour into an open sack. It turns with
+  gusts of its own (`MillView`; the wind outside pauses while the walker is
+  in), its flour dust rising faster as it speeds up, and fades while the
+  walker is behind it.
+- **About it:** a stack of sacks against the back wall under the sack
+  hoist's swaying rope and hook, a ladder to the trapdoor in the corner, a
+  spare millstone leaning under the right window, sacks, barrels, boxes,
+  and a bucket along the side walls (each kept to its own cell, so the
+  lanes along the walls stay open), grain crates and wheat by the machine,
+  and flour spilled on the floor. A sack the walker brushes shakes and puffs
+  flour.
+- **Life:** a mill cat (interior_life.gd: sleeps in a sunbeam or by the
+  hearth, wanders, greets the walker) and one or two pairs of mice among
+  the sacks (wildlife.gd, they dart off from the walker).
+- **Winter:** a stone hearth burns in place of the right window (flames
+  and glow from fire_ambience.gd).
+
+The mill kit (`assets/ai/mill/mill_kit.png`, `FarmTiles.MILL`) is
+generated art, because neither the Farm nor the Cozy Cottage pack draws mill
+machinery: `tools/gen_mill_kit.py` draws it on the 16 px grid in the Farm
+sheet's own colors (rock greys for the stones, crate and barrel browns for
+the wood, plaster creams for the sacking, the sheet's off-whites for flour)
+with its dark outline: the machine in 16 frames (a quarter turn of the wheel
+and a sixth of the stone per loop, so it loops seamlessly), the sacks, the
+ladder, the spare stone, the hook in 3 frames, and two flour spills.
+`tools/check_mill.gd` builds the mill floor of every windmill map type
+(48 of 48 pass: machinery, hoist, windows, the winter hearth, and every open
+floor cell reachable from the door). At rest the mill floor measured 0.91 %
+of its pixels moving per frame, between the barn (0.49 %) and a farmhouse
+home with its fire (1.68 %).
 
 ## Liveliness floor
 

@@ -192,9 +192,13 @@ orchards grow apples, cherries, oranges, and peaches. The pack's animated
 trees rustle in gusts and when brushed, dropping leaves (the cherry blossoms
 blow petals), the windmill turns with the wind, fish leap in the ponds, and
 the Cozy Farm animals graze and doze. Every building has a door into its own
-interior, a sub-map far below the farm: farmhouses, the manor, the barn, and
-the windmill open on Cozy Cottage homes, and the greenhouse on the sheet's
-own glasshouse with crops in its beds. `tools/check_farm.gd` sweeps it
+interior, a sub-map far below the farm: farmhouses and the manor open on
+Cozy Cottage homes, the barn on a barn with its animals, the windmill on a
+working mill floor (the great spur wheel turning under the ceiling, the
+shaft, the hopper trickling grain into the turning runner stone, flour
+dribbling into a sack, the sack hoist, a ladder to the trapdoor, sacks and
+grain, a mill cat and mice, and in winter a hearth), and the greenhouse on
+the sheet's own glasshouse with crops in its beds. `tools/check_farm.gd` sweeps it
 headless (docs/farm.md).
 
 The Painted Lands forest and farm randomizer

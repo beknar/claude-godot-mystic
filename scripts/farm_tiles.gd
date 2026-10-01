@@ -276,6 +276,27 @@ const BUILDINGS := {
 	"fl_hut": {"sheet": "forest", "region": Rect2i(736, 144, 48, 64), "door": Vector2i(1, 4), "door_w": 1,
 		"blocks": [Rect2i(0, 32, 48, 30)], "rooms": [1, 2], "chimney": Vector2i(23, 14)},
 }
+## The windmill interior kit (assets/ai/mill/mill_kit.png, drawn by
+## tools/gen_mill_kit.py in this sheet's colors: the packs have no mill
+## machinery). rect in px; base: the foot point inside the rect; block: the
+## collider (w, depth) at the foot; frames: laid out to the right, `step` px
+## apart.
+const MILL_SHEET := "res://assets/ai/mill/mill_kit.png"
+const MILL := {
+	# The spur wheel, shaft, hopper, and runner stone on its hurst: 16 frames,
+	# one loop is a quarter turn of the wheel.
+	"machine": {"rect": Rect2i(0, 0, 64, 112), "base": Vector2(32, 110), "block": Vector2(54, 30), "frames": 16, "step": 64},
+	"sack": {"rect": Rect2i(0, 112, 16, 20), "base": Vector2(8, 19), "block": Vector2(12, 5)},
+	"sack_b": {"rect": Rect2i(16, 112, 20, 20), "base": Vector2(10, 16), "block": Vector2(16, 5)},
+	"sack_open": {"rect": Rect2i(36, 112, 16, 20), "base": Vector2(8, 19), "block": Vector2(12, 5)},
+	"sacks": {"rect": Rect2i(52, 112, 32, 28), "base": Vector2(16, 27), "block": Vector2(28, 6)},
+	"ladder": {"rect": Rect2i(88, 112, 16, 62), "base": Vector2(8, 61), "block": Vector2(14, 4)},
+	"stone": {"rect": Rect2i(106, 112, 32, 30), "base": Vector2(16, 29), "block": Vector2(26, 5)},
+	"hook": {"rect": Rect2i(140, 112, 8, 44), "base": Vector2(4, 0), "block": Vector2.ZERO, "frames": 3, "step": 8},
+	"flour": {"rect": Rect2i(164, 112, 16, 16), "base": Vector2(8, 8), "block": Vector2.ZERO},
+	"flour_b": {"rect": Rect2i(180, 112, 16, 16), "base": Vector2(8, 8), "block": Vector2.ZERO},
+}
+
 const FOREST_SHEET := "res://assets/pack/TILESET_brighter.png"
 # Forest art the mixed farmstead maps borrow (TILESET_brighter.png): rect in
 # px, the foot inside it (`base`), collider, tag, flipbook frames side by

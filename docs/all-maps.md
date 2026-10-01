@@ -178,16 +178,20 @@ Farm and Cozy Farm animals only (no Cozy Cottage):
 
 ## Painted Lands Farm (spring and summer) + Cozy Cottage + Cozy Farm animals
 
-`randomizer-paintedlands-farm`: farmhouses, the manor, and the windmill open
-on Cozy Cottage homes; the barn on a barn (the Farm sheet's barn-yard kit, a
-Cozy Cottage plank floor, straw, stalls, hay, and animals inside); the
-greenhouse on the Farm sheet's own glasshouse.
+`randomizer-paintedlands-farm`: farmhouses and the manor open on Cozy
+Cottage homes; the barn on a barn (the Farm sheet's barn-yard kit, a Cozy
+Cottage plank floor, straw, stalls, hay, and animals inside); the windmill
+on a mill floor (Cozy Cottage walls and floor, Farm sheet grain, crates,
+and barrels, and the mill machinery, sacks, ladder, and hoist from the
+generated mill kit, `assets/ai/mill/`, drawn in the Farm sheet's colors
+because no pack has them); the greenhouse on the Farm sheet's own
+glasshouse.
 
 | # | Map type | Buildings (rooms) | Farm features |
 |---|---|---|---|
 | 0 | Homestead | farmhouse (2-4), barn (its own barn interior) | fields, pen, pond |
-| 1 | Wheat valley | windmill (1), farmhouse (2-4) | wheat, crop rows, brook |
-| 2 | Windmill hill | windmill (1) | plateaus, wheat, corn rows |
+| 1 | Wheat valley | windmill (its own mill floor), farmhouse (2-4) | wheat, crop rows, brook |
+| 2 | Windmill hill | windmill (its own mill floor) | plateaus, wheat, corn rows |
 | 3 | Apple orchard | farmhouse (2-4) | apple orchard, pond |
 | 4 | Cherry blossom lane | manor (3-6) | cherry orchard |
 | 5 | Pumpkin patch | barn (its own barn interior) | pumpkin and melon fields |
@@ -200,7 +204,7 @@ greenhouse on the Farm sheet's own glasshouse.
 | 12 | Farm village | two farmhouses (2-4), manor (3-6) | crossing roads, fields |
 | 13 | Market crossroads | manor (3-6), barn (its own barn interior) | market |
 | 14 | Sunflower field | farmhouse (2-4) | sunflower rows |
-| 15 | Corn rows | windmill (1), barn (its own barn interior) | corn rows |
+| 15 | Corn rows | windmill (its own mill floor), barn (its own barn interior) | corn rows |
 | 16 | Berry patch | farmhouse (2-4) | berry rows, hedges |
 | 17 | Hillside terraces | farmhouse (2-4) | plateaus, crop rows |
 | 18 | Woodlot | farmhouse (2-4) | canopy wall, trees |
@@ -209,10 +213,10 @@ greenhouse on the Farm sheet's own glasshouse.
 | 22 | Fishing lake | farmhouse (2-4) | lake with an island |
 | 23 | Cattle ranch | barn (its own barn interior), farmhouse (2-4) | big pens |
 | 24 | Hayfield | barn (its own barn interior) | wheat, hay |
-| 25 | Scarecrow fields | windmill (1) | four fields |
+| 25 | Scarecrow fields | windmill (its own mill floor) | four fields |
 | 26 | Twin farms | two farmhouses (2-4) | fields, pen |
 | 27 | Stone quarry | farmhouse (2-4) | plateaus with a cave |
-| 29 | Harvest fair | manor (3-6), farmhouse (2-4), windmill (1) | fields, market |
+| 29 | Harvest fair | manor (3-6), farmhouse (2-4), windmill (its own mill floor) | fields, market |
 
 ## Painted Lands Farm (autumn) + Cozy Cottage + Cozy Farm animals
 
@@ -224,13 +228,13 @@ turning trees, straw, the harvest.
 | 30 | Autumn homestead | farmhouse (2-4), barn (its own barn interior) | pumpkin and cabbage fields, pen, pond |
 | 31 | Pumpkin harvest | barn (its own barn interior) | pumpkin and melon fields |
 | 32 | Autumn orchard | farmhouse (2-4) | apple orchard, pond |
-| 33 | Golden wheat | windmill (1), barn (its own barn interior) | straw, wheat rows, hay |
+| 33 | Golden wheat | windmill (its own mill floor), barn (its own barn interior) | straw, wheat rows, hay |
 | 34 | Turning lane | manor (3-6) | turning trees |
 | 35 | Autumn market | manor (3-6), barn (its own barn interior) | market, fields |
 | 36 | Misty lake | farmhouse (2-4) | lake with an island |
-| 37 | Cornfield | windmill (1) | corn rows |
+| 37 | Cornfield | windmill (its own mill floor) | corn rows |
 | 38 | Old barn in autumn | barn (its own barn interior) | dead trees, straw, hedges |
-| 39 | Cider farm | farmhouse (2-4), windmill (1) | mixed fruit orchard |
+| 39 | Cider farm | farmhouse (2-4), windmill (its own mill floor) | mixed fruit orchard |
 
 ## Painted Lands Farm (winter) + Cozy Cottage + Cozy Farm animals
 
@@ -246,7 +250,7 @@ falling snow; no crops outdoors.
 | 44 | Pine hills | farmhouse (2-4) | plateaus, pines, pond |
 | 45 | Winter village | farmhouse (2-4), manor (3-6), barn (its own barn interior) | crossing roads |
 | 46 | Greenhouse in the snow | greenhouse (its own glasshouse), farmhouse (2-4) | bare orchard |
-| 47 | Winter windmill | windmill (1), barn (its own barn interior) | pens, hay |
+| 47 | Winter windmill | windmill (its own mill floor), barn (its own barn interior) | pens, hay |
 
 ## Painted Lands forest and farm: the combined randomizer
 
@@ -272,16 +276,16 @@ Farm trees (Forest trees are summer green only).
 |---|---|---|---|---|
 | 81 (48) | Cottage homestead | summer | porch house (3-6), barn (barn interior) | fields, pen, pond, campfire |
 | 82 (49) | Blossom cottage | summer | flower cottage (2-4) | cherry orchard, strawberry rows |
-| 83 (50) | Hamlet by the mill | summer | gabled cottage (2-5), hut (1-2), windmill (1) | wheat and corn rows, brook, campfire |
+| 83 (50) | Hamlet by the mill | summer | gabled cottage (2-5), hut (1-2), windmill (its own mill floor) | wheat and corn rows, brook, campfire |
 | 84 (51) | Woodcutter's clearing | summer | hut (1-2) | canopy wall, big fire, log piles |
 | 85 (52) | Village fair | summer | porch house (3-6), flower cottage (2-4), manor (3-6) | market, two campfires |
 | 86 (53) | Greenhouse cottage | summer | greenhouse (its own glasshouse), hut (1-2) | peach orchard, strawberry rows |
 | 87 (54) | Lantern lane | autumn | porch house (3-6), flower cottage (2-4) | apple orchard, lantern road |
 | 88 (55) | Harvest bonfire | autumn | barn (barn interior), hut (1-2) | pumpkin and corn fields, big fire |
-| 89 (56) | Autumn hearths | autumn | gabled cottage (2-5), hut (1-2), windmill (1) | crossing roads, pen |
+| 89 (56) | Autumn hearths | autumn | gabled cottage (2-5), hut (1-2), windmill (its own mill floor) | crossing roads, pen |
 | 90 (57) | Winter hearth | winter | porch house (3-6), barn (barn interior) | pen, pond, campfire |
 | 91 (58) | Snowbound hamlet | winter | gabled cottage (2-5), hut (1-2), flower cottage (2-4) | pines, two campfires |
-| 92 (59) | Frozen mill | winter | windmill (1), hut (1-2) | frozen lake, pen |
+| 92 (59) | Frozen mill | winter | windmill (its own mill floor), hut (1-2) | frozen lake, pen |
 
 ## Pixel Crawler
 

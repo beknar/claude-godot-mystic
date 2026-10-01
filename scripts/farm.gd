@@ -423,7 +423,8 @@ func _place_buildings() -> void:
 
 ## The doors for house_interiors.gd: every building opens on a Cozy Cottage
 ## home (rooms by building) except the greenhouse, whose interior is the
-## sheet's own glasshouse.
+## sheet's own glasshouse, the barn (a barn), and the windmill (the mill
+## floor).
 func _doors() -> Array[Dictionary]:
 	var out: Array[Dictionary] = []
 	var ids := FarmTiles.BUILDINGS.keys()
@@ -435,6 +436,8 @@ func _doors() -> Array[Dictionary]:
 			d["custom"] = _build_greenhouse.bind(i)
 		elif b.kind == "barn":
 			d["custom"] = _build_barn.bind(i)
+		elif b.kind == "windmill":
+			d["custom"] = _build_mill.bind(i)
 		out.append(d)
 	return out
 
@@ -670,6 +673,356 @@ func _build_barn(index: int) -> Dictionary:
 	holder.add_child(view)
 	holder.actors = acts
 	return {"view": holder, "plan": plan, "fires": []}
+
+
+## The windmill interior: the mill floor. Whitewashed walls over a wooden
+## dado and a plank floor (Cozy Cottage); in the middle the machinery from
+## the mill kit (FarmTiles.MILL): the great spur wheel turning under the
+## ceiling, the shaft, the hopper trickling grain into the runner stone on
+## its hurst, flour dribbling from the spout into an open sack. The sack
+## hoist hangs over a stack of sacks, a ladder climbs to the trapdoor, sacks,
+## grain crates, and barrels line the walls, and flour lies spilled. Two
+## windows throw sunbeams (dust turning in them), a mill cat dozes, mice dart
+## among the sacks; in winter a hearth burns in place of the right window.
+const MILL_SIZE := Vector2i(13, 12)
+const MILL_PAPER := 1 # Cozy Cottage wallpaper column: plaster over a wooden dado
+const MILL_TRIM := 10 # the first row of its brown group (the top band; the face is the three below)
+const MILL_PLANKS := Vector2i(39, 20) # Cozy Cottage plank floor (2 x 4 tiles)
+const MILL_FLOOR_Y := 4 # first floor row (a band and three face rows above)
+const MILL_WINDOWS := ["window_arch", "window_panes", "window_plain"]
+
+func _build_mill(index: int) -> Dictionary:
+	var size := MILL_SIZE
+	var rng := RandomNumberGenerator.new()
+	rng.seed = hash([map_id, index, "mill"])
+	var winter := season == "winter"
+	var view := Node2D.new()
+	view.name = "Mill"
+	var tiles := _summer_tiles()
+	var floor_layer := TileMapLayer.new()
+	floor_layer.tile_set = tiles
+	view.add_child(floor_layer)
+	var put := func(c: Vector2i, a: Vector2i) -> void:
+		var src: TileSetAtlasSource = tiles.get_source(1)
+		if not src.has_tile(a):
+			src.create_tile(a)
+		floor_layer.set_cell(c, 1, a)
+	for x in size.x:
+		put.call(Vector2i(x, 0), Vector2i(MILL_PAPER, MILL_TRIM))
+		for r in 3:
+			put.call(Vector2i(x, 1 + r), Vector2i(MILL_PAPER, MILL_TRIM + 1 + r))
+	for y in range(MILL_FLOOR_Y, size.y):
+		for x in size.x:
+			put.call(Vector2i(x, y), MILL_PLANKS + Vector2i(posmod(x, 2), posmod(y, 4)))
+	var plan := InteriorPlan.new()
+	plan.size = size
+	var exit := Vector2i(size.x / 2, size.y - 1)
+	plan.exit_cell = exit
+	for y in size.y:
+		for x in size.x:
+			plan.kind[Vector2i(x, y)] = InteriorPlan.WALL if y == 0 else (InteriorPlan.FACE if y < MILL_FLOOR_Y else InteriorPlan.FLOOR)
+	var kit := _mill_tex()
+	var floor_top := float(MILL_FLOOR_Y * TILE)
+	# Under everything that stands: flour spilled on the floor, the windows
+	# on the wall face.
+	var under := Node2D.new()
+	view.add_child(under)
+	var mv := MillView.new()
+	var windows: Array[Dictionary] = []
+	var win_art: String = MILL_WINDOWS[rng.randi() % MILL_WINDOWS.size()]
+	for wx in ([2] if winter else [2, 9]):
+		var wr: Rect2i = InteriorArt.ART[win_art].rect
+		var bottom := floor_top - (2 if wr.size.y >= 38 else (6 if wr.size.y >= 30 else 12))
+		var at := Vector2((wx + 1) * TILE, bottom) + Vector2(-wr.size.x / 2.0, -wr.size.y).floor()
+		under.add_child(_region_sprite(InteriorArt.DECORATION, wr, at))
+		windows.append({"rect": Rect2(at, Vector2(wr.size)), "floor_y": floor_top})
+	# Sunbeams and their dust, and the mill cat (interior_life.gd), between
+	# the floor and the actors.
+	var life := InteriorLife.new()
+	view.add_child(life)
+	var acts := Node2D.new()
+	acts.name = "Actors"
+	acts.y_sort_enabled = true
+	view.add_child(acts)
+	var body := StaticBody2D.new()
+	body.collision_mask = 0
+	view.add_child(body)
+	# Walls: the back wall to a little into the first floor row, the sides,
+	# the front but for the doorway.
+	_add_box(body, Rect2(0, 0, size.x * TILE, floor_top + 4))
+	_add_box(body, Rect2(-TILE, 0, TILE, size.y * TILE))
+	_add_box(body, Rect2(size.x * TILE, 0, TILE, size.y * TILE))
+	_add_box(body, Rect2(0, size.y * TILE - 2, exit.x * TILE, TILE))
+	_add_box(body, Rect2((exit.x + 1) * TILE, size.y * TILE - 2, (size.x - exit.x - 1) * TILE, TILE))
+	# One standing thing: a sprite at its foot, its collider, the cells it
+	# stands on (the cat and the mice keep off them).
+	var stand := func(tex: Texture2D, rect: Rect2i, base: Vector2, block: Vector2, foot: Vector2, flip: bool) -> StaticBody2D:
+		var n := StaticBody2D.new()
+		n.collision_mask = 0
+		n.position = foot
+		var sp := Sprite2D.new()
+		sp.texture = tex
+		sp.region_enabled = true
+		sp.region_rect = Rect2(rect)
+		sp.centered = false
+		sp.flip_h = flip
+		sp.offset = -Vector2(rect.size.x - base.x if flip else base.x, base.y)
+		n.add_child(sp)
+		if block != Vector2.ZERO:
+			_add_box(n, Rect2(Vector2(-block.x / 2.0, -block.y), block))
+			for cy in range(floori((foot.y - block.y) / TILE), floori((foot.y - 0.01) / TILE) + 1):
+				for cx in range(floori((foot.x - block.x / 2.0) / TILE), floori((foot.x + block.x / 2.0 - 0.01) / TILE) + 1):
+					plan.blocked[Vector2i(cx, cy)] = true
+		acts.add_child(n)
+		return n
+	var kit_item := func(art: String, foot: Vector2, flip: bool) -> StaticBody2D:
+		var a: Dictionary = FarmTiles.MILL[art]
+		return stand.call(kit, a.rect, a.base, a.block, foot, flip)
+	var farm_item := func(art: String, foot: Vector2, flip: bool) -> StaticBody2D:
+		var a: Dictionary = FarmTiles.prop("summer", art)
+		var r: Rect2i = a.rect
+		return stand.call(_tex(FarmTiles.SHEET), r, Vector2(r.size.x / 2.0, r.size.y - 1), a.block, foot, flip)
+	var cell_foot := func(c: Vector2i) -> Vector2:
+		return Vector2(c * TILE) + Vector2(TILE / 2.0, TILE - 2)
+	# The machinery, in the middle of the floor, its wheel up by the ceiling.
+	var m: Dictionary = FarmTiles.MILL.machine
+	var machine := stand.call(kit, m.rect, m.base, m.block, Vector2(size.x * TILE / 2.0, 7 * TILE + 14), false) as StaticBody2D
+	var turning := _flipbook(kit, Rect2(m.rect), m.frames, 6.0)
+	turning.offset = -m.base
+	var still := machine.get_child(0)
+	machine.remove_child(still)
+	still.free()
+	machine.add_child(turning)
+	machine.move_child(turning, 0)
+	mv.machine = turning
+	mv.machine_rect = Rect2(machine.position - m.base, Vector2(m.rect.size))
+	var spout := machine.position + Vector2(-20, -10)
+	# An open sack under the spout catching the flour, and flour about it.
+	mv.sacks.append(kit_item.call("sack_open", Vector2(spout.x, machine.position.y + 14), false))
+	var spills: Array[Vector2] = [Vector2(spout.x - 12, machine.position.y + 8), Vector2(spout.x + 14, machine.position.y + 20)]
+	# The hoist corner: a stack of sacks against the back wall, the hoist's
+	# rope and hook hanging over it.
+	var stack_foot := Vector2(TILE + 2, floor_top + 12)
+	mv.sacks.append(kit_item.call("sacks", stack_foot, rng.randf() < 0.5))
+	spills.append(stack_foot + Vector2(18, 6))
+	var h: Dictionary = FarmTiles.MILL.hook
+	var hook_frames := SpriteFrames.new()
+	hook_frames.set_animation_speed("default", 2.5)
+	for i in [0, 1, 2, 1]:
+		var at := AtlasTexture.new()
+		at.atlas = kit
+		at.region = Rect2(Vector2(h.rect.position) + Vector2(i * h.step, 0), Vector2(h.rect.size))
+		hook_frames.add_frame("default", at)
+	var hook := AnimatedSprite2D.new()
+	hook.sprite_frames = hook_frames
+	hook.centered = false
+	hook.play("default")
+	var hook_node := Node2D.new()
+	hook_node.position = stack_foot + Vector2(0, 1)
+	hook.offset = Vector2(-h.base.x, 4.0 - hook_node.position.y)
+	hook_node.add_child(hook)
+	acts.add_child(hook_node)
+	mv.hook = hook
+	# The ladder up to the trapdoor, in the right-hand corner.
+	kit_item.call("ladder", Vector2((size.x - 1) * TILE + 8, floor_top + 12), false)
+	# Winter: a hearth by the ladder, burning.
+	var fires: Array[Dictionary] = []
+	if winter:
+		var hearth := "hearth_stone" if rng.randf() < 0.5 else "hearth_stone_b"
+		var ha: Dictionary = InteriorArt.ART[hearth]
+		var hr: Rect2i = ha.rect
+		var foot := Vector2(10.5 * TILE, floor_top + 12)
+		stand.call(InteriorArt.FURNITURE, hr, Vector2(hr.size.x / 2.0, hr.size.y), Vector2(hr.size.x - 4, 6), foot, false)
+		var opening := Rect2(foot + Vector2(-hr.size.x / 2.0, -hr.size.y).floor() + Vector2(ha.hearth.position), Vector2(ha.hearth.size))
+		mv.hearths.append(opening)
+		fires.append({"pos": opening.end, "kind": "hearth", "flame": opening.get_center(), "radius": 30, "smoke": false})
+	else:
+		# A spare millstone leaning on the wall under the right window.
+		kit_item.call("stone", Vector2(9.5 * TILE, floor_top + 12), rng.randf() < 0.5)
+	# Along the side walls: sacks, grain, barrels, crates, a bucket.
+	# (Only narrow things: a wall cell is 16 px and nothing hangs over the
+	# room's edge.)
+	var sides := ["sack", "sack", "sack_b", "sack_open", "barrel", "barrel_b", "box", "bucket"]
+	for y in range(6, size.y - 1, 2):
+		for x in [0, size.x - 1]:
+			if rng.randf() > 0.8:
+				continue
+			var art: String = sides[rng.randi() % sides.size()]
+			var foot: Vector2 = cell_foot.call(Vector2i(x, y))
+			# Kept to its own cell, so the lane along the wall stays open.
+			var kit_art := FarmTiles.MILL.has(art)
+			var a: Dictionary = FarmTiles.MILL[art] if kit_art else FarmTiles.prop("summer", art)
+			var r: Rect2i = a.rect
+			var base: Vector2 = a.base if kit_art else Vector2(r.size.x / 2.0, r.size.y - 1)
+			var block: Vector2 = a.block
+			if block != Vector2.ZERO:
+				block.x = minf(block.x, 14.0)
+			var n: StaticBody2D = stand.call(kit if kit_art else _tex(FarmTiles.SHEET), r, base, block, foot, rng.randf() < 0.5)
+			if kit_art:
+				mv.sacks.append(n)
+				if rng.randf() < 0.5:
+					spills.append(foot + Vector2(10 if x == 0 else -10, 2))
+	# A few sacks by the machine, waiting to be carted off.
+	var by := Vector2i(exit.x + 2 + rng.randi_range(0, 1), 9)
+	mv.sacks.append(kit_item.call("sack" if rng.randf() < 0.6 else "sack_b", cell_foot.call(by), rng.randf() < 0.5))
+	if rng.randf() < 0.6:
+		mv.sacks.append(kit_item.call("sack", cell_foot.call(by + Vector2i(1, 0)), rng.randf() < 0.5))
+	# Grain waiting for the stones, on the open floor by the machine.
+	farm_item.call(["hay_crate", "wheat_bunch_b"][rng.randi() % 2], cell_foot.call(Vector2i(3, 7)), false)
+	if rng.randf() < 0.6:
+		farm_item.call(["hay_crate", "crate_stack"][rng.randi() % 2], cell_foot.call(Vector2i(9, 7)), rng.randf() < 0.5)
+	for i in spills.size():
+		var a: Dictionary = FarmTiles.MILL["flour" if i % 2 == 0 else "flour_b"]
+		under.add_child(_region_sprite(kit, a.rect, (spills[i] - a.base).floor()))
+	# Flour dust over the stones and at the spout, livelier as the wheel
+	# speeds up; a puff when the walker brushes a sack.
+	mv.dust = _flour_dust(Vector2(machine.position.x, machine.position.y - 26), Vector2(18, 4), 8)
+	mv.spout_dust = _flour_dust(spout + Vector2(0, 8), Vector2(2, 1), 4)
+	mv.puff = _flour_dust(Vector2.ZERO, Vector2(4, 2), 10)
+	mv.puff.emitting = false
+	mv.puff.one_shot = true
+	for d in [mv.dust, mv.spout_dust, mv.puff]:
+		view.add_child(d)
+	# The mice, among the sacks along the walls and the back.
+	var floor_cells := {}
+	var clutter := {}
+	for y in range(MILL_FLOOR_Y, size.y):
+		for x in size.x:
+			var c := Vector2i(x, y)
+			if plan.blocked.has(c) or c == exit or c == exit - Vector2i(0, 1):
+				continue
+			floor_cells[c] = true
+			if x <= 1 or x >= size.x - 2 or y == MILL_FLOOR_Y:
+				clutter[c] = true
+	var habitats := {"_land": floor_cells, "_trunks": {}, "_w": size.x}
+	for k in ["lawn", "trees", "dark", "clutter", "bushes", "shore", "water", "open", "rocky", "roam", "yard", "pasture"]:
+		habitats[k] = clutter if k == "clutter" else {}
+	var spots: Array = clutter.keys()
+	var groups: Array = []
+	for g in rng.randi_range(1, 2):
+		var pick: Array = []
+		for t in rng.randi_range(1, 2):
+			pick.append(spots[rng.randi() % spots.size()])
+		groups.append({"kind": "mouse", "center": pick[0], "cells": pick})
+	var animals := Wildlife.new()
+	animals.name = "Animals"
+	animals.mode = "farmland"
+	animals.local_walker = true
+	view.add_child(animals)
+	var walker := actors.get_node_or_null("Walker")
+	animals.setup_from({"habitats": habitats, "groups": groups}, {}, acts, walker, _image(FarmTiles.SHEET), null)
+	mv.name = "View"
+	mv.add_child(view)
+	mv.actors = acts
+	mv.plan = plan
+	mv.windows = windows
+	mv.room_rects = [Rect2(0, floor_top, size.x * TILE, (size.y - MILL_FLOOR_Y) * TILE)]
+	mv.walker = walker
+	mv.gust_base = wind.base_strength if wind else 0.5
+	mv.seed_noise(rng.randi())
+	life.setup([mv], acts, walker, true)
+	return {"view": mv, "plan": plan, "fires": fires}
+
+
+var _mill_texture: Texture2D
+
+func _mill_tex() -> Texture2D:
+	if _mill_texture == null:
+		_mill_texture = load(FarmTiles.MILL_SHEET)
+	return _mill_texture
+
+
+func _region_sprite(tex: Texture2D, rect: Rect2i, at: Vector2) -> Sprite2D:
+	var s := Sprite2D.new()
+	s.texture = tex
+	s.region_enabled = true
+	s.region_rect = Rect2(rect)
+	s.centered = false
+	s.offset = at
+	return s
+
+
+# Pale flour motes drifting up and fading (one pixel each).
+func _flour_dust(at: Vector2, extents: Vector2, amount: int) -> CPUParticles2D:
+	var p := CPUParticles2D.new()
+	p.position = at
+	p.amount = amount
+	p.lifetime = 2.6
+	p.emission_shape = CPUParticles2D.EMISSION_SHAPE_RECTANGLE
+	p.emission_rect_extents = extents
+	p.direction = Vector2(0, -1)
+	p.spread = 50.0
+	p.gravity = Vector2(1.5, -2.0)
+	p.initial_velocity_min = 2.0
+	p.initial_velocity_max = 6.0
+	p.damping_min = 1.0
+	p.damping_max = 2.0
+	var ramp := Gradient.new()
+	ramp.set_color(0, Color(0.82, 0.8, 0.78, 0.0))
+	ramp.add_point(0.2, Color(0.82, 0.8, 0.78, 0.75))
+	ramp.set_color(ramp.get_point_count() - 1, Color(0.84, 0.84, 0.88, 0.0))
+	p.color_ramp = ramp
+	p.z_index = 21
+	return p
+
+
+## The mill floor's node for house_interiors.gd (`actors`), and for
+## interior_life.gd (sunbeams, the hearth, the cat: plan, windows,
+## hearths, room_rects, steam, lamps). It turns the machinery with its own
+## gusts (the wind outside pauses while the walker is in), fades the
+## machinery while the walker is behind it, and shakes a sack the walker
+## brushes, with a puff of flour.
+class MillView extends GreenhouseView:
+	var plan: InteriorPlan
+	var windows: Array[Dictionary] = []
+	var hearths: Array[Rect2] = []
+	var room_rects: Array[Rect2] = []
+	var steam: Array[Vector2] = []
+	var lamps: Array[Vector2] = []
+	var machine: AnimatedSprite2D
+	var machine_rect := Rect2()
+	var hook: AnimatedSprite2D
+	var sacks: Array = []
+	var dust: CPUParticles2D
+	var spout_dust: CPUParticles2D
+	var puff: CPUParticles2D
+	var walker: Node2D
+	var gust_base := 0.5
+	var _noise := FastNoiseLite.new()
+	var _t := 0.0
+	var _cool := {}
+
+	func seed_noise(s: int) -> void:
+		_noise.seed = s
+		_noise.frequency = 0.08
+
+	func _process(delta: float) -> void:
+		_t += delta
+		var gust := gust_base + 0.35 * _noise.get_noise_1d(_t * 10.0) + 0.15 * sin(_t * 0.7)
+		var speed := clampf(0.45 + gust * 1.2, 0.3, 1.8)
+		if machine:
+			machine.speed_scale = speed
+			var behind := is_instance_valid(walker) and walker.is_visible_in_tree() and machine_rect.grow(-6).has_point(walker.global_position - global_position) and walker.global_position.y - global_position.y < machine_rect.end.y - 18
+			machine.modulate.a = move_toward(machine.modulate.a, 0.5 if behind else 1.0, delta * 3.0)
+		if hook:
+			hook.speed_scale = 0.6 + speed * 0.4
+		if dust:
+			dust.speed_scale = speed
+			spout_dust.speed_scale = speed
+		if not is_instance_valid(walker) or not walker.is_visible_in_tree():
+			return
+		var feet := walker.global_position - global_position
+		for s in sacks:
+			var k: int = s.get_instance_id()
+			_cool[k] = _cool.get(k, 0.0) - delta
+			if _cool[k] <= 0.0 and s.position.distance_to(feet) < 11.0:
+				_cool[k] = 1.5
+				var x0: float = s.position.x
+				var tw := create_tween()
+				tw.tween_property(s, "position:x", x0 + (1.0 if feet.x < x0 else -1.0), 0.08)
+				tw.tween_property(s, "position:x", x0, 0.12)
+				puff.position = s.position + Vector2(0, -6)
+				puff.restart()
 
 
 var _summer_tileset: TileSet
