@@ -58,18 +58,23 @@ func setup(p_map: Node2D) -> void:
 
 
 ## After every map build: the doors of this map's houses.
-func reset(terrain: PaintedTerrain, p_walker: CharacterBody2D) -> void:
+## `leaves`: house -> its DoorLeaf (forest.gd), if it has one.
+func reset(terrain: PaintedTerrain, p_walker: CharacterBody2D, leaves := {}) -> void:
 	var list: Array[Dictionary] = []
 	for i in terrain.houses.size():
 		var house: Dictionary = terrain.houses[i]
 		var art: Dictionary = PaintedTerrain.HOUSES[house.id]
-		list.append({"step": house.origin + art.door, "house": house})
+		var d := {"step": house.origin + art.door, "house": house}
+		if leaves.has(house):
+			d["leaf"] = leaves[house]
+		list.append(d)
 	reset_doors(list, p_walker)
 
 
 ## Any map: `list` of doors, each {step: the doorstep cell under the door,
 ## house: {id, ...} (seeds the interior), width (cells, default 1), rooms
-## ([min, max], else ROOMS by house id), custom (optional Callable returning
+## ([min, max], else ROOMS by house id), leaf (optional DoorLeaf: the front
+## door, opened as the walker comes up), custom (optional Callable returning
 ## {view: Node2D with `actors`, plan: InteriorPlan with size and exit_cell,
 ## fires: Array} for an interior of its own)}.
 func reset_doors(list: Array[Dictionary], p_walker: CharacterBody2D) -> void:
@@ -97,7 +102,7 @@ func reset_doors(list: Array[Dictionary], p_walker: CharacterBody2D) -> void:
 		var w: int = d.get("width", 1)
 		var door := {"rect": Rect2(Vector2(step * TILE) + Vector2(1, 0), Vector2(TILE * w - 2, 10)), "house": d.house, "index": i,
 			"step": Vector2(step * TILE) + Vector2(8 * w, 12)}
-		for k in ["rooms", "custom"]:
+		for k in ["rooms", "custom", "leaf"]:
 			if d.has(k):
 				door[k] = d[k]
 		doors.append(door)
@@ -134,6 +139,21 @@ func _physics_process(delta: float) -> void:
 		var exit_rect := Rect2(root.position + view.position + Vector2(p.exit_cell * TILE) + Vector2(0, 4), Vector2(TILE, TILE))
 		if exit_rect.has_point(feet) and Input.is_action_pressed("move_down"):
 			leave()
+
+
+# Front doors (DoorLeaf) swing open while the walker is on or just before
+# the doorstep, and shut once it has walked off.
+func _process(_delta: float) -> void:
+	if inside >= 0 or not is_instance_valid(walker):
+		return
+	var feet := walker.global_position - map.global_position
+	for d in doors:
+		var leaf = d.get("leaf")
+		if leaf == null or not is_instance_valid(leaf):
+			continue
+		var s: Vector2 = d.step
+		var half: float = d.rect.size.x / 2.0 + 9.0
+		leaf.open = absf(feet.x - s.x) < half and feet.y > s.y - 16.0 and feet.y < s.y + 22.0
 
 
 ## Goes in through door `i` (fades, builds or reuses the interior).
@@ -238,6 +258,8 @@ func leave(instant := false) -> void:
 	walker.reparent(map.actors, false)
 	walker.position = d.step
 	walker.set("facing", 2) # down
+	if d.has("leaf") and is_instance_valid(d.leaf):
+		d.leaf.snap_open() # out through the open door; it shuts behind the walker
 	if _custom.has(inside) and view and view.get_parent() == root:
 		root.remove_child(view) # kept for the next visit
 	inside = -1

@@ -14,6 +14,12 @@ taken from farm_spring_summer.png), on the 16 px grid.
   stone    a spare millstone on its edge, leaning on the wall
   hook     the sack hoist's rope and hook, 3 frames of a slow swing
   flour    two spills of flour for the floor
+  brake    the cap, 16 frames, 80 x 96: the brake wheel on the windshaft
+           turning between its frame posts (a quarter turn per loop), the
+           brake band over it, the wallower it drives turning on the top of
+           the upright shaft, which goes down through the floor
+  trap     the sack trap in the cap's floor: flaps open, the hoist rope up
+  hatch    the ladder's top coming up through its hatch
 
   python3 tools/gen_mill_kit.py [out.png]
 
@@ -64,8 +70,10 @@ CLEAR = (0, 0, 0, 0)
 
 FRAMES = 16
 MW, MH = 64, 112
-W = 1024
-H = 112 + 64 + 64
+W = 1280
+H = 320
+CAP_Y = 176 # the cap (the floor above): brake wheel frames, then the sack trap and the hatch
+BW, BH = 80, 96
 
 
 class Canvas:
@@ -434,6 +442,123 @@ def flour(cv):
     cv.at(0, 0)
 
 
+# ---------------------------------------------------------------- the cap
+
+def brake(cv, f):
+    phase = f / FRAMES
+    turn = phase * math.pi / 2
+    cx, cy, R = 40, 44, 30
+    # The frame: two posts and the beam over the wheel (behind it).
+    for x0 in (2, 72):
+        cv.rect(x0, 12, x0 + 5, BH - 3, TIMBER)
+        cv.vline(x0 + 1, 12, BH - 3, TIMBER_L)
+        cv.vline(x0 + 5, 12, BH - 3, TIMBER_D)
+    cv.rect(2, 6, 77, 11, TIMBER)
+    cv.hline(2, 77, 6, TIMBER_L)
+    cv.hline(2, 77, 11, TIMBER_D)
+    # The wheel: a rim with cogs all round, four arms, the hub on the
+    # windshaft's end.
+    for y in range(cy - R - 3, cy + R + 4):
+        for x in range(cx - R - 3, cx + R + 4):
+            d = math.hypot(x + 0.5 - cx, y + 0.5 - cy)
+            if R - 5 <= d <= R:
+                a = math.atan2(y + 0.5 - cy, x + 0.5 - cx)
+                lit = math.cos(a + 2.4)          # light from the upper left
+                col = WOOD_L
+                if lit > 0.45:
+                    col = WOOD_H
+                elif lit < -0.45:
+                    col = TIMBER_L
+                if d > R - 1.6:
+                    cog = ((a - turn) / (2 * math.pi) * 32) % 1.0
+                    col = WOOD_X if cog < 0.5 else TIMBER
+                cv.px(x, y, col)
+    for k in range(32):
+        a = turn + (k + 0.25) * 2 * math.pi / 32
+        tx_, ty_ = -math.sin(a), math.cos(a)
+        for r, col in ((R + 0.8, WOOD_M), (R + 1.8, TIMBER_L)):
+            for t in (-0.7, 0.0, 0.7):
+                cv.px(cx + math.cos(a) * r + tx_ * t, cy + math.sin(a) * r + ty_ * t, col)
+    for k in range(4):
+        a = turn + k * math.pi / 2
+        for i in range(5, R - 4):
+            ex, ey = cx + math.cos(a) * i, cy + math.sin(a) * i
+            nx, ny = -math.sin(a), math.cos(a)
+            cv.px(ex, ey, WOOD_H)
+            cv.px(ex + nx, ey + ny, WOOD_M)
+            cv.px(ex - nx, ey - ny, TIMBER_L)
+    cv.rect(cx - 4, cy - 4, cx + 4, cy + 4, TIMBER_L)
+    cv.hline(cx - 4, cx + 4, cy - 4, IRON)
+    cv.hline(cx - 4, cx + 4, cy + 4, IRON)
+    cv.vline(cx - 4, cy - 4, cy + 4, IRON)
+    cv.vline(cx + 4, cy - 4, cy + 4, IRON)
+    cv.rect(cx - 1, cy - 1, cx + 1, cy + 1, TIMBER_D)
+    # The brake band hugging the top of the rim.
+    for t in range(0, 61):
+        a = math.radians(205 + t * 2.15)
+        for r, col in ((R + 3, TIMBER_D), (R + 4, TIMBER)):
+            cv.px(cx + math.cos(a) * r, cy + math.sin(a) * r, col)
+    # The wallower under the wheel, turning on the shaft's top.
+    wy = cy + R + 3
+    for y in range(wy, wy + 9):
+        for x in range(cx - 9, cx + 10):
+            top = ((x + 0.5 - cx) / 9.0) ** 2 + ((y + 0.5 - wy - 1.5) / 2.5) ** 2 <= 1
+            bot = ((x + 0.5 - cx) / 9.0) ** 2 + ((y + 0.5 - wy - 7) / 2.5) ** 2 <= 1
+            if top or bot:
+                cv.px(x, y, WOOD_L if top else TIMBER)
+            elif wy + 2 <= y <= wy + 7 and abs(x - cx) <= 8:
+                stave = (x - cx + 9 + f % 4) % 4 == 0
+                cv.px(x, y, TIMBER_D if stave else (TIMBER_L if x < cx + 4 else TIMBER))
+    # The upright shaft from the wallower down through the floor.
+    for y in range(wy + 9, BH - 2):
+        cols = [TIMBER_D, TIMBER, TIMBER_L, WOOD_L, TIMBER_L]
+        for i in range(5):
+            col = cols[(i + (f // 4) % 4) % 5]
+            if (i + (f // 4) % 4) % 4 == 0:
+                col = TIMBER_D
+            cv.px(cx - 2 + i, y, col)
+    for x in range(cx - 6, cx + 7):
+        for y in range(BH - 3, BH):
+            if ((x + 0.5 - cx) / 6.5) ** 2 + ((y + 0.5 - BH + 1.5) / 1.8) ** 2 <= 1:
+                cv.px(x, y, ST_LINE)
+    cv.outline(0, 0, BW - 1, BH - 1, LINE)
+
+
+def trap(cv):
+    # The sack trap (40 x 48): its flaps open flat either side of the hole,
+    # the hoist rope rising out of it to the ceiling.
+    cv.at(0, CAP_Y + BH)
+    cv.rect(8, 34, 31, 45, TIMBER_D)
+    cv.rect(10, 36, 29, 44, LINE)
+    for x0, x1 in ((0, 7), (32, 39)):
+        cv.rect(x0, 34, x1, 45, WOOD_M)
+        for x in range(x0 + 2, x1, 3):
+            cv.vline(x, 35, 44, WOOD_D)
+        cv.hline(x0, x1, 34, WOOD_H)
+        cv.hline(x0, x1, 39, WOOD_L)
+    for y in range(0, 41):
+        cv.px(19, y, CL_D if y % 3 else CL_S)
+        cv.px(20, y, TIMBER_L if y % 3 != 1 else CL_X)
+    cv.outline(0, 0, 39, 47, LINE)
+    cv.at(0, 0)
+
+
+def hatch(cv):
+    # The ladder's top coming up through its hatch (16 x 32).
+    cv.at(40, CAP_Y + BH)
+    cv.rect(0, 20, 15, 31, TIMBER)
+    cv.rect(2, 22, 13, 30, LINE)
+    cv.hline(0, 15, 20, WOOD_L)
+    for x in (3, 11):
+        cv.rect(x, 0, x + 1, 27, WOOD_M)
+        cv.vline(x, 0, 27, WOOD_L)
+    for y in (4, 11, 18):
+        cv.hline(5, 10, y, WOOD_L)
+        cv.hline(5, 10, y + 1, TIMBER)
+    cv.outline(0, 0, 15, 31, LINE)
+    cv.at(0, 0)
+
+
 def main():
     cv = Canvas(W, H)
     for f in range(FRAMES):
@@ -445,6 +570,12 @@ def main():
     spare_stone(cv)
     hook(cv)
     flour(cv)
+    for f in range(FRAMES):
+        cv.at(f * BW, CAP_Y)
+        brake(cv, f)
+    cv.at(0, 0)
+    trap(cv)
+    hatch(cv)
     Image.fromarray(cv.a, "RGBA").save(OUT)
     print("wrote", OUT)
 

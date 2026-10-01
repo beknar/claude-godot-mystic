@@ -201,6 +201,22 @@ same on the farm and the farmstead maps):
   the sacks (wildlife.gd, they dart off from the walker).
 - **Winter:** a stone hearth burns in place of the right window (flames
   and glow from fire_ambience.gd).
+- **Up the ladder: the cap** (`_build_cap`, the same 13 x 12 so the camera
+  stays put, its floor six rows). Walk into the ladder's foot to climb
+  (a fade, then the walker at the top of the ladder); walk into the
+  ladder's top, coming up through its hatch, to climb back down. A climb
+  needs a fresh press, so holding up does not bounce between the floors.
+  The floor left behind is hidden and paused (its colliders leave the
+  space; the hearth's glow stays below). Up there: the **brake wheel** on
+  the windshaft, turning between its frame posts under the brake band, and
+  the **wallower** it drives on the top of the upright shaft, which goes down
+  through the floor to the spur wheel below (both turn at the mill's speed
+  and fade while the walker is behind them); the **sack trap** with the
+  hoist rope (over the hoist corner below), grain crates, wheat, sacks, and
+  barrels, board walls (Cozy Cottage column 0) and a darker plank floor,
+  two small windows whose sunbeams the **sails' shadows** sweep across
+  four times a turn (`SailShadow`, faster in a gust), and a pair of mice in
+  the grain. No cat up here, and no way out but the ladder.
 
 The mill kit (`assets/ai/mill/mill_kit.png`, `FarmTiles.MILL`) is
 generated art, because neither the Farm nor the Cozy Cottage pack draws mill
@@ -209,10 +225,20 @@ sheet's own colors (rock greys for the stones, crate and barrel browns for
 the wood, plaster creams for the sacking, the sheet's off-whites for flour)
 with its dark outline: the machine in 16 frames (a quarter turn of the wheel
 and a sixth of the stone per loop, so it loops seamlessly), the sacks, the
-ladder, the spare stone, the hook in 3 frames, and two flour spills.
+ladder, the spare stone, the hook in 3 frames, two flour spills, and for the
+cap the brake wheel and wallower in 16 frames (a quarter turn), the sack
+trap, and the ladder's top in its hatch.
 `tools/check_mill.gd` builds the mill floor of every windmill map type
-(48 of 48 pass: machinery, hoist, windows, the winter hearth, and every open
-floor cell reachable from the door). At rest the mill floor measured 0.91 %
+(48 of 48 pass: machinery, hoist, windows, the winter hearth, every open
+floor cell reachable from the door, the ladder's foot reachable, and every
+cap floor cell reachable from where the ladder lands).
+
+**Front doors.** The farmhouses, the manor, and the windmill swing their
+own drawn doors open as the walker comes up (`door_px`, in the season's
+sheet); the Forest houses on the farmsteads get plank doors made in their
+doorway frame's colors (`made_leaf`), and the gable cottage the flower
+cottage's doorway (it has none of its own). The barn's and the greenhouse's
+doorways stand open. See docs/interiors.md. At rest the mill floor measured 0.91 %
 of its pixels moving per frame, between the barn (0.49 %) and a farmhouse
 home with its fire (1.68 %).
 

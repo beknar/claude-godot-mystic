@@ -119,7 +119,7 @@ func build(id: int, pinned := -1) -> void:
 	_spawn_walker()
 	_reset_ambience()
 	if house_interiors:
-		house_interiors.reset(terrain, actors.get_node("Walker"))
+		house_interiors.reset(terrain, actors.get_node("Walker"), _door_leaves)
 	print(report)
 
 
@@ -494,7 +494,10 @@ func _build_collision() -> void:
 
 # Each prefab splits into HOUSE_ROOF (no collision, sorted at the eave) and
 # HOUSE_BODY (walls, door, porch; collides; sorted at the doorstep).
+var _door_leaves := {} # house -> DoorLeaf
+
 func _place_houses() -> void:
+	_door_leaves.clear()
 	for house in terrain.houses + terrain.outbuildings:
 		var art: Dictionary = PaintedTerrain.HOUSES[house.id]
 		var tex: Texture2D = _cozy_texture() if art.get("sheet", "") == "cozy" else SHEET
@@ -530,6 +533,22 @@ func _place_houses() -> void:
 		for overlay in art.get("overlays", []):
 			var sprite := _region_sprite(Rect2(overlay.src), Vector2(overlay.at) - Vector2(0, region.size.y))
 			body.add_child(sprite)
+		# A front door that swings open for the walker (homes with interiors).
+		if house_interiors and art.has("door_px") and house in terrain.houses:
+			var opening: Rect2i = art.door_px
+			var src := region.position + opening.position
+			for overlay in art.get("overlays", []):
+				if Rect2i(overlay.at, overlay.src.size).encloses(opening):
+					src = overlay.src.position + opening.position - overlay.at
+			var made := DoorLeaf.make_leaf(_pixels, Rect2i(src, opening.size))
+			var leaf := DoorLeaf.new()
+			leaf.leaf = made.texture
+			leaf.edge = made.edge
+			leaf.made = true
+			leaf.size = opening.size
+			leaf.position = Vector2(opening.position) - Vector2(0, region.size.y)
+			body.add_child(leaf)
+			_door_leaves[house] = leaf
 		actors.add_child(body)
 
 

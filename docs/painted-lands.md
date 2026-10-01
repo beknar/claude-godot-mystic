@@ -324,14 +324,25 @@ ends on, relative to the region's top-left. When the recipe has exactly one hous
 |---|---|---|---|---|---|
 | 0 | Porch cottage | Large purple-roof house with wooden deck | `(38–45, 10–14)` | 2 | `(3, 5)` |
 | 1 | Flower cottage | White walls, flowering vine on the wall | `(38–45, 15–19)` | 2 | `(2, 4)` |
-| 2 | Gable cottage | Tall pointed roof, large windows | `(38–45, 25–29)` | 2 | `(2, 4)` |
+| 2 | Gable cottage | Tall pointed roof, large windows; the sheet draws it without a doorway, so the flower cottage's (px `(643, 276)`, 10 × 12, the same wing) is hung at `(35, 36)` | `(38–45, 25–29)` | 2 | `(2, 4)` |
 | 3 | Hut | Small wood hut with door and deck | `(46–48, 9–12)` | 2 | `(1, 4)` |
 | 4 | Shed | The hut kit's second wall, no deck | `(46–48, 13–15)` | 1 | `(1, 3)` |
-| 5 | Barn | The doorless copy of the porch cottage, with the loose door `(46, 25)`, windows `(47, 24–25)`, `(47, 26)`, and door `(46, 26)` hung on its walls | `(38–45, 20–24)` | 2 | `(2, 5)` |
+| 5 | Barn | The doorless copy of the porch cottage, with the loose door `(46, 25)`, windows `(47, 24–25)`, `(47, 26)`, and door `(46, 26)` hung on its walls | `(38–45, 20–24)` | 2 | `(3, 5)` (under the hung doorway; was `(2, 5)`, a cell off) |
 
 Houses 0–2 end two pixels into column 45; the hut-kit deck starts at
 x 728 in row 19, so clip region widths to 115 px. The shed and barn are
 outbuildings; only recipes that name them (23) place them.
+
+**Front doors.** The sheet draws every doorway open (dark). In the
+randomizer (with interiors) each home gets a door that swings open as the
+walker comes up and shuts once it has gone (`scripts/door_leaf.gd`,
+`HOUSES[id].door_px`: the opening, px from the region's corner: porch
+cottage and barn `(52, 51)` 8 × 13, flower and gable cottages `(37, 38)`
+6 × 10, hut `(20, 38)` 7 × 10, shed `(20, 35)` 7 × 11). The leaf is planks
+made in the colors of the doorway's own frame (the darkest for the outline
+and seams, the middle for the planks, the lightest for the lit edge,
+braces, and latch), so shut it reads as part of the house. The fixed maps
+and the walker tests keep the open doorways.
 
 Split every placed prefab:
 

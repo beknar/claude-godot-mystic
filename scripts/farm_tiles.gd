@@ -250,31 +250,39 @@ const CROPS_NOD := ["corn", "sunflower", "wheat", "leek", "tomato", "pepper", "b
 # 8 px left so its door sits on a cell. The greenhouse opens on its own
 # interior (the sheet's glasshouse floor), not a Cozy Cottage home.
 const BUILDINGS := {
+	# door_px: the front door in the building's art (px from its corner): it
+	# swings open as the walker comes up (door_leaf.gd); made_leaf: the sheet
+	# leaves the doorway open, so a plank leaf is made in its frame's colors.
+	# The barn's and the greenhouse's doorways stand open.
 	"farmhouse": {"region": Rect2i(816, 384, 96, 96), "door": Vector2i(2, 5), "door_w": 1,
-		"blocks": [Rect2i(4, 50, 86, 30)], "rooms": [2, 4]},
+		"blocks": [Rect2i(4, 50, 86, 30)], "rooms": [2, 4], "door_px": Rect2i(36, 64, 12, 17)},
 	"farmhouse_b": {"region": Rect2i(912, 384, 96, 96), "door": Vector2i(2, 5), "door_w": 1,
-		"blocks": [Rect2i(4, 50, 86, 30)], "rooms": [2, 4]},
+		"blocks": [Rect2i(4, 50, 86, 30)], "rooms": [2, 4], "door_px": Rect2i(36, 64, 12, 17)},
 	"manor": {"region": Rect2i(1008, 384, 112, 112), "door": Vector2i(3, 6), "door_w": 1,
-		"blocks": [Rect2i(8, 52, 100, 44)], "rooms": [3, 6]},
+		"blocks": [Rect2i(8, 52, 100, 44)], "rooms": [3, 6], "door_px": Rect2i(49, 71, 14, 23)},
 	"barn": {"region": Rect2i(816, 480, 128, 96), "door": Vector2i(2, 5), "door_w": 2,
 		"blocks": [Rect2i(13, 52, 102, 28), Rect2i(13, 80, 19, 16), Rect2i(64, 80, 51, 16)], "rooms": [1, 2]},
 	"greenhouse": {"region": Rect2i(1024, 96, 96, 80), "door": Vector2i(2, 4), "door_w": 2,
 		"blocks": [Rect2i(4, 24, 88, 40), Rect2i(4, 64, 28, 16), Rect2i(64, 64, 28, 16)], "rooms": [1, 1], "custom": "greenhouse"},
 	"windmill": {"anim": "windmill animations/windmill_spring_summerSheet", "frames": 4, "frame": Vector2i(96, 128), "shift": Vector2i(-8, 0),
 		"region": Rect2i(0, 0, 80, 128), "door": Vector2i(2, 7), "door_w": 1,
-		"blocks": [Rect2i(18, 80, 46, 32), Rect2i(18, 112, 14, 16), Rect2i(48, 112, 16, 16)], "rooms": [1, 1]},
+		"blocks": [Rect2i(18, 80, 46, 32), Rect2i(18, 112, 14, 16), Rect2i(48, 112, 16, 16)], "rooms": [1, 1],
+		"door_px": Rect2i(41, 107, 14, 21)}, # in the frame (the frame is drawn `shift` px left)
 	# The Painted Lands Forest houses (TILESET_brighter.png, the mixed farmstead
 	# maps only): the doorstep is the cell under the door, below the house;
 	# the chimney (px from the region's corner) smokes. Their roofs match the
 	# Farm's, so they stand in every season.
 	"fl_porch": {"sheet": "forest", "region": Rect2i(608, 160, 115, 80), "door": Vector2i(3, 5), "door_w": 1,
-		"blocks": [Rect2i(14, 32, 100, 45)], "rooms": [3, 6], "chimney": Vector2i(47, 2)},
+		"blocks": [Rect2i(14, 32, 100, 45)], "rooms": [3, 6], "chimney": Vector2i(47, 2), "door_px": Rect2i(52, 51, 8, 13), "made_leaf": true},
 	"fl_flower": {"sheet": "forest", "region": Rect2i(608, 240, 115, 80), "door": Vector2i(2, 4), "door_w": 1,
-		"blocks": [Rect2i(22, 32, 58, 30), Rect2i(64, 32, 50, 46)], "rooms": [2, 4], "chimney": Vector2i(87, 2)},
+		"blocks": [Rect2i(22, 32, 58, 30), Rect2i(64, 32, 50, 46)], "rooms": [2, 4], "chimney": Vector2i(87, 2), "door_px": Rect2i(37, 38, 6, 10), "made_leaf": true},
 	"fl_gable": {"sheet": "forest", "region": Rect2i(608, 400, 115, 80), "door": Vector2i(2, 4), "door_w": 1,
-		"blocks": [Rect2i(22, 32, 58, 30), Rect2i(64, 32, 50, 46)], "rooms": [2, 5], "chimney": Vector2i(87, 2)},
+		"blocks": [Rect2i(22, 32, 58, 30), Rect2i(64, 32, 50, 46)], "rooms": [2, 5], "chimney": Vector2i(87, 2), "door_px": Rect2i(37, 38, 6, 10), "made_leaf": true,
+		# The sheet draws this cottage without a doorway: the flower cottage's
+		# (the same wing) is hung on it.
+		"overlays": [{"src": Rect2i(643, 276, 10, 12), "at": Vector2i(35, 36)}]},
 	"fl_hut": {"sheet": "forest", "region": Rect2i(736, 144, 48, 64), "door": Vector2i(1, 4), "door_w": 1,
-		"blocks": [Rect2i(0, 32, 48, 30)], "rooms": [1, 2], "chimney": Vector2i(23, 14)},
+		"blocks": [Rect2i(0, 32, 48, 30)], "rooms": [1, 2], "chimney": Vector2i(23, 14), "door_px": Rect2i(20, 38, 7, 10), "made_leaf": true},
 }
 ## The windmill interior kit (assets/ai/mill/mill_kit.png, drawn by
 ## tools/gen_mill_kit.py in this sheet's colors: the packs have no mill
@@ -295,6 +303,12 @@ const MILL := {
 	"hook": {"rect": Rect2i(140, 112, 8, 44), "base": Vector2(4, 0), "block": Vector2.ZERO, "frames": 3, "step": 8},
 	"flour": {"rect": Rect2i(164, 112, 16, 16), "base": Vector2(8, 8), "block": Vector2.ZERO},
 	"flour_b": {"rect": Rect2i(180, 112, 16, 16), "base": Vector2(8, 8), "block": Vector2.ZERO},
+	# The cap (up the ladder): the brake wheel on the windshaft driving the
+	# wallower on the upright shaft, 16 frames; the sack trap with the hoist
+	# rope; the ladder's top in its hatch.
+	"brake": {"rect": Rect2i(0, 176, 80, 96), "base": Vector2(40, 95), "block": Vector2(76, 12), "frames": 16, "step": 80},
+	"trap": {"rect": Rect2i(0, 272, 40, 48), "base": Vector2(20, 45), "block": Vector2(26, 11)},
+	"hatch": {"rect": Rect2i(40, 272, 16, 32), "base": Vector2(8, 31), "block": Vector2(14, 11)},
 }
 
 const FOREST_SHEET := "res://assets/pack/TILESET_brighter.png"

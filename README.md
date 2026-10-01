@@ -197,8 +197,11 @@ Cozy Cottage homes, the barn on a barn with its animals, the windmill on a
 working mill floor (the great spur wheel turning under the ceiling, the
 shaft, the hopper trickling grain into the turning runner stone, flour
 dribbling into a sack, the sack hoist, a ladder to the trapdoor, sacks and
-grain, a mill cat and mice, and in winter a hearth), and the greenhouse on
-the sheet's own glasshouse with crops in its beds. `tools/check_farm.gd` sweeps it
+grain, a mill cat and mice, and in winter a hearth; up the ladder, the cap
+with the brake wheel turning the wallower, the sack trap, and the sails'
+shadows sweeping past the windows), and the greenhouse on the sheet's own
+glasshouse with crops in its beds. Front doors swing open as the walker
+comes up and shut behind it, in this randomizer and the Painted Lands one. `tools/check_farm.gd` sweeps it
 headless (docs/farm.md).
 
 The Painted Lands forest and farm randomizer

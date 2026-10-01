@@ -216,15 +216,21 @@ const FENCE_BACK := [Vector2i(29, 24), Vector2i(30, 24)]
 # `roof_rows` are HOUSE_ROOF; the rest is HOUSE_BODY. `door` is the doorstep
 # cell relative to the region's top-left cell. `blocks` are body colliders
 # in region pixels.
+## door_px: the doorway in the art (px from the region's corner): the sheet
+## leaves it open, and a plank door (door_leaf.gd) swings open in it as the
+## walker comes up.
 const HOUSES := {
-	0: {"name": "Porch cottage", "region": Rect2i(608, 160, 115, 80), "roof_rows": 2, "door": Vector2i(3, 5), "blocks": [Rect2i(14, 32, 100, 45)]},
-	1: {"name": "Flower cottage", "region": Rect2i(608, 240, 115, 80), "roof_rows": 2, "door": Vector2i(2, 4), "blocks": [Rect2i(22, 32, 58, 30), Rect2i(64, 32, 50, 46)]},
-	2: {"name": "Gable cottage", "region": Rect2i(608, 400, 115, 80), "roof_rows": 2, "door": Vector2i(2, 4), "blocks": [Rect2i(22, 32, 58, 30), Rect2i(64, 32, 50, 46)]},
-	3: {"name": "Hut", "region": Rect2i(736, 144, 48, 64), "roof_rows": 2, "door": Vector2i(1, 4), "blocks": [Rect2i(0, 32, 48, 30)]},
+	0: {"name": "Porch cottage", "region": Rect2i(608, 160, 115, 80), "roof_rows": 2, "door": Vector2i(3, 5), "blocks": [Rect2i(14, 32, 100, 45)], "door_px": Rect2i(52, 51, 8, 13)},
+	1: {"name": "Flower cottage", "region": Rect2i(608, 240, 115, 80), "roof_rows": 2, "door": Vector2i(2, 4), "blocks": [Rect2i(22, 32, 58, 30), Rect2i(64, 32, 50, 46)], "door_px": Rect2i(37, 38, 6, 10)},
+	# The sheet draws the gable cottage without a doorway: the flower
+	# cottage's (the same wing) is hung on it.
+	2: {"name": "Gable cottage", "region": Rect2i(608, 400, 115, 80), "roof_rows": 2, "door": Vector2i(2, 4), "blocks": [Rect2i(22, 32, 58, 30), Rect2i(64, 32, 50, 46)], "door_px": Rect2i(37, 38, 6, 10),
+		"overlays": [{"src": Rect2i(643, 276, 10, 12), "at": Vector2i(35, 36)}]},
+	3: {"name": "Hut", "region": Rect2i(736, 144, 48, 64), "roof_rows": 2, "door": Vector2i(1, 4), "blocks": [Rect2i(0, 32, 48, 30)], "door_px": Rect2i(20, 38, 7, 10)},
 	# Outbuildings: the hut kit's second wall (no deck) and the doorless
 	# copy of the porch cottage.
-	4: {"name": "Shed", "region": Rect2i(736, 208, 48, 48), "roof_rows": 1, "door": Vector2i(1, 3), "blocks": [Rect2i(0, 16, 48, 32)]},
-	5: {"name": "Barn", "region": Rect2i(608, 320, 115, 80), "roof_rows": 2, "door": Vector2i(2, 5), "blocks": [Rect2i(14, 32, 100, 45)],
+	4: {"name": "Shed", "region": Rect2i(736, 208, 48, 48), "roof_rows": 1, "door": Vector2i(1, 3), "blocks": [Rect2i(0, 16, 48, 32)], "door_px": Rect2i(20, 35, 7, 11)},
+	5: {"name": "Barn", "region": Rect2i(608, 320, 115, 80), "roof_rows": 2, "door": Vector2i(3, 5), "blocks": [Rect2i(14, 32, 100, 45)], "door_px": Rect2i(52, 51, 8, 13),
 		# The sheet's loose door and windows, hung on the barn's front wall.
 		"overlays": [{"src": Rect2i(736, 400, 16, 16), "at": Vector2i(48, 48)}, {"src": Rect2i(752, 384, 16, 32), "at": Vector2i(24, 36)},
 			{"src": Rect2i(752, 416, 16, 16), "at": Vector2i(84, 32)}, {"src": Rect2i(736, 416, 16, 16), "at": Vector2i(100, 32)}]},

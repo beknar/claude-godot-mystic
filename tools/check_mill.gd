@@ -3,7 +3,8 @@ extends SceneTree
 ## mill floor of every windmill on a sweep of farm and farmstead maps and
 ## prints what stands in it; fails a mill whose open floor the walker cannot
 ## reach from the way in, or that is missing its machinery, ladder, hoist,
-## windows, or (in winter) its hearth.
+## windows, or (in winter) its hearth, or whose cap (up the ladder) has
+## floor cut off from where the ladder lands.
 ##   godot --headless -s res://tools/check_mill.gd -- [first_id] [count]
 ## Every recipe with a windmill (farm and farmsteads, `mixed`), each `count`
 ## times from `first_id`.
@@ -82,6 +83,36 @@ func _check(id: int, t, index: int) -> void:
 			cut.append(c)
 	if not cut.is_empty():
 		fails.append("floor cells cut off: %s" % str(cut))
+	# The cap: its floor reachable from where the ladder lands, the hatch's
+	# front among it, and the ladder's foot below reachable from the door.
+	if mv.cap == null:
+		fails.append("no cap")
+	else:
+		var cap_astar := AStarGrid2D.new()
+		cap_astar.region = Rect2i(Vector2i.ZERO, plan.size)
+		cap_astar.diagonal_mode = AStarGrid2D.DIAGONAL_MODE_NEVER
+		cap_astar.update()
+		var cap_open := []
+		for y in plan.size.y:
+			for x in plan.size.x:
+				var c := Vector2i(x, y)
+				var ok2: bool = y >= 4 and y < 4 + 6 and not mv.cap_blocked.has(c)
+				cap_astar.set_point_solid(c, not ok2)
+				if ok2:
+					cap_open.append(c)
+		var land := Vector2i(mv.cap_arrive / 16.0)
+		var cap_cut: Array[Vector2i] = []
+		for c in cap_open:
+			if c != land and cap_astar.get_id_path(land, c).is_empty():
+				cap_cut.append(c)
+		if not cap_cut.is_empty():
+			fails.append("cap cells cut off: %s" % str(cap_cut))
+		var hatch := Vector2i(int(mv.hatch_front.get_center().x / 16.0), int((mv.hatch_front.end.y - 1.0) / 16.0))
+		if cap_astar.is_point_solid(hatch):
+			fails.append("hatch front blocked")
+		var foot := Vector2i(int(mv.ladder_foot.get_center().x / 16.0), int((mv.ladder_foot.end.y - 1.0) / 16.0)) # where the walker stands to climb
+		if astar.is_point_solid(foot) or astar.get_id_path(start, foot).is_empty():
+			fails.append("ladder foot unreachable")
 	var ok := fails.is_empty()
 	if ok:
 		_passed += 1

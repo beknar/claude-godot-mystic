@@ -12,6 +12,19 @@ Read this before touching `scripts/interior_*.gd` or `house_interiors.gd`.
 **Coordinates:** `interior_art.gd` (`ART`, `COUNTERS`, `RUGS`) is
 authoritative.
 
+**Front doors** (`scripts/door_leaf.gd`, driven by `house_interiors.gd`):
+a door given a `leaf` (DoorLeaf, a child of the building's sprite, so it
+sorts and fades with the building) swings open while the walker is on or
+just before its doorstep and shuts once it has walked off; the walker
+steps out of a house through its open door (`snap_open`). The leaf turns
+inward in three steps of 55 ms: it narrows toward its hinge, darkens as it
+turns from the light, shows its edge, and the dark of the room opens up
+behind it. A `pack` leaf is the building's own drawn door (the Farm
+farmhouses, manor, and windmill, in the season's sheet); a `made` leaf is
+planks in the colors of an open doorway's frame (the Painted Lands Forest
+houses, `DoorLeaf.make_leaf`). Doorways that stand open (the Farm barn and
+greenhouse) have none.
+
 Pack: The Painted Lands – Interior Cozy Cottage Tileset (antarcticbees),
 `assets/pack/cozy_cottage/` (git-ignored). Sheets: `wallpapers_and_floors.png`,
 `furniture.png` (five wood tones, 288 px apart), `decoration.png`. Catalog
