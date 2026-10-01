@@ -33,6 +33,9 @@ const SHADE := Color(0.08, 0.24, 0.2, 0.28) # tree shadows, the deep grass tone
 ## The farmstead map types too (Forest houses, fires, and trees on Farm
 ## ground): randomizer-paintedlands-forest-farm sets it.
 @export var mixed := false
+## maze-farm's mazes instead (farm_maze.gd): hedge, wheat, corn, bush, and
+## canal mazes in the season's sheet, their walls colliding where drawn.
+@export var maze := false
 
 @onready var ground_layer: TileMapLayer = $Ground
 @onready var water_layer: TileMapLayer = $Water
@@ -122,6 +125,7 @@ func build(id: int, pinned := -1) -> void:
 	recipe = pinned
 	terrain = FarmTerrain.new()
 	terrain.mixed = mixed
+	terrain.maze = maze
 	report = terrain.generate(map_id, recipe)
 	_use_season(terrain.season)
 	for layer in [ground_layer, water_layer, feature_layer, deco_layer] + _tone_layers:
@@ -152,7 +156,7 @@ func build(id: int, pinned := -1) -> void:
 
 func recipe_names() -> Array[String]:
 	var out: Array[String] = []
-	for r in FarmTerrain.all_recipes(mixed):
+	for r in (FarmMaze.recipes() if maze else FarmTerrain.all_recipes(mixed)):
 		out.append(r.name)
 	return out
 
@@ -364,6 +368,9 @@ func _build_collision() -> void:
 			elif not solid and run >= 0:
 				_add_box(collision, Rect2(run * TILE, y * TILE, (x - run) * TILE, TILE))
 				run = -1
+	# A maze's soft walls (hedges, wheat, crops, bushes): where they are drawn.
+	for r: Rect2 in terrain.maze_info.get("boxes", []):
+		_add_box(collision, r)
 	for r in [Rect2(-TILE, -TILE, (W + 2) * TILE, TILE), Rect2(-TILE, H * TILE, (W + 2) * TILE, TILE),
 			Rect2(-TILE, 0, TILE, H * TILE), Rect2(W * TILE, 0, TILE, H * TILE)]:
 		_add_box(collision, r)
@@ -1653,7 +1660,8 @@ func _place_props() -> void:
 	for p in terrain.props:
 		var art: Dictionary = FarmTiles.prop(season, p.art)
 		var rect: Rect2i = art.rect
-		var foot := Vector2(p.cell * TILE) + Vector2(TILE / 2.0, TILE - 1)
+		# `nudge`: a maze's wall bushes sit half a cell low, centred on the wall.
+		var foot: Vector2 = Vector2(p.cell * TILE) + Vector2(TILE / 2.0, TILE - 1) + p.get("nudge", Vector2.ZERO)
 		var node := StaticBody2D.new()
 		node.collision_mask = 0
 		node.position = foot

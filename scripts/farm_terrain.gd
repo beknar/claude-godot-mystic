@@ -177,10 +177,15 @@ static func all_recipes(with_mixed: bool) -> Array:
 
 ## Draws the farmstead map types too (randomizer-paintedlands-forest-farm).
 var mixed := false
+## Lays maze-farm's mazes instead (farm_maze.gd, FarmMaze.MAZE_RECIPES): the
+## maze's walls, clearings, and gates, then the rest of this pipeline.
+var maze := false
+var maze_info := {} # the maze's cells and counts (FarmMaze.lay)
+var _maze = null # the FarmMaze of the attempt
 
 func generate(id: int, pinned := -1) -> String:
 	map_id = id
-	var list := all_recipes(mixed)
+	var list := FarmMaze.recipes() if maze else all_recipes(mixed)
 	recipe_id = pinned if pinned >= 0 else id % list.size()
 	recipe = list[recipe_id]
 	season = recipe.get("season", "summer")
@@ -219,6 +224,9 @@ func _layout() -> bool:
 	fails.clear()
 	floor_notes.clear()
 	_prop_cells.clear()
+	maze_info.clear()
+	if maze:
+		return _maze_layout()
 	spawn = Vector2i(W / 2 + _rng.randi_range(-10, 10), H - 3)
 	_claim(Rect2i(spawn - Vector2i(2, 2), Vector2i(5, 3)))
 	if recipe.get("canopy", false):
@@ -264,6 +272,23 @@ func _layout() -> bool:
 	_deco()
 	_liveliness_floor()
 	return true
+
+
+## A maze map (maze-farm): FarmMaze lays the walls, clearings, gates, and
+## extras; then the tones, the trees and scatter round the edge, the deco,
+## and the liveliness floor, as on any farm map. Every maze cell must be
+## reachable from the entrance.
+func _maze_layout() -> bool:
+	_maze = FarmMaze.new(self, _rng)
+	if not _maze.lay():
+		return false
+	_zones()
+	_repair()
+	_scatter_trees()
+	_scatter_small()
+	_deco()
+	_liveliness_floor()
+	return _maze.unreached().is_empty()
 
 
 # ---------------------------------------------------------------- grids
@@ -1497,6 +1522,9 @@ const FLOOR_FLOWER := 3.0
 const FLOOR_GLOW := 30.0
 
 func _liveliness_floor() -> void:
+	if maze:
+		_maze_floor()
+		return
 	for n in FLOOR_ANCHORS:
 		var weak := _weakest()
 		if n == 0:
@@ -1519,6 +1547,31 @@ func _liveliness_floor() -> void:
 			var c := r.get_center() + Vector2i(_rng.randi_range(-8, 8), _rng.randi_range(-3, 3))
 			firefly_spots.append(c.clamp(Vector2i(1, 1), Vector2i(W - 2, H - 2)))
 			floor_notes.append("fireflies")
+	floor_notes.append("-> %.3f%%" % _weakest().value)
+
+
+## In a maze: a tree out of a hedge pillar in the weak window, or flowers
+## along its corridors (FarmMaze.floor_anchor), else fireflies (not in the
+## snow); up to twice the usual anchors (a maze's walls are still).
+func _maze_floor() -> void:
+	for n in FLOOR_ANCHORS * 2:
+		var weak := _weakest()
+		if n == 0:
+			floor_notes.append("weakest window %.3f%%" % weak.value)
+		if weak.value >= LIVE_FLOOR:
+			break
+		var r: Rect2i = weak.rect
+		if _maze.floor_anchor(r):
+			floor_notes.append("anchor")
+		elif season != "winter":
+			var cells: Array = maze_info.get("corridors", {}).keys().filter(func(c): return r.has_point(c) and walkable(c))
+			if cells.is_empty():
+				break
+			cells.sort()
+			firefly_spots.append(cells[_rng.randi() % cells.size()])
+			floor_notes.append("fireflies")
+		else:
+			break
 	floor_notes.append("-> %.3f%%" % _weakest().value)
 
 
@@ -1803,6 +1856,14 @@ func wildlife_plan(p_mode := "") -> Dictionary:
 		Wildlife.add_homesteads(h, doors, outside, h.lawn)
 		if not pen.is_empty():
 			h.pasture = pen
+		elif maze and buildings.is_empty():
+			# A maze with no home or pen: the flock grazes the grass
+			# corridors, and the poultry keep to the clearings.
+			h.pasture = h.lawn.duplicate()
+			for c: Vector2i in land:
+				for rect in _maze.clearings:
+					if _maze._clearing_px(rect).grow(1).has_point(c) and not h.shore.has(c):
+						h.yard[c] = true
 	h["_land"] = land
 	var ts := {}
 	for t in tr:
@@ -1919,6 +1980,12 @@ func _report() -> String:
 	for k in recipe.buildings:
 		if not buildings.any(func(b): return b.kind == k):
 			fails.append("no %s" % k)
+	if maze:
+		var cut: Array[Vector2i] = _maze.unreached() if _maze != null else []
+		if not maze_info.has("corridors"):
+			fails.append("no maze laid")
+		elif not cut.is_empty():
+			fails.append("%d maze cells cut off" % cut.size())
 	var names := PackedStringArray()
 	for b in buildings:
 		names.append(b.kind)

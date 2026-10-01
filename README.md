@@ -128,6 +128,7 @@ generator.
 | `scenes/wilds/wilds.tscn` | 75125 (recipe 5, Open meadow) | `character_sprite_sheet.png` |
 | `scenes/randomizer-paintedlands/randomizer-paintedlands.tscn` | starts at 75101 (recipe 5, Open meadow), then any | `character_sprite_sheet.png` |
 | `scenes/maze-forest/maze-forest.tscn` | starts at 400000 (maze type 16, Firefly maze; id % 24), then any | `character_sprite_sheet.png` (the Painted Lands walker) |
+| `scenes/maze-farm/maze-farm.tscn` | starts at 420000 (maze type 0, Hedgerow maze; id % 30), then any | `character_sprite_sheet.png` (the Painted Lands walker) |
 | `scenes/randomizer-mysticwoods/randomizer-mysticwoods.tscn` | starts at 21021, then any | `player.png` |
 | `scenes/randomizer-greencaves/randomizer-greencaves.tscn` | starts at 130021, then any | `character_sprite_sheet.png` (the Painted Lands walker) |
 | `scenes/randomizer-paintedlands-farm/randomizer-paintedlands-farm.tscn` | starts at 190008 (recipe 0, Homestead), then any | `character_sprite_sheet.png` (the Painted Lands walker) |
@@ -236,6 +237,18 @@ reachable from the one entrance (a road, lanterns, a signpost) to the one
 exit. The rest is the Painted Lands pipeline: grass tones, dirt patches,
 flowers, bunnies, butterflies, wind, clouds, leaves, lanterns lifting the
 quiet stretches (docs/maze-forest.md; `tools/check_maze.gd`).
+
+**Farm mazes.** `maze-farm` builds mazes on the Farm - 4 Seasons sheets, 30
+types in spring and summer, autumn, and winter from the same Esc menu: hedge
+mazes, golden wheat mazes, corn and sunflower mazes whose
+stalks nod and bend away from the walker, tall-grass and shrub mazes, snowy
+bush and pine hedge mazes, and canal mazes crossed on bridges, some round a
+farmhouse, the barn, the windmill, or the greenhouse (their interiors behind
+the doors), pens with their herds, a pond, crop patches, an orchard, hay and
+scarecrows, a farmhouse in a moat. Walls collide where they are drawn; every
+room is reachable from the one entrance (a road, barrels, a signpost) to
+the one exit. The Cozy Farm animals live in every maze, in the pens, by the
+doors, or grazing the corridors (docs/maze-farm.md; `tools/check_maze_farm.gd`).
 
 The Painted Lands forest and farm randomizer
 (`randomizer-paintedlands-forest-farm`) builds all 100 Painted Lands map

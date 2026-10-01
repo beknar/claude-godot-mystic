@@ -21,6 +21,8 @@ Read this before touching `scripts/farm_terrain.gd`, `scripts/farm.gd`,
   the prop's cell); a trunk collider stays in the trunk's cell. Otherwise the
   walker snags on a collider in a cell the generator left open.
 
+Mazes on these sheets (`maze-farm`, `farm_maze.gd`): `docs/maze-farm.md`.
+
 **Coordinates:** `scripts/farm_tiles.gd` is authoritative (read from the sheet
 by script, then checked by eye); the notes below explain each piece.
 

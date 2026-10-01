@@ -33,6 +33,13 @@ Rules for each pack: `docs/painted-lands.md`, `docs/green-caves.md`,
 | Painted Lands Forest (hedge and canal mazes) + Cozy Farm (bunnies) | `maze-forest` | 19 |
 | Painted Lands Forest (mazes with a cottage) + Cozy Cottage (interiors) + Cozy Farm (bunnies, farm animals) | `maze-forest` | 3 |
 | Painted Lands Forest (mazes crossed on bridges) + bridges (generated) + Cozy Farm (bunnies) | `maze-forest` | 2 (Lily canals, Moat maze; Canal cottage has its cottage and bridges) |
+| Painted Lands Farm (spring and summer mazes: hedges, wheat, corn, sunflowers, tall grass, canals, shrubs) + Cozy Farm (animals) | `maze-farm` | 14 |
+| Painted Lands Farm (spring and summer mazes with a farmhouse, barn, windmill, or greenhouse) + Cozy Cottage (interiors) + Cozy Farm (animals) | `maze-farm` | 4 |
+| Painted Lands Farm (spring and summer mazes crossed on bridges) + bridges (generated) + Cozy Farm (animals) | `maze-farm` | 3 (Mill canals and Moated farmhouse have their interiors too) |
+| Painted Lands Farm (autumn mazes) + Cozy Farm (animals) | `maze-farm` | 3 |
+| Painted Lands Farm (autumn mazes with a farmhouse or barn) + Cozy Cottage (interiors) + Cozy Farm (animals) | `maze-farm` | 2 (Russet canals crossed on bridges) |
+| Painted Lands Farm (winter mazes: canals, snowy bushes, pines) + Cozy Farm (animals) | `maze-farm` | 2 |
+| Painted Lands Farm (winter mazes with a farmhouse or windmill) + Cozy Cottage (interiors) + Cozy Farm (animals) | `maze-farm` | 2 (Frozen mill canals crossed on bridges) |
 | Painted Lands Green Caves | `randomizer-greencaves` | 23 |
 | Painted Lands Green Caves + Cozy Farm (bunnies) | `randomizer-greencaves` | 3 |
 | Painted Lands Green Caves + Cozy Cottage (homes) + Cozy Farm (farm animals) | `randomizer-greencaves` | 7 |
@@ -48,7 +55,7 @@ Rules for each pack: `docs/painted-lands.md`, `docs/green-caves.md`,
 | Pixel Crawler Cemetery | `randomizer-pixelcrawler` | 3 |
 | Pixel Crawler Desert | `randomizer-pixelcrawler` | 3 |
 
-174 map types in all (36 Painted Lands, 24 Forest mazes, 33 Green Caves,
+204 map types in all (36 Painted Lands, 24 Forest mazes, 30 Farm mazes, 33 Green Caves,
 52 Farm in three seasons, 12 farmsteads, 17 Pixel Crawler) and 2 fixed maps.
 `randomizer-paintedlands-forest-farm` builds all 100 Painted Lands map types
 (the 36 Forest, the 52 Farm, and the 12 farmsteads, which only it builds).
@@ -161,6 +168,50 @@ round the cottages (Cozy Cottage interiors).
 | 21 | Meadow maze | dark hedge (loops) | three meadows |
 | 22 | Canal cottage | canals, paved, bridges | cottage (hut, Cozy Cottage interior) |
 | 23 | Stone court | dark hedge (rings), paved | camp |
+
+## Painted Lands Farm mazes
+
+`maze-farm` (id % 30, docs/maze-farm.md): mazes on the Farm - 4 Seasons
+sheets, one season per map: overlay walls (hedge, golden wheat, tall
+grass), crop rows (corn, sunflowers), bushes (summer shrubs,
+winter's snowy and pine bushes), and canals of the sheet's water blocks;
+one visible entrance in the west wall and one exit in the east (a road in,
+barrels, a signpost), every room reachable. The Cozy Farm animals in every
+maze (in the pens, round the doors, or grazing the corridors); interiors
+behind every building's door.
+
+| # | Map type | Season | Walls | Clearings |
+|---|---|---|---|---|
+| 0 | Hedgerow maze | summer | hedge | |
+| 1 | Branching hedgerows | summer | hedge | pond |
+| 2 | Looping hedges | summer | hedge (loops) | hay |
+| 3 | Farmhouse maze | summer | hedge | farmhouse (interior) |
+| 4 | Windmill in the wheat | summer | wheat | windmill (mill floor and cap) |
+| 5 | Wheat maze | summer | wheat | hay |
+| 6 | Golden rings | summer | wheat (rings) | pumpkin patch |
+| 7 | Corn maze | summer | corn | scarecrow |
+| 8 | Maize loops | summer | corn (loops) | pumpkin patch |
+| 9 | Sunflower maze | summer | sunflowers | hay |
+| 10 | Meadow grass maze | summer | tall grass | two meadows |
+| 11 | Barnyard maze | summer | hedge | barn (interior), pen |
+| 12 | Pasture maze | summer | hedge (loops) | two pens |
+| 13 | Orchard maze | summer | hedge, fruit trees | orchard |
+| 14 | Kitchen garden maze | summer | hedge | two crop patches |
+| 15 | Greenhouse maze | summer | hedge (rings), sand paths | greenhouse (interior) |
+| 16 | Canal maze | summer | canals | |
+| 17 | Bridge canals | summer | canals, bridges | |
+| 18 | Mill canals | summer | canals, bridges | windmill |
+| 19 | Moated farmhouse | summer | hedge in a moat, bridges | farmhouse |
+| 20 | Shrub maze | summer | bushes | pond |
+| 21 | Autumn hedgerows | autumn | brown hedge, many trees | |
+| 22 | Autumn sunflowers | autumn | sunflowers | hay |
+| 23 | Harvest corn maze | autumn | corn (loops) | pumpkin patch |
+| 24 | Autumn homestead maze | autumn | brown hedge | farmhouse, pen |
+| 25 | Russet canals | autumn | canals, bridges | barn |
+| 26 | Frozen canals | winter | canals | |
+| 27 | Snowbush maze | winter | snowy bushes | farmhouse |
+| 28 | Pine hedge maze | winter | pine bushes | pen |
+| 29 | Frozen mill canals | winter | canals, bridges | windmill |
 
 ## Painted Lands Green Caves
 

@@ -103,6 +103,14 @@ Painted Lands Forest mazes (docs/maze-forest.md):
   interiors in the cottages, the Cozy Farm animals, and the same Esc menu,
   titled "Painted Lands forest maze".
 
+Painted Lands Farm mazes (docs/maze-farm.md):
+
+- `scenes/maze-farm/maze-farm.tscn` — `farm.gd` with `maze` on: the maze
+  types of `farm_maze.gd` (30, id % 30, in three seasons) laid into the farm
+  pipeline, starting at map id `420000`, with the Painted Lands walker,
+  interiors behind every building's door, the Cozy Farm animals, and the
+  same Esc menu, titled "Painted Lands farm maze".
+
 Painted Lands forest and farm randomizer (docs/farm.md, Farmsteads):
 
 - `scenes/randomizer-paintedlands-forest-farm/randomizer-paintedlands-forest-farm.tscn` —
