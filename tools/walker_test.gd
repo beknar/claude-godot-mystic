@@ -20,7 +20,8 @@ extends Node2D
 ## Crawler randomizer into .liveliness_walk_pc; `maze` the maze-forest types
 ## into .liveliness_walk_maze, and `farm maze` the maze-farm types into
 ## .liveliness_walk_maze_farm, and `caves maze` the maze-greencaves types
-## into .liveliness_walk_maze_caves. The six views tile each map
+## into .liveliness_walk_maze_caves, and `pc maze` the maze-pixelcrawler
+## types into .liveliness_walk_maze_pc. The six views tile each map
 ## (a 64-cell farm is wider than a 60-cell Painted Lands map).
 
 const Wild := preload("res://scripts/wildlife.gd")
@@ -107,6 +108,9 @@ func _ready() -> void:
 	if _plan.is_empty() and maze and _farm:
 		for r in FarmMaze.MAZE_RECIPES.size(): # maze-farm (farm_maze.gd)
 			_plan.append(420000 + r)
+	elif _plan.is_empty() and maze and _pc:
+		for r in PCMaze.MAZE_RECIPES.size(): # maze-pixelcrawler (pc_maze.gd)
+			_plan.append(460000 + r)
 	elif _plan.is_empty() and maze and _caves:
 		for r in CaveMaze.MAZE_RECIPES.size(): # maze-greencaves (cave_maze.gd)
 			_plan.append(440016 + r)
@@ -124,7 +128,7 @@ func _ready() -> void:
 			_plan = PC_RENDERED_MAPS.duplicate()
 		else:
 			_plan = CAVE_RENDERED_MAPS.duplicate() if _caves else RENDERED_MAPS.duplicate()
-	var suffix := ("_maze_farm" if maze else "_farm") if _farm else ("_pc" if _pc else (("_maze_caves" if maze else "_caves") if _caves else ("_maze" if maze else "")))
+	var suffix := ("_maze_farm" if maze else "_farm") if _farm else (("_maze_pc" if maze else "_pc") if _pc else (("_maze_caves" if maze else "_caves") if _caves else ("_maze" if maze else "")))
 	_out = ProjectSettings.globalize_path("res://.liveliness_walk" + suffix)
 	if out_dir != "":
 		_out = ProjectSettings.globalize_path("res://" + out_dir)
@@ -137,7 +141,8 @@ func _ready() -> void:
 		_forest.mixed = "mixed" in OS.get_cmdline_user_args()
 	if maze:
 		_forest.maze = true
-		_forest.cozy_animals = true
+		if "cozy_animals" in _forest: # the Pixel Crawler mazes keep the drawn animals
+			_forest.cozy_animals = true
 	if cozy:
 		_forest.cozy_animals = true
 		_forest.cozy_buildings = true

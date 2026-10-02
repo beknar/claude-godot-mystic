@@ -140,5 +140,12 @@ const WANG := {
 		"ssks": [Vector2i(6, 10)],
 		"sssk": [Vector2i(4, 10)],
 	},
+	# Dungeons (maze-pixelcrawler): one floor each, its plain fills.
+	"forge": {
+		"ffff": [Vector2i(2, 8), Vector2i(1, 7), Vector2i(2, 7), Vector2i(3, 7), Vector2i(1, 8), Vector2i(3, 8), Vector2i(1, 9), Vector2i(2, 9), Vector2i(3, 9)],
+	},
+	"sewer": {
+		"bbbb": [Vector2i(4, 5), Vector2i(3, 5), Vector2i(5, 5), Vector2i(3, 6), Vector2i(4, 6), Vector2i(5, 6), Vector2i(3, 7), Vector2i(4, 7), Vector2i(5, 7)],
+	},
 
 }

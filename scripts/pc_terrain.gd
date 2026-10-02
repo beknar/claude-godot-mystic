@@ -57,6 +57,11 @@ const BIOMES := {
 		"kids": {"k": ["s", 1]},
 		"path": "", "patch": "k", "zone": "k", "inner": "",
 		"stamp": {"at": Vector2i(0, 0), "cols": [0, 1, 2, 3, 4, 5], "rows": [0, 1, 2, 3, 4, 5, 6], "mid": [2, 3], "top": 2, "face": 5}},
+	# Dungeons (maze-pixelcrawler only, pc_maze.gd): one floor terrain, no
+	# plateaus or per-pixel water; walls, lava, and slime are the sheets' own
+	# tiles (PCMaze kits). indoor: no clouds, streaks, grass, or drifters.
+	"forge": {"dir": "forge", "tiles": "forge/Tiles.png", "root": "f", "kids": {}, "path": "", "patch": "f", "zone": "f", "inner": "", "indoor": true},
+	"sewer": {"dir": "sewer", "tiles": "sewer/Tiles.png", "root": "b", "kids": {}, "path": "", "patch": "b", "zone": "b", "inner": "", "indoor": true},
 }
 
 # Props: sheet (under the pack folder), rect in px, block (collider w, h at
@@ -188,6 +193,36 @@ const PROPS := {
 	"ds_reeds": {"sheet": "desert/Tiles", "rect": Rect2i(192, 352, 32, 48), "block": Vector2.ZERO, "tag": "plant", "on": "s"},
 	"ds_tuft": {"sheet": "desert/Tiles", "rect": Rect2i(176, 336, 16, 16), "block": Vector2.ZERO, "tag": "flat", "on": "s"},
 	"ds_tuft_b": {"sheet": "desert/Tiles", "rect": Rect2i(192, 336, 16, 16), "block": Vector2.ZERO, "tag": "flat", "on": "s"},
+	# Forge (forge/Tiles.png).
+	"fg_arch": {"sheet": "forge/Tiles", "rect": Rect2i(224, 0, 48, 77), "block": Vector2.ZERO, "tag": "flat"},
+	"fg_banner": {"sheet": "forge/Tiles", "rect": Rect2i(282, 8, 22, 61), "block": Vector2.ZERO, "tag": "flat"},
+	"fg_chest_open": {"sheet": "forge/Tiles", "rect": Rect2i(240, 88, 32, 24), "block": Vector2(26, 8), "tag": "clutter"},
+	"fg_chest": {"sheet": "forge/Tiles", "rect": Rect2i(240, 115, 32, 29), "block": Vector2(26, 8), "tag": "clutter"},
+	"fg_statue": {"sheet": "forge/Tiles", "rect": Rect2i(194, 150, 28, 58), "block": Vector2(20, 8), "tag": "stone"},
+	"fg_statue_broken": {"sheet": "forge/Tiles", "rect": Rect2i(226, 164, 28, 44), "block": Vector2(20, 8), "tag": "stone"},
+	"fg_barrel_skull": {"sheet": "forge/Tiles", "rect": Rect2i(112, 249, 16, 23), "block": Vector2(12, 5), "tag": "clutter"},
+	"fg_barrel": {"sheet": "forge/Tiles", "rect": Rect2i(128, 249, 16, 23), "block": Vector2(12, 5), "tag": "clutter"},
+	"fg_barrel_b": {"sheet": "forge/Tiles", "rect": Rect2i(144, 249, 16, 23), "block": Vector2(12, 5), "tag": "clutter"},
+	"fg_rack": {"sheet": "forge/Tiles", "rect": Rect2i(160, 249, 48, 23), "block": Vector2(44, 6), "tag": "clutter"},
+	"fg_barrel_water": {"sheet": "forge/Tiles", "rect": Rect2i(112, 282, 16, 22), "block": Vector2(12, 5), "tag": "clutter"},
+	"fg_rack_b": {"sheet": "forge/Tiles", "rect": Rect2i(160, 282, 48, 22), "block": Vector2(44, 6), "tag": "clutter"},
+	"fg_rubble": {"sheet": "forge/Tiles", "rect": Rect2i(83, 99, 9, 11), "block": Vector2.ZERO, "tag": "flat"},
+	"fg_rubble_b": {"sheet": "forge/Tiles", "rect": Rect2i(116, 115, 10, 8), "block": Vector2.ZERO, "tag": "flat"},
+	# Sewer (sewer/Props.png).
+	"sw_lamp": {"sheet": "sewer/Props", "rect": Rect2i(100, 5, 9, 20), "block": Vector2.ZERO, "tag": "lamp"},
+	"sw_lantern": {"sheet": "sewer/Props", "rect": Rect2i(5, 10, 6, 15), "block": Vector2.ZERO, "tag": "lamp"},
+	"sw_crate": {"sheet": "sewer/Props", "rect": Rect2i(32, 9, 16, 23), "block": Vector2(14, 6), "tag": "clutter"},
+	"sw_barrel": {"sheet": "sewer/Props", "rect": Rect2i(48, 10, 16, 22), "block": Vector2(14, 6), "tag": "clutter"},
+	"sw_crate_broken": {"sheet": "sewer/Props", "rect": Rect2i(32, 41, 16, 23), "block": Vector2(14, 6), "tag": "clutter"},
+	"sw_barrel_broken": {"sheet": "sewer/Props", "rect": Rect2i(48, 44, 16, 20), "block": Vector2(14, 6), "tag": "clutter"},
+	"sw_chest": {"sheet": "sewer/Props", "rect": Rect2i(130, 42, 28, 40), "block": Vector2(24, 8), "tag": "clutter"},
+	"sw_outlet": {"sheet": "sewer/Props", "rect": Rect2i(112, 40, 16, 16), "block": Vector2.ZERO, "tag": "flat"},
+	"sw_chain": {"sheet": "sewer/Props", "rect": Rect2i(163, 1, 10, 40), "block": Vector2.ZERO, "tag": "flat"},
+	"sw_bottle": {"sheet": "sewer/Props", "rect": Rect2i(98, 145, 12, 15), "block": Vector2.ZERO, "tag": "flat"},
+	"sw_bottle_b": {"sheet": "sewer/Props", "rect": Rect2i(114, 165, 10, 11), "block": Vector2.ZERO, "tag": "flat"},
+	"sw_bottle_c": {"sheet": "sewer/Props", "rect": Rect2i(132, 181, 7, 11), "block": Vector2.ZERO, "tag": "flat"},
+	"sw_planks": {"sheet": "sewer/Props", "rect": Rect2i(97, 194, 77, 29), "block": Vector2.ZERO, "tag": "flat"}, # across a channel, east-west
+	"sw_planks_v": {"sheet": "sewer/Props", "rect": Rect2i(67, 144, 26, 96), "block": Vector2.ZERO, "tag": "flat"}, # north-south
 }
 
 # Fairy Forest trees (fairy_forest/Tree.png): six color rows of 224 px, left
@@ -262,6 +297,10 @@ const SCATTER := {
 		["cm_pebble", "cm_thorn", "cm_leaves", "cm_daisies", "cm_marigolds", "cm_leaves"]],
 	"desert": [["ds_rock", "ds_rock_s", "ds_bush", "ds_cactus_s", "ds_dead_tree_s"],
 		["ds_tuft", "ds_tuft_b", "ds_tuft"]],
+	"forge": [["fg_barrel", "fg_barrel_b", "fg_barrel_skull", "fg_barrel_water", "fg_rack"],
+		["fg_rubble", "fg_rubble_b", "fg_rubble"]],
+	"sewer": [["sw_crate", "sw_barrel", "sw_crate_broken", "sw_barrel_broken"],
+		["sw_bottle", "sw_bottle_b", "sw_bottle_c", "sw_outlet"]],
 }
 
 var map_id := 0
@@ -290,12 +329,19 @@ var splat_fade := PackedFloat32Array() # per corner: 1 deep in pure root ground
 var splat_fade_dark := PackedFloat32Array() # the same for the zone terrain
 var _taken := {}
 var _rng := RandomNumberGenerator.new()
+## Lays maze-pixelcrawler's mazes instead (pc_maze.gd, PCMaze.MAZE_RECIPES).
+var maze := false
+var maze_info := {}
+var wall_tiles := {} # cell -> atlas on the biome sheet: kit walls and faces
+var pool_tiles := {} # cell -> atlas (frame 0): animated lava or slime
+var _maze = null
 
 
 func generate(id: int, pinned := -1) -> String:
 	map_id = id
-	recipe_id = pinned if pinned >= 0 else id % RECIPES.size()
-	recipe = RECIPES[recipe_id]
+	var list: Array = PCMaze.recipes() if maze else RECIPES
+	recipe_id = pinned if pinned >= 0 else id % list.size()
+	recipe = list[recipe_id]
 	biome = BIOMES[recipe.biome]
 	for a in 30:
 		attempt = a
@@ -312,13 +358,15 @@ func _layout() -> bool:
 	kind = PackedByteArray()
 	kind.resize(W * H)
 	kind.fill(OPEN)
-	for d in [water, paths, blocked, _locked, _taken]:
+	for d in [water, paths, blocked, _locked, _taken, stones, wall_tiles, pool_tiles, maze_info, _prop_cells]:
 		d.clear()
 	for a in [plateaus, islands, ponds, props, goals, firefly_spots]:
 		a.clear()
 	notes.clear()
 	fails.clear()
 	floor_notes.clear()
+	if maze:
+		return _maze_layout()
 	spawn = Vector2i(W / 2 + _rng.randi_range(-10, 10), H - 5)
 	_claim(Rect2i(spawn - Vector2i(2, 2), Vector2i(5, 4)))
 	for i in _rng.randi_range(recipe.plateaus[0], recipe.plateaus[1]):
@@ -341,6 +389,57 @@ func _layout() -> bool:
 	_liveliness_floor()
 	_splat()
 	return true
+
+
+## A maze map (maze-pixelcrawler): PCMaze lays the walls, clearings, gates,
+## and extras; then the repair, the trees and scatter in the antechambers
+## (outdoors), the liveliness floor, the splat. Every maze cell must be
+## reachable from the entrance.
+func _maze_layout() -> bool:
+	_maze = PCMaze.new(self, _rng)
+	if not _maze.lay():
+		return false
+	_repair()
+	if not biome.get("indoor", false):
+		_scatter_trees()
+		_scatter_small()
+	else:
+		# A dungeon's antechambers: a little clutter, a few bits, not a carpet.
+		var sets: Array = SCATTER[recipe.biome]
+		_near(sets[0], 8, Vector2i(W / 2, H / 2), W / 2)
+		_near(sets[1], 10, Vector2i(W / 2, H / 2), W / 2)
+	_maze_floor()
+	_splat()
+	return _maze.unreached().is_empty()
+
+
+## The floor in a maze: a glowing or moving anchor in a corridor of the weak
+## window where the biome has one (PCMaze.floor_anchor), else fireflies.
+func _maze_floor() -> void:
+	for n in FLOOR_ANCHORS * 3:
+		var weak := _weakest()
+		if n == 0:
+			floor_notes.append("weakest window %.3f%%" % weak.value)
+		if weak.value >= LIVE_FLOOR:
+			break
+		var r: Rect2i = weak.rect
+		if _maze.floor_anchor(r):
+			floor_notes.append("anchor")
+		else:
+			var cells: Array = maze_info.get("corridors", {}).keys().filter(func(c): return r.grow(-4).has_point(c) and walkable(c))
+			if cells.is_empty():
+				break
+			cells.sort()
+			firefly_spots.append(cells[_rng.randi() % cells.size()])
+			floor_notes.append("fireflies")
+	floor_notes.append("-> %.3f%%" % _weakest().value)
+
+
+## Drips from the faces of a maze's kit walls (CaveLife), in world pixels.
+func drip_spots() -> Array[Dictionary]:
+	var out: Array[Dictionary] = []
+	out.assign(maze_info.get("drips", []))
+	return out
 
 
 # ---------------------------------------------------------------- grids
@@ -758,8 +857,7 @@ func _place(art: String, cell: Vector2i) -> bool:
 	# Props that bake a patch of ground at their base stand only on it.
 	if p.has("on") and sig(cell) != String(p.on).repeat(4):
 		return false
-	var w: int = maxi(1, int(ceil(p.block.x / 16.0)))
-	var r := Rect2i(cell - Vector2i(w / 2, 0), Vector2i(w, 1))
+	var r := collider_cells(cell, p)
 	for y in range(r.position.y, r.end.y):
 		for x in range(r.position.x, r.end.x):
 			var c := Vector2i(x, y)
@@ -772,6 +870,17 @@ func _place(art: String, cell: Vector2i) -> bool:
 		for x in range(r.position.x, r.end.x):
 			blocked[Vector2i(x, cell.y)] = true
 	return true
+
+
+## The cells a prop's collider overlaps: it is centred on the cell's middle
+## (pixelcrawler.gd), so a wide one reaches into the cells either side.
+static func collider_cells(cell: Vector2i, p: Dictionary) -> Rect2i:
+	if p.block.x <= 0.0:
+		return Rect2i(cell, Vector2i.ONE)
+	var cx := cell.x * TILE + TILE / 2.0
+	var x0 := floori((cx - p.block.x / 2.0) / TILE)
+	var x1 := floori((cx + p.block.x / 2.0 - 0.01) / TILE)
+	return Rect2i(x0, cell.y, x1 - x0 + 1, 1)
 
 
 func _near(arts: Array, count: int, center: Vector2i, radius: int) -> void:
@@ -1021,13 +1130,15 @@ func _weakest() -> Dictionary:
 	m.fill(0.0)
 	for c: Vector2i in water:
 		m[_i(c)] += FLOOR_WATER
+	for c: Vector2i in pool_tiles:
+		m[_i(c)] += FLOOR_WATER # lava and slime move as water does
 	for c in firefly_spots:
 		m[_i(c)] += FLOOR_GLOW * 2.0
 	for p in props:
 		if not _inside(p.cell):
 			continue
 		var tag: String = prop(p.art).tag
-		if tag == "glow" or tag == "rune":
+		if tag == "glow" or tag == "rune" or tag == "lamp":
 			m[_i(p.cell)] += FLOOR_GLOW
 		elif tag == "tree":
 			m[_i(p.cell)] += FLOOR_TREE
@@ -1215,6 +1326,13 @@ func _report() -> String:
 				untiled += 1
 	if untiled > 0:
 		fails.append("%d cells without a tile" % untiled)
+	if maze:
+		if not maze_info.has("corridors"):
+			fails.append("no maze laid")
+		else:
+			var cut: Array[Vector2i] = _maze.unreached()
+			if not cut.is_empty():
+				fails.append("%d maze cells cut off" % cut.size())
 	var lines := PackedStringArray([
 		"Pixel Crawler map %d: recipe %d %s (%s), %dx%d (layout attempt %d)" % [map_id, recipe_id, recipe.name, recipe.biome, W, H, attempt],
 		"  plateaus %d, ponds %d, islands %d, water %d cells, path %d cells, trees %d, props %d" % [

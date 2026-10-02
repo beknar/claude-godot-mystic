@@ -39,6 +39,7 @@ changing its generator, painter, or scenes.
 | Bridges (generated in the Forest's and the Farm's colors; the packs draw none) | rivers and brooks in `randomizer-paintedlands`, `randomizer-paintedlands-farm`, `randomizer-paintedlands-forest-farm` | `bridges.gd`, `tools/gen_bridges.py` | `docs/bridges.md` |
 | Painted Lands, Cozy Cottage | homes in the Painted Lands, Green Caves, farm, and forest-and-farm randomizers | `interior_*.gd`, `house_interiors.gd` | `docs/interiors.md` |
 | Cozy Farm (animals only) | `randomizer-paintedlands`, `randomizer-greencaves`, `randomizer-paintedlands-farm`, `randomizer-paintedlands-forest-farm`, `maze-forest`, `maze-farm`, `maze-greencaves` | `wildlife.gd` (`PACK_SPECIES`), `cave_terrain.gd` (`wildlife_plan`) | `docs/painted-lands.md` (Cozy Farm animals) |
+| Pixel Crawler mazes (hedges, canals, crypts, forge, lava, sewer slime) | `maze-pixelcrawler` | `pc_maze.gd` (with `pc_terrain.gd`, `pixelcrawler.gd`) | `docs/maze-pixelcrawler.md` |
 | Pixel Crawler | `randomizer-pixelcrawler` | `pc_terrain.gd`, `pixelcrawler.gd`, `pc_tiles.gd` | `docs/pixel-crawler.md` |
 | Mystic Woods (deprecated) | `clearing`, `grove`, `hollow`, `ford`, `heath`, `randomizer-mysticwoods` | `terrain.gd`, `clearing.gd` | `docs/deprecated/mystic-woods.md` |
 | Cozy Farm buildings (deprecated) | `randomizer-painted-cozyfarm` | `forest_terrain.gd` (`cozy`), `forest.gd` (`cozy_buildings`) | `docs/deprecated/cozy-farm.md` |
@@ -84,7 +85,7 @@ inventory and QC: `docs/scene-assembly.md`.
 
 - The pack's headless check passes on a sweep of maps (`tools/check_tf.gd`,
   `check_caves.gd`, `check_recipes.gd`, `check_pc.gd`, `check_farm.gd`,
-  `check_maze.gd`, `check_maze_farm.gd`, `check_maze_caves.gd`,
+  `check_maze.gd`, `check_maze_farm.gd`, `check_maze_caves.gd`, `check_maze_pc.gd`,
   ...): the walker reaches every goal and every cell has a tile.
 - A screenshot in the running game, looked at next to the pack's own art,
   passes that doc's reject list.

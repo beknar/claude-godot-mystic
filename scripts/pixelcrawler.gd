@@ -37,6 +37,9 @@ const LIGHT_SMALL := Rect2(164, 5, 40, 40)
 ## are graded at load: the extreme saturation compressed, hue kept. Other
 ## biomes keep their colors.
 @export var grade_green := true
+## maze-pixelcrawler's mazes instead (pc_maze.gd): hedges, canals, crypts,
+## cacti and rocks, the Forge's halls and lava, the Sewer's slime channels.
+@export var maze := false
 
 @onready var ground_layer: TileMapLayer = $Ground
 @onready var water_layer: TileMapLayer = $Water
@@ -91,6 +94,7 @@ func build(id: int, pinned := -1) -> void:
 	map_id = id
 	recipe = pinned
 	terrain = PCTerrain.new()
+	terrain.maze = maze
 	report = terrain.generate(map_id, recipe)
 	for layer in [ground_layer, water_layer, cliff_layer]:
 		layer.clear()
@@ -113,7 +117,7 @@ func build(id: int, pinned := -1) -> void:
 
 func recipe_names() -> Array[String]:
 	var out: Array[String] = []
-	for r in PCTerrain.RECIPES:
+	for r in (PCMaze.recipes() if maze else PCTerrain.RECIPES):
 		out.append(r.name)
 	return out
 
@@ -191,11 +195,21 @@ func _build_tileset() -> void:
 		layer.tile_set = _tiles
 
 
-func _put(layer: TileMapLayer, cell: Vector2i, atlas: Vector2i) -> void:
+func _put(layer: TileMapLayer, cell: Vector2i, atlas: Vector2i, animated := false) -> void:
 	var src: TileSetAtlasSource = _tiles.get_source(GROUND_SRC)
 	if not src.has_tile(atlas):
 		src.create_tile(atlas)
+		if animated:
+			# Lava and slime: four frames three rows apart, all in step.
+			src.set_tile_animation_columns(atlas, 1)
+			src.set_tile_animation_separation(atlas, Vector2i(0, 2))
+			src.set_tile_animation_frames_count(atlas, 4)
+			for i in 4:
+				src.set_tile_animation_frame_duration(atlas, i, POOL_FRAME)
 	layer.set_cell(cell, GROUND_SRC, atlas)
+
+
+const POOL_FRAME := 0.18 # s per frame of lava and slime
 
 
 func _paint() -> void:
@@ -211,6 +225,11 @@ func _paint() -> void:
 	for p in terrain.plateaus:
 		for piece in p.pieces:
 			_put(cliff_layer, piece.cell, piece.atlas)
+	# A maze's kit walls and faces, and its animated channels.
+	for c: Vector2i in terrain.wall_tiles:
+		_put(cliff_layer, c, terrain.wall_tiles[c])
+	for c: Vector2i in terrain.pool_tiles:
+		_put(water_layer, c, terrain.pool_tiles[c], true)
 	if terrain.biome.has("island"):
 		var ir: Rect2i = terrain.biome.island
 		for at in terrain.islands:
@@ -236,6 +255,9 @@ func _hash(x: int, y: int) -> float:
 ##             recolored into this palette (blades lighter, stems darker)
 ##   3 shade   light set: toward the zone terrain; dark set: darker still
 func _apply_splat() -> void:
+	if terrain.biome.get("indoor", false):
+		ground_layer.material = null # a dungeon floor keeps its own tiles
+		return
 	var b: String = terrain.recipe.biome
 	var tab: Dictionary = PCTiles.WANG[b]
 	var sheet := _image(terrain.biome.tiles.trim_suffix(".png"))
@@ -521,6 +543,9 @@ func _build_collision() -> void:
 			elif not solid and run >= 0:
 				_add_box(Rect2(run * TILE, y * TILE, (x - run) * TILE, TILE))
 				run = -1
+	# A maze's prop walls (bushes, cacti, rocks): where they are drawn.
+	for r: Rect2 in terrain.maze_info.get("boxes", []):
+		_add_box(r)
 	for r in [Rect2(-TILE, -TILE, (W + 2) * TILE, TILE), Rect2(-TILE, H * TILE, (W + 2) * TILE, TILE),
 			Rect2(-TILE, 0, TILE, H * TILE), Rect2(W * TILE, 0, TILE, H * TILE)]:
 		_add_box(r)
@@ -583,11 +608,18 @@ func _process(delta: float) -> void:
 			spr.modulate.a = move_toward(spr.modulate.a, want, delta * FADE_RATE)
 
 
+## A prop's foot: its cell's bottom middle (a maze's wall props and plank
+## bridges are nudged: half a cell low, or centred on the channel).
 static func foot_of(p: Dictionary) -> Vector2:
-	return Vector2(p.cell * TILE) + Vector2(TILE / 2.0, TILE - 1)
+	return Vector2(p.cell * TILE) + Vector2(TILE / 2.0, TILE - 1) + p.get("nudge", Vector2.ZERO)
+
+
+const NODDING := ["bush", "plant", "flower", "glow"]
+var _nodders: Array[Sprite2D] = [] # the swaying tops of bushes and plants
 
 
 func _place_props() -> void:
+	_nodders.clear()
 	for p in terrain.props:
 		var art: Dictionary = PCTerrain.prop(p.art)
 		var foot := foot_of(p)
@@ -610,9 +642,28 @@ func _place_props() -> void:
 			# it) and block its root flare, measured from the sprite.
 			var tr := _trunk_of(art.sheet, rect)
 			cx = tr.x if not flip else rect.size.x - tr.x
-			block = Vector2(maxf(tr.y, 8.0), clampf(tr.y * 0.3, 6.0, 12.0))
+			# No wider than the cells the generator reserved for it (art.block;
+			# none for a walk-through one), so the walk check and the walker's
+			# routes agree with physics.
+			if art.block != Vector2.ZERO:
+				block = Vector2(minf(maxf(tr.y, 8.0), art.block.x), clampf(tr.y * 0.3, 6.0, 12.0))
 		s.offset = -Vector2(cx, rect.size.y - 2)
 		node.add_child(s)
+		if art.tag in NODDING and rect.size.y >= 12 and rect.size.y <= 64:
+			# Bushes, plants, flowers, and bells sway: the top half is its own
+			# sprite and leans downwind with the reeds (water_life.gd).
+			var cut := floori(rect.size.y * 0.5)
+			s.region_rect = Rect2(rect.position.x, rect.position.y + cut, rect.size.x, rect.size.y - cut)
+			s.offset = -Vector2(cx, rect.size.y - 2 - cut)
+			var top := Sprite2D.new()
+			top.texture = s.texture
+			top.region_enabled = true
+			top.region_rect = Rect2(rect.position.x, rect.position.y, rect.size.x, cut)
+			top.centered = false
+			top.flip_h = flip
+			top.offset = -Vector2(cx, rect.size.y - 2)
+			node.add_child(top)
+			_nodders.append(top)
 		if block != Vector2.ZERO:
 			var shape := CollisionShape2D.new()
 			var rs := RectangleShape2D.new()
@@ -694,14 +745,24 @@ const BIOME_FX := {
 		"dust": [Color(0.3, 0.19, 0.12), Color(0.26, 0.16, 0.1)], "shade": Color(0.05, 0.03, 0.03, 0.2), "ring": Color(0.5, 0.6, 0.6)},
 	"desert": {"tip": Color(0.95, 0.72, 0.45), "blades": [Color(0.92, 0.66, 0.38), Color(0.84, 0.58, 0.32)],
 		"dust": [Color(0.72, 0.46, 0.24), Color(0.64, 0.4, 0.2)], "shade": Color(0.3, 0.12, 0.05, 0.14), "ring": Color(0.6, 0.7, 0.8)},
+	# Dungeons (indoor: no clouds, streaks, grass, or drifters).
+	"forge": {"tip": Color(0.4, 0.3, 0.35), "blades": [Color(0.4, 0.3, 0.35)], "dust": [Color(0.3, 0.23, 0.28), Color(0.24, 0.18, 0.22)],
+		"shade": Color(0, 0, 0, 0), "ring": Color(1.0, 0.6, 0.3)},
+	"sewer": {"tip": Color(0.3, 0.26, 0.18), "blades": [Color(0.3, 0.26, 0.18)], "dust": [Color(0.25, 0.2, 0.14), Color(0.2, 0.16, 0.11)],
+		"shade": Color(0, 0, 0, 0), "ring": Color(0.55, 0.85, 0.25)},
 }
 
 
 func _reset_ambience() -> void:
 	var b: String = terrain.recipe.biome
 	var fx: Dictionary = BIOME_FX[b]
+	var indoor: bool = terrain.biome.get("indoor", false)
 	var map_rect := Rect2(0, 0, W * TILE, H * TILE)
-	streaks.bounds = map_rect
+	for n in [clouds, drifters]:
+		n.visible = not indoor
+		n.process_mode = Node.PROCESS_MODE_DISABLED if indoor else Node.PROCESS_MODE_INHERIT
+	cave_life.bats = indoor or not terrain.wall_tiles.is_empty() # dungeons and crypts
+	streaks.bounds = Rect2() if indoor else map_rect
 	clouds.shade = fx.shade
 	grass_waves.tip = fx.tip
 	footsteps.blade_colors = fx.blades
@@ -711,7 +772,7 @@ func _reset_ambience() -> void:
 	water_life.drop_color = fx.ring.lightened(0.3)
 	clouds.reset(map_rect)
 	var walker := actors.get_node_or_null("Walker")
-	water_life.setup(terrain.open_water(), [] as Array[Sprite2D])
+	water_life.setup(terrain.open_water(), _nodders)
 	var sources: Array[Dictionary] = []
 	var fires: Array[Dictionary] = []
 	var lights: Array[Vector2] = []
@@ -740,11 +801,25 @@ func _reset_ambience() -> void:
 				glinters.append([Vector2i(top_left) + Vector2i(12, 10), Vector2i(top_left) + Vector2i(24, 20), Vector2i(top_left) + Vector2i(18, 4)])
 			"flower", "mushroom":
 				flowers.append(foot + Vector2(0, -4))
+			"lamp":
+				# The sewer's lamps: a warm light at the flame.
+				var at := top_left + Vector2(rect.size.x * 0.5, rect.size.y * 0.35)
+				fires.append({"pos": foot, "kind": "lamp", "radius": 14, "smoke": false, "flame": at})
+				lights.append(at)
+	# Lava glows: a warm light every few cells along its rim.
+	for c: Vector2i in terrain.pool_tiles:
+		if b == "forge" and absi(hash(c)) % 5 == 0:
+			var at := Vector2(c * TILE) + Vector2(8, 8)
+			fires.append({"pos": at, "kind": "lamp", "radius": 20, "smoke": false, "flame": at, "tint": Color(1.0, 0.55, 0.2)})
+			lights.append(at)
 	leaves.set_sources(sources)
 	fire.set_fires(fires)
-	cave_life.setup([] as Array[Dictionary], lights, glinters)
+	cave_life.setup(terrain.drip_spots(), lights, glinters)
+	# Glowworms and fireflies over the dark ground (a crypt maze's corridors
+	# get three times as many: little else moves there).
+	var every := 3 if terrain.maze and b == "cemetery" else 7
 	for c in terrain.zone_cells():
-		if (c.x * 7 + c.y * 3) % 7 == 0 and b != "desert":
+		if (c.x * 7 + c.y * 3) % every == 0 and b != "desert" and not indoor:
 			dark.append(Vector2(c * TILE) + Vector2(8, 8))
 	# Liveliness anchors without water: a swarm of fireflies.
 	for c in terrain.firefly_spots:

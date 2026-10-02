@@ -55,11 +55,17 @@ Rules for each pack: `docs/painted-lands.md`, `docs/green-caves.md`,
 | Painted Lands Farm (autumn) + Forest (houses, fires, clutter) + Cozy Cottage (interiors) + Cozy Farm (animals) | `randomizer-paintedlands-forest-farm` | 3 |
 | Painted Lands Farm (winter) + Forest (houses, fires, clutter) + Cozy Cottage (interiors) + Cozy Farm (animals) | `randomizer-paintedlands-forest-farm` | 3 |
 | Pixel Crawler Fairy Forest | `randomizer-pixelcrawler` | 6 |
+| Pixel Crawler Fairy Forest (hedge and canal mazes) | `maze-pixelcrawler` | 5 |
+| Pixel Crawler Farm forest + Green Woods (hedge and canal mazes) | `maze-pixelcrawler` | 4 |
+| Pixel Crawler Cemetery (crypt mazes) | `maze-pixelcrawler` | 4 |
+| Pixel Crawler Desert (cactus and rock mazes) | `maze-pixelcrawler` | 3 |
+| Pixel Crawler Forge (forge halls, lava channels) | `maze-pixelcrawler` | 4 |
+| Pixel Crawler Sewer (slime channels) | `maze-pixelcrawler` | 3 |
 | Pixel Crawler Farm forest + Green Woods | `randomizer-pixelcrawler` | 5 |
 | Pixel Crawler Cemetery | `randomizer-pixelcrawler` | 3 |
 | Pixel Crawler Desert | `randomizer-pixelcrawler` | 3 |
 
-228 map types in all (36 Painted Lands, 24 Forest mazes, 30 Farm mazes, 24 Green Caves mazes, 33 Green Caves,
+251 map types in all (36 Painted Lands, 24 Forest mazes, 30 Farm mazes, 24 Green Caves mazes, 23 Pixel Crawler mazes, 33 Green Caves,
 52 Farm in three seasons, 12 farmsteads, 17 Pixel Crawler) and 2 fixed maps.
 `randomizer-paintedlands-forest-farm` builds all 100 Painted Lands map types
 (the 36 Forest, the 52 Farm, and the 12 farmsteads, which only it builds).
@@ -253,6 +259,41 @@ round the cave homes.
 | 21 | Hermit's maze | moss | cave home, camp |
 | 22 | Fern hollows | moss, wide | two groves |
 | 23 | Moss rings | moss (rings) | pool |
+
+## Pixel Crawler mazes
+
+`maze-pixelcrawler` (id % 23, docs/maze-pixelcrawler.md): one biome per map;
+walls of the biome's own art: bushes, cacti, or rocks standing on the
+wall's line, per-pixel canals, the Cemetery's crypt and the Forge's walls
+from their plus-shaped samples, the Forge's lava and the Sewer's slime as
+animated channels; one visible entrance in the west wall and one exit in
+the east (markers either side), every room reachable. The drawn animals.
+
+| # | Map type | Biome | Walls |
+|---|---|---|---|
+| 0 | Fairy hedge maze | Fairy Forest | bushes |
+| 1 | Glowbell hedges | Fairy Forest | bushes |
+| 2 | Fairy canals | Fairy Forest | canals |
+| 3 | Runestone hedges | Fairy Forest | bushes (rings) |
+| 4 | Mushroom hollow maze | Fairy Forest | bushes |
+| 5 | Greenwood hedges | Farm forest | bushes |
+| 6 | Forest canals | Farm forest | canals |
+| 7 | Woodcutter's maze | Farm forest | bushes |
+| 8 | Crystal hedges | Farm forest | bushes |
+| 9 | Crypt maze | Cemetery | crypt walls |
+| 10 | Catacombs | Cemetery | crypt walls |
+| 11 | Crypt rings | Cemetery | crypt walls (rings) |
+| 12 | Haunted crypts | Cemetery | crypt walls (loops) |
+| 13 | Cactus maze | Desert | cacti |
+| 14 | Rock maze | Desert | rocks |
+| 15 | Bone canyon | Desert | rocks and cacti |
+| 16 | Forge halls | Forge | forge walls |
+| 17 | Lava channels | Forge | lava |
+| 18 | Foundry maze | Forge | forge walls |
+| 19 | Forge rings | Forge | forge walls (rings) |
+| 20 | Slime canals | Sewer | slime |
+| 21 | Sewer junctions | Sewer | slime, plank bridges |
+| 22 | Overflow tunnels | Sewer | slime (wide) |
 
 ## Painted Lands Green Caves
 

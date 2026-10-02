@@ -61,7 +61,10 @@ project, copy them in locally:
   `fairy_forest/`, the Farm Game Assets forest (`Tiles.png`,
   `Vegetation_01.png` as `Vegetation.png`, `Tree_Model_01/Size_0N.png` as
   `Tree_0N.png`) to `farm/`, Green Woods `Assets/*.png` to `green_woods/`,
-  Cemetery and Desert `Assets/*.png` to `cemetery/` and `desert/`
+  Cemetery and Desert `Assets/*.png` to `cemetery/` and `desert/`; for
+  `maze-pixelcrawler`, Forge `Assets/Tiles.png` to `forge/`, Sewer
+  `Assets/Tiles.png` and `Props.png` to `sewer/`, and the FREE pack's
+  `Environment/Dungeon Prison/Assets/*.png` to `prison/` (not yet used)
 - Time Fantasy tiles (finalbossblues, TimeFantasy_TILES_6.24.17): the
   `TILESETS` folder to `assets/pack/time_fantasy/` (`terrain.png`,
   `outside.png`, `water.png`, `house.png`, `animated/`, `guide.png`)
@@ -128,6 +131,7 @@ generator.
 | `scenes/wilds/wilds.tscn` | 75125 (recipe 5, Open meadow) | `character_sprite_sheet.png` |
 | `scenes/randomizer-paintedlands/randomizer-paintedlands.tscn` | starts at 75101 (recipe 5, Open meadow), then any | `character_sprite_sheet.png` |
 | `scenes/maze-forest/maze-forest.tscn` | starts at 400000 (maze type 16, Firefly maze; id % 24), then any | `character_sprite_sheet.png` (the Painted Lands walker) |
+| `scenes/maze-pixelcrawler/maze-pixelcrawler.tscn` | starts at 460000 (maze type 0, Fairy hedge maze; id % 23), then any | `character_sprite_sheet.png` (the Painted Lands walker) |
 | `scenes/maze-greencaves/maze-greencaves.tscn` | starts at 440016 (maze type 0, Rock labyrinth; id % 24), then any | `character_sprite_sheet.png` (the Painted Lands walker) |
 | `scenes/maze-farm/maze-farm.tscn` | starts at 420000 (maze type 0, Hedgerow maze; id % 30), then any | `character_sprite_sheet.png` (the Painted Lands walker) |
 | `scenes/randomizer-mysticwoods/randomizer-mysticwoods.tscn` | starts at 21021, then any | `player.png` |
@@ -264,6 +268,17 @@ gardens, fern hollows. Torches on the faces, campfires in the dead ends,
 drips from every face, glowworms, bats, and glints keep every camera window
 above the cave floor; every room is reachable from the one entrance to the
 one exit (docs/maze-greencaves.md; `tools/check_maze_caves.gd`).
+
+**Pixel Crawler mazes.** `maze-pixelcrawler` builds mazes on Anokolisa's
+Pixel Crawler sheets, 23 types, one biome per map, from the same Esc menu:
+Fairy Forest hedges of its bushes with glowbells, runestone rings, and
+mushroom glades, Fairy and Farm-forest canals crossed on stepping stones,
+Green Woods hedges, Cemetery crypts, Desert cactus fences and rock walls,
+and two dungeons from the collection's indoor sets: Forge halls of red
+brick with lava pools and statues, lava channels, and Sewer slime channels
+crossed on plank bridges, lit by lamps. Walls collide where they are drawn;
+every room is reachable from the one entrance to the one exit
+(docs/maze-pixelcrawler.md; `tools/check_maze_pc.gd`).
 
 The Painted Lands forest and farm randomizer
 (`randomizer-paintedlands-forest-farm`) builds all 100 Painted Lands map

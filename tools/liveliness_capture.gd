@@ -20,7 +20,8 @@ extends Node2D
 ## recorded so the analyzer can tell cloud rims apart. `maze` films twelve
 ## maze-forest types into .liveliness_maze; `farm maze` twelve maze-farm
 ## types (all three seasons) into .liveliness_maze_farm; `caves maze`
-## twelve maze-greencaves types into .liveliness_maze_caves.
+## twelve maze-greencaves types into .liveliness_maze_caves; `pc maze`
+## twelve maze-pixelcrawler types into .liveliness_maze_pc.
 
 const PaintedFeatures := preload("res://scripts/liveliness_features.gd")
 const CaveFeatures := preload("res://scripts/cave_liveliness_features.gd")
@@ -102,6 +103,9 @@ func _ready() -> void:
 	if _plan.is_empty() and maze and _farm:
 		for r in [0, 3, 4, 7, 11, 13, 16, 19, 22, 24, 27, 28]: # all three seasons
 			_plan.append(420030 + r)
+	elif _plan.is_empty() and maze and _pc:
+		for r in [0, 2, 5, 6, 9, 11, 13, 16, 17, 18, 20, 21]: # all six biomes
+			_plan.append(460023 + r)
 	elif _plan.is_empty() and maze and _caves:
 		for r in [0, 1, 3, 6, 9, 10, 12, 14, 16, 18, 20, 21]: # all three floors
 			_plan.append(440040 + r)
@@ -115,7 +119,7 @@ func _ready() -> void:
 			_plan = PC_MAPS.duplicate()
 		else:
 			_plan = CAVE_CALIBRATE + CAVE_HOLDOUT if _caves else CALIBRATE + HOLDOUT
-	var suffix := ("_maze_farm" if maze else "_farm") if _farm else ("_pc" if _pc else (("_maze_caves" if maze else "_caves") if _caves else ("_maze" if maze else "")))
+	var suffix := ("_maze_farm" if maze else "_farm") if _farm else (("_maze_pc" if maze else "_pc") if _pc else (("_maze_caves" if maze else "_caves") if _caves else ("_maze" if maze else "")))
 	_out = ProjectSettings.globalize_path("res://.liveliness%s/raw" % suffix)
 	if _farm or _pc:
 		_views = [Vector2i(0, 0), Vector2i(21, 0), Vector2i(0, 11), Vector2i(21, 11), Vector2i(0, 22), Vector2i(21, 22)]
@@ -137,7 +141,8 @@ func _ready() -> void:
 		_forest.mixed = "mixed" in OS.get_cmdline_user_args()
 	if maze:
 		_forest.maze = true
-		_forest.cozy_animals = true
+		if "cozy_animals" in _forest: # the Pixel Crawler mazes keep the drawn animals
+			_forest.cozy_animals = true
 		PaintedFeatures.animals = "pack"
 	if cozy:
 		_forest.cozy_animals = true

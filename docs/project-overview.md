@@ -85,6 +85,14 @@ Green Caves randomizer:
   (`scenes/forest/walker.tscn`) and the same Esc menu, titled
   "Green Caves randomizer".
 
+Pixel Crawler mazes (docs/maze-pixelcrawler.md):
+
+- `scenes/maze-pixelcrawler/maze-pixelcrawler.tscn` — `pixelcrawler.gd` with
+  `maze` on: the maze types of `pc_maze.gd` (23, id % 23) laid into the
+  Pixel Crawler pipeline, six biomes (the four outdoor ones, the Forge, the
+  Sewer), starting at map id `460000`, with the Painted Lands walker and the
+  same Esc menu, titled "Pixel Crawler maze".
+
 Painted Lands Green Caves mazes (docs/maze-greencaves.md):
 
 - `scenes/maze-greencaves/maze-greencaves.tscn` — `caves.gd` with `maze` on:

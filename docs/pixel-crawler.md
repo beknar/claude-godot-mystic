@@ -24,8 +24,10 @@ crawler`), the environment sheets copied to `assets/pack/pixel_crawler/`
 (git-ignored): `fairy_forest/` (Tiles, Props, Tree, Light, Shadown),
 `farm/` (the Farm Game Assets forest: Tiles, Vegetation, Tree_02-05),
 `green_woods/` (Tiles, Props, Trees), `cemetery/` (Tiles, Trees), `desert/`
-(Tiles). Indoor sets (Dungeon Prison, Sewer, Forge, Farm interiors) and the
-characters are not used. Generator `scripts/pc_terrain.gd` (`PCTerrain`,
+(Tiles); for the mazes (`maze-pixelcrawler`, `docs/maze-pixelcrawler.md`)
+also `forge/` (Tiles) and `sewer/` (Tiles, Props), the two indoor biomes,
+and `prison/` (copied, not used). The Farm interiors and the characters are
+not used. Generator `scripts/pc_terrain.gd` (`PCTerrain`,
 64x40), painter `scripts/pixelcrawler.gd`, corner tables
 `scripts/pc_tiles.gd` (tile indices only). `tools/check_pc.gd` sweeps maps
 headless. The packs' Social mockups were the reference for how pieces
@@ -114,6 +116,16 @@ Both the light (root) and dark (zone) ground are varied three ways:
   that span wide (at least 8 px, 6-12 px tall). The generator's tree blocks
   (`ff_tree` sizes, the big Farm and Cemetery trees) reserve the measured
   flares, and every cell a collider spans counts as blocked in the walk check.
+- **Colliders agree with the walk grid.** A prop's collider is centred on
+  its cell's middle, so `PCTerrain.collider_cells` blocks every cell it
+  overlaps (a 22 px collider reaches into the cells either side); a tree's
+  measured flare is never wider than the block the generator reserved for
+  it, and a walk-through tree (no block) gets no collider. Before this the
+  walker snagged on trees and rocks whose colliders reached a cell the grid
+  thought open.
+- **Swaying tops.** Bushes, plants, flowers, and glowing bells under 64 px
+  are two sprites, a still bottom and a top that leans a pixel downwind with
+  the wind (water_life.gd's reed nod).
 - **Crown fade.** While the walker's body overlaps a crown (the sprite's top
   78 %) and its feet are above the tree's foot, the tree eases to 0.42 alpha
   (`CROWN_FADE`), and back when it leaves. Trees under 60 px tall do not fade.
