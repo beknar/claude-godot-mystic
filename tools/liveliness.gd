@@ -14,7 +14,8 @@ extends SceneTree
 ## Green Caves maps; add `pack` for them on Painted Lands maps (the wilds
 ## tables are drawn), `drawn` for the drawn ones, or `cozy` for the
 ## deprecated cozy farm randomizer. `maze` estimates maze-forest maps;
-## `farm maze` maze-farm maps (farm_maze.gd).
+## `farm maze` maze-farm maps (farm_maze.gd); `caves maze` maze-greencaves
+## maps (cave_maze.gd).
 
 const PaintedFeatures := preload("res://scripts/liveliness_features.gd")
 const PaintedMaps := preload("res://scripts/forest_terrain.gd")
@@ -60,8 +61,8 @@ func _init() -> void:
 			t.cozy = true # the cozy farm randomizer's buildings and map types
 		if not caves and not farm and "maze" in args:
 			t.maze = true # maze-forest (forest_maze.gd)
-		if farm and "maze" in args:
-			t.maze = true # maze-farm (farm_maze.gd)
+		if (farm or caves) and "maze" in args:
+			t.maze = true # maze-farm (farm_maze.gd), maze-greencaves (cave_maze.gd)
 		if farm and "mixed" in args:
 			t.mixed = true # with the farmsteads (randomizer-paintedlands-forest-farm)
 		t.generate(id, pinned)

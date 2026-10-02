@@ -19,7 +19,8 @@ extends Node2D
 ## route never goes indoors) into .liveliness_walk_farm; `pc` the Pixel
 ## Crawler randomizer into .liveliness_walk_pc; `maze` the maze-forest types
 ## into .liveliness_walk_maze, and `farm maze` the maze-farm types into
-## .liveliness_walk_maze_farm. The six views tile each map
+## .liveliness_walk_maze_farm, and `caves maze` the maze-greencaves types
+## into .liveliness_walk_maze_caves. The six views tile each map
 ## (a 64-cell farm is wider than a 60-cell Painted Lands map).
 
 const Wild := preload("res://scripts/wildlife.gd")
@@ -106,6 +107,9 @@ func _ready() -> void:
 	if _plan.is_empty() and maze and _farm:
 		for r in FarmMaze.MAZE_RECIPES.size(): # maze-farm (farm_maze.gd)
 			_plan.append(420000 + r)
+	elif _plan.is_empty() and maze and _caves:
+		for r in CaveMaze.MAZE_RECIPES.size(): # maze-greencaves (cave_maze.gd)
+			_plan.append(440016 + r)
 	elif _plan.is_empty() and maze:
 		for r in ForestMaze.MAZE_RECIPES.size():
 			_plan.append(400000 + r)
@@ -120,7 +124,7 @@ func _ready() -> void:
 			_plan = PC_RENDERED_MAPS.duplicate()
 		else:
 			_plan = CAVE_RENDERED_MAPS.duplicate() if _caves else RENDERED_MAPS.duplicate()
-	var suffix := ("_maze_farm" if maze else "_farm") if _farm else ("_pc" if _pc else ("_caves" if _caves else ("_maze" if maze else "")))
+	var suffix := ("_maze_farm" if maze else "_farm") if _farm else ("_pc" if _pc else (("_maze_caves" if maze else "_caves") if _caves else ("_maze" if maze else "")))
 	_out = ProjectSettings.globalize_path("res://.liveliness_walk" + suffix)
 	if out_dir != "":
 		_out = ProjectSettings.globalize_path("res://" + out_dir)

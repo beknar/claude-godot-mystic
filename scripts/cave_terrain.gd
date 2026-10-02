@@ -206,6 +206,12 @@ var floor_notes := PackedStringArray()
 
 var _rng := RandomNumberGenerator.new()
 var _occupied := {} # cells claimed by structures, pools and their rings, props
+## Lays maze-greencaves' mazes instead (cave_maze.gd, CaveMaze.MAZE_RECIPES):
+## the maze's walls, clearings, and gates, then the rest of this pipeline.
+var maze := false
+var maze_info := {}
+var _maze = null # the CaveMaze of the attempt
+var _maze_ok := true
 
 
 ## Builds map `p_map_id` with recipe `p_recipe` (-1: map id % recipe count). Returns
@@ -213,13 +219,14 @@ var _occupied := {} # cells claimed by structures, pools and their rings, props
 func generate(p_map_id: int, p_recipe := -1, p_enrich := true) -> String:
 	map_id = p_map_id
 	enrich = p_enrich
-	recipe_id = p_recipe if p_recipe >= 0 else posmod(p_map_id, RECIPES.size())
-	recipe = RECIPES[recipe_id]
+	var list: Array = CaveMaze.recipes() if maze else RECIPES
+	recipe_id = p_recipe if p_recipe >= 0 else posmod(p_map_id, list.size())
+	recipe = list[recipe_id]
 	for a in ATTEMPTS:
 		attempt = a
 		_rng.seed = hash(Vector2i(map_id, a))
 		_build()
-		if _reaches_all() and homes.size() >= recipe.get("homes", [0, 0])[0]:
+		if _maze_ok and _reaches_all() and homes.size() >= recipe.get("homes", [0, 0])[0]:
 			break
 	return _report()
 
@@ -234,6 +241,10 @@ func _build() -> void:
 	notes.clear()
 	fails.clear()
 	floor_notes.clear()
+	maze_info.clear()
+	if maze:
+		_maze_build()
+		return
 	spawn = Vector2i(W / 2 + _rng.randi_range(-8, 8), H - 4)
 	_claim_disk(spawn, 3)
 	if recipe.band:
@@ -259,6 +270,25 @@ func _build() -> void:
 	_scatter()
 	if enrich:
 		_liveliness_floor()
+
+
+## A maze map (maze-greencaves): CaveMaze lays the walls, clearings, gates,
+## and extras; then the dark zones, floor patches, floor, the scatter in the
+## antechambers, and the liveliness floor, as on any cave map. Every maze
+## cell must be reachable from the entrance.
+func _maze_build() -> void:
+	_maze = CaveMaze.new(self, _rng)
+	_maze_ok = _maze.lay()
+	if not _maze_ok:
+		return
+	_zones()
+	_accents()
+	_paint_floor()
+	_maze.claim_corridors()
+	_scatter()
+	if enrich:
+		_maze_floor()
+	_maze_ok = _maze.unreached().is_empty()
 
 
 # ---------------------------------------------------------------- structures
@@ -294,37 +324,43 @@ func _home() -> void:
 		var at := Vector2i(_rng.randi_range(2, W - need.x - 2), _rng.randi_range(4, H - need.y - 5))
 		if not _free(Rect2i(at, need).grow(2)):
 			continue
-		for c in plan.kind:
-			var k: int = plan.kind[c]
-			kind[_i(at + c)] = WALL if k == InteriorPlan.WALL else (FACE if k == InteriorPlan.FACE else HOME)
-		for c in plan.blocked:
-			blocked[at + c] = true
-		# The cave face under the south wall, with the arch at the way out.
-		var ex: int = plan.exit_cell.x
-		for x in plan.size.x:
-			for k in 2:
-				var c := at + Vector2i(x, plan.size.y + k)
-				if absi(x - ex) <= 1:
-					features[c] = DOORWAY + Vector2i(x - ex + 1, k)
-					kind[_i(c)] = HOME if x == ex else FACE
-				else:
-					var col := 0 if x == 0 else (2 if x == plan.size.x - 1 else 1)
-					features[c] = WALL_FACE + Vector2i(col, k)
-					kind[_i(c)] = FACE
-		var door := at + Vector2i(ex, plan.size.y + 1)
-		homes.append({"origin": at, "plan": plan, "door": door})
-		# Keep the approach to the arch open, and the home off-limits to scatter.
-		_claim(Rect2i(at, need).grow(1))
-		_claim(Rect2i(door + Vector2i(-1, 1), Vector2i(3, 2)))
-		# The walker must be able to get in: the entry room is a goal.
-		for d in [Vector2i(0, -2), Vector2i(0, -3), Vector2i(0, -4)]:
-			var inside: Vector2i = at + plan.exit_cell + d
-			if kind[_i(inside)] == HOME and not blocked.has(inside):
-				goals.append(inside)
-				break
-		notes.append("home %d rooms %s" % [n, ",".join(plan.rooms.map(func(r): return r.type))])
+		_home_at(at, plan)
 		return
 	notes.append("home dropped (no room)")
+
+
+## Home `plan` built into the cave with its top-left at `at` (as _home lays it).
+func _home_at(at: Vector2i, plan: InteriorPlan) -> void:
+	var need := plan.size + Vector2i(0, 2)
+	for c in plan.kind:
+		var k: int = plan.kind[c]
+		kind[_i(at + c)] = WALL if k == InteriorPlan.WALL else (FACE if k == InteriorPlan.FACE else HOME)
+	for c in plan.blocked:
+		blocked[at + c] = true
+	# The cave face under the south wall, with the arch at the way out.
+	var ex: int = plan.exit_cell.x
+	for x in plan.size.x:
+		for k in 2:
+			var c := at + Vector2i(x, plan.size.y + k)
+			if absi(x - ex) <= 1:
+				features[c] = DOORWAY + Vector2i(x - ex + 1, k)
+				kind[_i(c)] = HOME if x == ex else FACE
+			else:
+				var col := 0 if x == 0 else (2 if x == plan.size.x - 1 else 1)
+				features[c] = WALL_FACE + Vector2i(col, k)
+				kind[_i(c)] = FACE
+	var door := at + Vector2i(ex, plan.size.y + 1)
+	homes.append({"origin": at, "plan": plan, "door": door})
+	# Keep the approach to the arch open, and the home off-limits to scatter.
+	_claim(Rect2i(at, need).grow(1))
+	_claim(Rect2i(door + Vector2i(-1, 1), Vector2i(3, 2)))
+	# The walker must be able to get in: the entry room is a goal.
+	for d in [Vector2i(0, -2), Vector2i(0, -3), Vector2i(0, -4)]:
+		var inside: Vector2i = at + plan.exit_cell + d
+		if kind[_i(inside)] == HOME and not blocked.has(inside):
+			goals.append(inside)
+			break
+	notes.append("home %d rooms %s" % [plan.rooms.size(), ",".join(plan.rooms.map(func(r): return r.type))])
 
 
 # A rock island: a solid rectangle of wall mass (3-7 x 2-3) with its face.
@@ -423,85 +459,90 @@ func _pool(size: Vector2i, lake: bool) -> void:
 		var r := Rect2i(Vector2i(_rng.randi_range(3, W - size.x - 3), _rng.randi_range(7, H - size.y - 7)), size)
 		if not _free(r.grow(3)):
 			continue
-		for y in range(r.position.y, r.end.y):
-			for x in range(r.position.x, r.end.x):
-				var c := Vector2i(x, y)
-				kind[_i(c)] = WATER
-				var n := y == r.position.y
-				var s := y == r.end.y - 1
-				var w := x == r.position.x
-				var e := x == r.end.x - 1
-				var t := OPEN_WATER
-				if n and w:
-					t = Vector2i(28, 3)
-				elif n and e:
-					t = Vector2i(25, 3)
-				elif s and w:
-					t = Vector2i(28, 0)
-				elif s and e:
-					t = Vector2i(25, 0)
-				elif n:
-					t = Vector2i(22, 3)
-				elif w:
-					t = Vector2i(24, 1)
-				elif e:
-					t = Vector2i(20, 1)
-				features[c] = t
-				anim[c] = "open" if t == OPEN_WATER else "pool"
-		# The ring: stone with the bank toward the water.
-		for x in range(r.position.x, r.end.x):
-			_ring(Vector2i(x, r.position.y - 1), Vector2i(22, 2))
-			_ring(Vector2i(x, r.end.y), Vector2i(22, 0))
-		for y in range(r.position.y, r.end.y):
-			_ring(Vector2i(r.position.x - 1, y), Vector2i(23, 1))
-			_ring(Vector2i(r.end.x, y), Vector2i(21, 1))
-		_ring(r.position - Vector2i.ONE, Vector2i(27, 2))
-		_ring(Vector2i(r.end.x, r.position.y - 1), Vector2i(26, 2))
-		_ring(Vector2i(r.position.x - 1, r.end.y), Vector2i(27, 1))
-		_ring(r.end, Vector2i(26, 1))
-		if lake:
-			# Deep water in the middle, inset two cells, and stalagmites in it.
-			var core := r.grow(-2)
-			for y in range(core.position.y, core.end.y):
-				for x in range(core.position.x, core.end.x):
-					features[Vector2i(x, y)] = DEEP[posmod(x, 6) + 6 * posmod(y, 2)]
-					anim.erase(Vector2i(x, y))
-		var open: Array[Vector2i] = []
-		for y in range(r.position.y + 1, r.end.y - 1):
-			for x in range(r.position.x + 1, r.end.x - 1):
-				if features[Vector2i(x, y)] == OPEN_WATER:
-					open.append(Vector2i(x, y))
-		for k in (_rng.randi_range(1, 3) if lake else _rng.randi_range(0, 1)):
-			if open.is_empty():
-				break
-			var c: Vector2i = open.pop_at(_rng.randi() % open.size())
-			if features.get(c + Vector2i.DOWN) == OPEN_WATER and c.y + 1 < r.end.y - 1:
-				# A stalagmite standing in the water, two cells tall.
-				var col := 30 + _rng.randi() % 2
-				water_deco[c] = Vector2i(col, 4)
-				water_deco[c + Vector2i.DOWN] = Vector2i(col, 5)
-				blocked[c + Vector2i.DOWN] = true
-			else:
-				water_deco[c] = Vector2i(34, 5) # water weed
-		# Sparkles on about a third of the open water left.
-		for c in open:
-			if _rng.randf() < 0.35 and not water_deco.has(c):
-				sparkles[c] = Vector2i(29, 9 + _rng.randi() % 2)
-		pools.append(r)
-		# The dark zone round the pool: a rounded, lumpy halo two to four
-		# cells past the ring.
-		for y in range(r.position.y - 5, r.end.y + 5):
-			for x in range(r.position.x - 5, r.end.x + 5):
-				var c := Vector2i(x, y)
-				if not _inside(c) or kind[_i(c)] != FLOOR:
-					continue
-				var dx := maxf(maxf(r.position.x - x, x - (r.end.x - 1)), 0.0)
-				var dy := maxf(maxf(r.position.y - y, y - (r.end.y - 1)), 0.0)
-				var reach := 2.6 + 1.6 * absf(sin(x * 0.9 + y * 0.6 + map_id))
-				if Vector2(dx, dy).length() <= reach:
-					zone[c] = true
-		_claim(r.grow(1))
+		_pool_at(r, lake)
 		return
+
+
+## The pool in rectangle `r` (its ring one cell outside it), as _pool lays it.
+func _pool_at(r: Rect2i, lake: bool) -> void:
+	for y in range(r.position.y, r.end.y):
+		for x in range(r.position.x, r.end.x):
+			var c := Vector2i(x, y)
+			kind[_i(c)] = WATER
+			var n := y == r.position.y
+			var s := y == r.end.y - 1
+			var w := x == r.position.x
+			var e := x == r.end.x - 1
+			var t := OPEN_WATER
+			if n and w:
+				t = Vector2i(28, 3)
+			elif n and e:
+				t = Vector2i(25, 3)
+			elif s and w:
+				t = Vector2i(28, 0)
+			elif s and e:
+				t = Vector2i(25, 0)
+			elif n:
+				t = Vector2i(22, 3)
+			elif w:
+				t = Vector2i(24, 1)
+			elif e:
+				t = Vector2i(20, 1)
+			features[c] = t
+			anim[c] = "open" if t == OPEN_WATER else "pool"
+	# The ring: stone with the bank toward the water.
+	for x in range(r.position.x, r.end.x):
+		_ring(Vector2i(x, r.position.y - 1), Vector2i(22, 2))
+		_ring(Vector2i(x, r.end.y), Vector2i(22, 0))
+	for y in range(r.position.y, r.end.y):
+		_ring(Vector2i(r.position.x - 1, y), Vector2i(23, 1))
+		_ring(Vector2i(r.end.x, y), Vector2i(21, 1))
+	_ring(r.position - Vector2i.ONE, Vector2i(27, 2))
+	_ring(Vector2i(r.end.x, r.position.y - 1), Vector2i(26, 2))
+	_ring(Vector2i(r.position.x - 1, r.end.y), Vector2i(27, 1))
+	_ring(r.end, Vector2i(26, 1))
+	if lake:
+		# Deep water in the middle, inset two cells, and stalagmites in it.
+		var core := r.grow(-2)
+		for y in range(core.position.y, core.end.y):
+			for x in range(core.position.x, core.end.x):
+				features[Vector2i(x, y)] = DEEP[posmod(x, 6) + 6 * posmod(y, 2)]
+				anim.erase(Vector2i(x, y))
+	var open: Array[Vector2i] = []
+	for y in range(r.position.y + 1, r.end.y - 1):
+		for x in range(r.position.x + 1, r.end.x - 1):
+			if features[Vector2i(x, y)] == OPEN_WATER:
+				open.append(Vector2i(x, y))
+	for k in (_rng.randi_range(1, 3) if lake else _rng.randi_range(0, 1)):
+		if open.is_empty():
+			break
+		var c: Vector2i = open.pop_at(_rng.randi() % open.size())
+		if features.get(c + Vector2i.DOWN) == OPEN_WATER and c.y + 1 < r.end.y - 1:
+			# A stalagmite standing in the water, two cells tall.
+			var col := 30 + _rng.randi() % 2
+			water_deco[c] = Vector2i(col, 4)
+			water_deco[c + Vector2i.DOWN] = Vector2i(col, 5)
+			blocked[c + Vector2i.DOWN] = true
+		else:
+			water_deco[c] = Vector2i(34, 5) # water weed
+	# Sparkles on about a third of the open water left.
+	for c in open:
+		if _rng.randf() < 0.35 and not water_deco.has(c):
+			sparkles[c] = Vector2i(29, 9 + _rng.randi() % 2)
+	pools.append(r)
+	# The dark zone round the pool: a rounded, lumpy halo two to four
+	# cells past the ring.
+	for y in range(r.position.y - 5, r.end.y + 5):
+		for x in range(r.position.x - 5, r.end.x + 5):
+			var c := Vector2i(x, y)
+			if not _inside(c) or kind[_i(c)] != FLOOR:
+				continue
+			var dx := maxf(maxf(r.position.x - x, x - (r.end.x - 1)), 0.0)
+			var dy := maxf(maxf(r.position.y - y, y - (r.end.y - 1)), 0.0)
+			var reach := 2.6 + 1.6 * absf(sin(x * 0.9 + y * 0.6 + map_id))
+			if Vector2(dx, dy).length() <= reach:
+				zone[c] = true
+	_claim(r.grow(1))
 
 
 func _ring(c: Vector2i, atlas: Vector2i) -> void:
@@ -900,6 +941,19 @@ func _liveliness_floor() -> void:
 		added += 1
 
 
+## In a maze: a campfire in a dead end of the weak window, or a pair of wall
+## torches on its faces (CaveMaze.floor_anchor); up to twice the anchors.
+func _maze_floor() -> void:
+	for n in FLOOR_ANCHORS * 2 + 1:
+		var weak := _weakest_window()
+		if n == 0:
+			floor_notes.append("weakest window %.3f%%" % weak.value)
+		if weak.value >= LIVE_FLOOR or n == FLOOR_ANCHORS * 2 or not _maze.floor_anchor(weak.rect):
+			floor_notes.append("-> %.3f%%" % weak.value)
+			return
+		floor_notes.append("anchor")
+
+
 func _weakest_window() -> Dictionary:
 	var m := PackedFloat32Array()
 	m.resize(W * H)
@@ -1142,6 +1196,13 @@ func _report() -> String:
 		fails.append("homes %d of %d" % [homes.size(), recipe.homes[0]])
 	if recipe.terraces[0] > 0 and terraces.is_empty():
 		fails.append("no terrace")
+	if maze:
+		if not maze_info.has("corridors"):
+			fails.append("no maze laid")
+		else:
+			var cut: Array[Vector2i] = _maze.unreached()
+			if not cut.is_empty():
+				fails.append("%d maze cells cut off" % cut.size())
 	var lines := PackedStringArray([
 		"Green Caves map %d: recipe %d %s, %dx%d (layout attempt %d)" % [map_id, recipe_id, recipe.name, W, H, attempt],
 		"  cells: floor %d, wall %d, face %d, terrace %d, stair %d, water %d, home %d" % counts,

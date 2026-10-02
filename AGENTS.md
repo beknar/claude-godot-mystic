@@ -16,7 +16,7 @@ changing its generator, painter, or scenes.
 - **Cozy Farm** (shubibubi) is used for its **animals only**, in
   `randomizer-paintedlands`, `randomizer-greencaves`,
   `randomizer-paintedlands-farm`, `randomizer-paintedlands-forest-farm`,
-  `maze-forest`, and `maze-farm` (`cozy_animals`):
+  `maze-forest`, `maze-farm`, and `maze-greencaves` (`cozy_animals`):
   the bunny for the drawn rabbit, farm animals only by homes and in pens.
   Insects, birds, tiny animals, and effects stay as drawn. Its buildings
   and other art are not used; `randomizer-painted-cozyfarm` is deprecated.
@@ -31,13 +31,14 @@ changing its generator, painter, or scenes.
 |---|---|---|---|
 | Painted Lands, Forest | `forest`, `wilds`, `randomizer-paintedlands` | `forest_terrain.gd`, `forest.gd` | `docs/painted-lands.md` |
 | Painted Lands, Forest mazes (hedges, canals) | `maze-forest` | `forest_maze.gd` (with `forest_terrain.gd`, `forest.gd`) | `docs/maze-forest.md` |
+| Painted Lands, Green Caves mazes (rock walls, rails, pools, cave homes) | `maze-greencaves` | `cave_maze.gd` (with `cave_terrain.gd`, `caves.gd`) | `docs/maze-greencaves.md` |
 | Painted Lands, Green Caves | `randomizer-greencaves` | `cave_terrain.gd`, `caves.gd`, `cave_life.gd` | `docs/green-caves.md` |
 | Painted Lands, Farm – 4 Seasons (spring and summer, autumn, winter; one season per map, never mixed) | `randomizer-paintedlands-farm` | `farm_terrain.gd`, `farm.gd`, `farm_tiles.gd` | `docs/farm.md` |
 | Painted Lands, Farm mazes (hedges, wheat, corn, bushes, canals; one season per map) | `maze-farm` | `farm_maze.gd` (with `farm_terrain.gd`, `farm.gd`) | `docs/maze-farm.md` |
 | Painted Lands, Forest and Farm combined (every Forest and Farm map type, plus farmsteads: Farm ground with Forest houses, fires, and clutter) | `randomizer-paintedlands-forest-farm` | `forest_farm.gd`, `farm_terrain.gd` (`MIXED_RECIPES`), `farm_tiles.gd` (`FOREST_PROPS`) | `docs/farm.md` (Farmsteads) |
 | Bridges (generated in the Forest's and the Farm's colors; the packs draw none) | rivers and brooks in `randomizer-paintedlands`, `randomizer-paintedlands-farm`, `randomizer-paintedlands-forest-farm` | `bridges.gd`, `tools/gen_bridges.py` | `docs/bridges.md` |
 | Painted Lands, Cozy Cottage | homes in the Painted Lands, Green Caves, farm, and forest-and-farm randomizers | `interior_*.gd`, `house_interiors.gd` | `docs/interiors.md` |
-| Cozy Farm (animals only) | `randomizer-paintedlands`, `randomizer-greencaves`, `randomizer-paintedlands-farm`, `randomizer-paintedlands-forest-farm`, `maze-forest`, `maze-farm` | `wildlife.gd` (`PACK_SPECIES`), `cave_terrain.gd` (`wildlife_plan`) | `docs/painted-lands.md` (Cozy Farm animals) |
+| Cozy Farm (animals only) | `randomizer-paintedlands`, `randomizer-greencaves`, `randomizer-paintedlands-farm`, `randomizer-paintedlands-forest-farm`, `maze-forest`, `maze-farm`, `maze-greencaves` | `wildlife.gd` (`PACK_SPECIES`), `cave_terrain.gd` (`wildlife_plan`) | `docs/painted-lands.md` (Cozy Farm animals) |
 | Pixel Crawler | `randomizer-pixelcrawler` | `pc_terrain.gd`, `pixelcrawler.gd`, `pc_tiles.gd` | `docs/pixel-crawler.md` |
 | Mystic Woods (deprecated) | `clearing`, `grove`, `hollow`, `ford`, `heath`, `randomizer-mysticwoods` | `terrain.gd`, `clearing.gd` | `docs/deprecated/mystic-woods.md` |
 | Cozy Farm buildings (deprecated) | `randomizer-painted-cozyfarm` | `forest_terrain.gd` (`cozy`), `forest.gd` (`cozy_buildings`) | `docs/deprecated/cozy-farm.md` |
@@ -83,7 +84,7 @@ inventory and QC: `docs/scene-assembly.md`.
 
 - The pack's headless check passes on a sweep of maps (`tools/check_tf.gd`,
   `check_caves.gd`, `check_recipes.gd`, `check_pc.gd`, `check_farm.gd`,
-  `check_maze.gd`, `check_maze_farm.gd`,
+  `check_maze.gd`, `check_maze_farm.gd`, `check_maze_caves.gd`,
   ...): the walker reaches every goal and every cell has a tile.
 - A screenshot in the running game, looked at next to the pack's own art,
   passes that doc's reject list.

@@ -43,6 +43,10 @@ Rules for each pack: `docs/painted-lands.md`, `docs/green-caves.md`,
 | Painted Lands Green Caves | `randomizer-greencaves` | 23 |
 | Painted Lands Green Caves + Cozy Farm (bunnies) | `randomizer-greencaves` | 3 |
 | Painted Lands Green Caves + Cozy Cottage (homes) + Cozy Farm (farm animals) | `randomizer-greencaves` | 7 |
+| Painted Lands Green Caves (rock mazes, light and dark floors) | `maze-greencaves` | 13 |
+| Painted Lands Green Caves (rock mazes, moss floors) + Cozy Farm (bunnies) | `maze-greencaves` | 5 (Overgrown mine maze with its rails) |
+| Painted Lands Green Caves (rock mazes with cave homes) + Cozy Cottage (homes) + Cozy Farm (farm animals; bunnies on moss) | `maze-greencaves` | 4 (Cave hamlet, Smugglers', Root cellar, Hermit's) |
+| Painted Lands Green Caves (mine mazes with rail tracks) | `maze-greencaves` | 2 (Mine maze, Rail tunnels) |
 | Painted Lands Farm (spring and summer) + Cozy Farm (animals) | `randomizer-paintedlands-farm` | 2 |
 | Painted Lands Farm (spring and summer) + Cozy Cottage (interiors) + Cozy Farm (animals) | `randomizer-paintedlands-farm` | 30 (2 of them rivers with bridges) |
 | Painted Lands Farm (autumn) + Cozy Cottage (interiors) + Cozy Farm (animals) | `randomizer-paintedlands-farm` | 11 (1 river with bridges) |
@@ -55,7 +59,7 @@ Rules for each pack: `docs/painted-lands.md`, `docs/green-caves.md`,
 | Pixel Crawler Cemetery | `randomizer-pixelcrawler` | 3 |
 | Pixel Crawler Desert | `randomizer-pixelcrawler` | 3 |
 
-204 map types in all (36 Painted Lands, 24 Forest mazes, 30 Farm mazes, 33 Green Caves,
+228 map types in all (36 Painted Lands, 24 Forest mazes, 30 Farm mazes, 24 Green Caves mazes, 33 Green Caves,
 52 Farm in three seasons, 12 farmsteads, 17 Pixel Crawler) and 2 fixed maps.
 `randomizer-paintedlands-forest-farm` builds all 100 Painted Lands map types
 (the 36 Forest, the 52 Farm, and the 12 farmsteads, which only it builds).
@@ -212,6 +216,43 @@ behind every building's door.
 | 27 | Snowbush maze | winter | snowy bushes | farmhouse |
 | 28 | Pine hedge maze | winter | pine bushes | pen |
 | 29 | Frozen mill canals | winter | canals, bridges | windmill |
+
+## Painted Lands Green Caves mazes
+
+`maze-greencaves` (id % 24, docs/maze-greencaves.md): rock mazes on the
+Green Caves sheet, walls of its wall mass two cells wide (black tops over
+their faces, the sheet's junction corners and rounded ends), on light,
+dark, or moss floors; one visible entrance in the west wall and one exit in
+the east (torches over the gap, a signpost), every room reachable. The
+cave's drawn animals; Cozy Farm bunnies on the moss floors and farm animals
+round the cave homes.
+
+| # | Map type | Floor | Clearings |
+|---|---|---|---|
+| 0 | Rock labyrinth | light | |
+| 1 | Branching tunnels | light | pool |
+| 2 | Looping caverns | light (loops) | camp |
+| 3 | Crystal maze | light | crystal ring |
+| 4 | Stalagmite maze | light | cones |
+| 5 | Spring maze | light | two pools |
+| 6 | Flooded maze | light, wide | lake |
+| 7 | Echo halls | light, wide | |
+| 8 | Pillared maze | light (rings) | shrine |
+| 9 | Cave hamlet maze | light | two cave homes |
+| 10 | Mine maze | dark, rails | mine |
+| 11 | Rail tunnels | dark, rails (loops) | coal |
+| 12 | Ossuary maze | dark, skull faces | bones |
+| 13 | Treasure vault maze | dark | vault |
+| 14 | Smugglers' maze | dark | cave home, cache |
+| 15 | Ore vein maze | dark | |
+| 16 | Dark depths maze | dark, wide (loops) | pool |
+| 17 | Root cellar maze | dark | cave home |
+| 18 | Mossy labyrinth | moss | |
+| 19 | Overgrown mine maze | moss, rails | grove |
+| 20 | Sunken garden maze | moss | grove, pool |
+| 21 | Hermit's maze | moss | cave home, camp |
+| 22 | Fern hollows | moss, wide | two groves |
+| 23 | Moss rings | moss (rings) | pool |
 
 ## Painted Lands Green Caves
 

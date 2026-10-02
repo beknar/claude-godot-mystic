@@ -85,6 +85,14 @@ Green Caves randomizer:
   (`scenes/forest/walker.tscn`) and the same Esc menu, titled
   "Green Caves randomizer".
 
+Painted Lands Green Caves mazes (docs/maze-greencaves.md):
+
+- `scenes/maze-greencaves/maze-greencaves.tscn` — `caves.gd` with `maze` on:
+  the maze types of `cave_maze.gd` (24, id % 24) laid into the Green Caves
+  pipeline, starting at map id `440016`, with the Painted Lands walker, cave
+  homes, the Cozy Farm animals, and the same Esc menu, titled "Green Caves
+  maze".
+
 Painted Lands farm randomizer (docs/farm.md):
 
 - `scenes/randomizer-paintedlands-farm/randomizer-paintedlands-farm.tscn` —

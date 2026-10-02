@@ -13,6 +13,8 @@ the Green Caves randomizer.
 - Homes: rock toward the cave, Cozy Cottage trim toward the rooms, the
   arched doorway over the way out.
 
+Mazes on this sheet (`maze-greencaves`, `cave_maze.gd`): `docs/maze-greencaves.md`.
+
 **Coordinates:** `cave_terrain.gd` (`PROPS`, the sheet constants) is
 authoritative; the cells below explain each piece's role.
 

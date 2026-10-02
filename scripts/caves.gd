@@ -20,6 +20,8 @@ const EDGE := 3.0 # px: the lip of a terrace a walker cannot step over
 ## The Cozy Farm art pack's animals (wildlife.gd `mode = "pack"`): bunnies on
 ## the moss floors, and farm animals by the homes.
 @export var cozy_animals := false
+## maze-greencaves' rock mazes instead (cave_maze.gd).
+@export var maze := false
 
 @onready var ground: TileMapLayer = $Ground
 @onready var zone_layer: TileMapLayer = $Zone
@@ -68,6 +70,7 @@ func build(id: int, pinned := -1) -> void:
 	map_id = id
 	recipe = pinned
 	terrain = CaveTerrain.new()
+	terrain.maze = maze
 	report = terrain.generate(map_id, recipe)
 	for layer in [ground, zone_layer, features_layer, water_deco, deco_layer]:
 		layer.clear()
@@ -87,7 +90,7 @@ func build(id: int, pinned := -1) -> void:
 ## For the randomizer menu: the recipe names, in recipe-id order.
 func recipe_names() -> Array[String]:
 	var out: Array[String] = []
-	for r in CaveTerrain.RECIPES:
+	for r in (CaveMaze.recipes() if maze else CaveTerrain.RECIPES):
 		out.append(r.name)
 	return out
 

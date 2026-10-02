@@ -128,6 +128,7 @@ generator.
 | `scenes/wilds/wilds.tscn` | 75125 (recipe 5, Open meadow) | `character_sprite_sheet.png` |
 | `scenes/randomizer-paintedlands/randomizer-paintedlands.tscn` | starts at 75101 (recipe 5, Open meadow), then any | `character_sprite_sheet.png` |
 | `scenes/maze-forest/maze-forest.tscn` | starts at 400000 (maze type 16, Firefly maze; id % 24), then any | `character_sprite_sheet.png` (the Painted Lands walker) |
+| `scenes/maze-greencaves/maze-greencaves.tscn` | starts at 440016 (maze type 0, Rock labyrinth; id % 24), then any | `character_sprite_sheet.png` (the Painted Lands walker) |
 | `scenes/maze-farm/maze-farm.tscn` | starts at 420000 (maze type 0, Hedgerow maze; id % 30), then any | `character_sprite_sheet.png` (the Painted Lands walker) |
 | `scenes/randomizer-mysticwoods/randomizer-mysticwoods.tscn` | starts at 21021, then any | `player.png` |
 | `scenes/randomizer-greencaves/randomizer-greencaves.tscn` | starts at 130021, then any | `character_sprite_sheet.png` (the Painted Lands walker) |
@@ -249,6 +250,20 @@ scarecrows, a farmhouse in a moat. Walls collide where they are drawn; every
 room is reachable from the one entrance (a road, barrels, a signpost) to
 the one exit. The Cozy Farm animals live in every maze, in the pens, by the
 doors, or grazing the corridors (docs/maze-farm.md; `tools/check_maze_farm.gd`).
+
+**Green Caves mazes.** `maze-greencaves` builds rock mazes on the Green Caves
+sheet, 24 types on light, dark, and moss floors from the same Esc menu: the
+cave's wall mass two cells wide, black tops over rock faces, with the
+sheet's own junction corners and rounded ends; long labyrinths, branching
+tunnels, looping caverns, a crystal ring, stalagmites, springs, a flooded
+lake, a pillared shrine, mine mazes with a rail track running the way
+through, an ossuary with skull faces, a treasure vault, smugglers', root
+cellar, and hermit's mazes and a cave hamlet with cave homes (Cozy Cottage
+rooms, the Cozy Farm animals round their arches), mossy labyrinths, sunken
+gardens, fern hollows. Torches on the faces, campfires in the dead ends,
+drips from every face, glowworms, bats, and glints keep every camera window
+above the cave floor; every room is reachable from the one entrance to the
+one exit (docs/maze-greencaves.md; `tools/check_maze_caves.gd`).
 
 The Painted Lands forest and farm randomizer
 (`randomizer-paintedlands-forest-farm`) builds all 100 Painted Lands map

@@ -19,7 +19,8 @@ extends Node2D
 ## measured only (no proxy features per block), each view's cloud shade
 ## recorded so the analyzer can tell cloud rims apart. `maze` films twelve
 ## maze-forest types into .liveliness_maze; `farm maze` twelve maze-farm
-## types (all three seasons) into .liveliness_maze_farm.
+## types (all three seasons) into .liveliness_maze_farm; `caves maze`
+## twelve maze-greencaves types into .liveliness_maze_caves.
 
 const PaintedFeatures := preload("res://scripts/liveliness_features.gd")
 const CaveFeatures := preload("res://scripts/cave_liveliness_features.gd")
@@ -101,6 +102,9 @@ func _ready() -> void:
 	if _plan.is_empty() and maze and _farm:
 		for r in [0, 3, 4, 7, 11, 13, 16, 19, 22, 24, 27, 28]: # all three seasons
 			_plan.append(420030 + r)
+	elif _plan.is_empty() and maze and _caves:
+		for r in [0, 1, 3, 6, 9, 10, 12, 14, 16, 18, 20, 21]: # all three floors
+			_plan.append(440040 + r)
 	elif _plan.is_empty() and maze:
 		for r in [0, 1, 4, 5, 7, 8, 11, 13, 15, 18, 20, 23]:
 			_plan.append(400008 + r)
@@ -111,7 +115,7 @@ func _ready() -> void:
 			_plan = PC_MAPS.duplicate()
 		else:
 			_plan = CAVE_CALIBRATE + CAVE_HOLDOUT if _caves else CALIBRATE + HOLDOUT
-	var suffix := ("_maze_farm" if maze else "_farm") if _farm else ("_pc" if _pc else ("_caves" if _caves else ("_maze" if maze else "")))
+	var suffix := ("_maze_farm" if maze else "_farm") if _farm else ("_pc" if _pc else (("_maze_caves" if maze else "_caves") if _caves else ("_maze" if maze else "")))
 	_out = ProjectSettings.globalize_path("res://.liveliness%s/raw" % suffix)
 	if _farm or _pc:
 		_views = [Vector2i(0, 0), Vector2i(21, 0), Vector2i(0, 11), Vector2i(21, 11), Vector2i(0, 22), Vector2i(21, 22)]
