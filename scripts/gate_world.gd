@@ -15,7 +15,8 @@ extends RefCounted
 ## off the axes and diagonals adds its offset along the other axis: "n-2.e1"
 ## is two north and one east, "e-3.s2" three east and two south.
 
-const SAVE_PATH := "user://node_gates_save.json"
+## The save file; the demo reel (tools/node_gates_demo.gd) points it elsewhere.
+static var save_path := "user://node_gates_save.json"
 const VERSION := 1
 const MAX_RING := 33
 const DIRS := {"n": Vector2i(0, 1), "e": Vector2i(1, 0), "s": Vector2i(0, -1), "w": Vector2i(-1, 0)}
@@ -166,16 +167,16 @@ func save() -> void:
 		"nodes": out_nodes,
 		"links": links.keys(),
 	}
-	var f := FileAccess.open(SAVE_PATH, FileAccess.WRITE)
+	var f := FileAccess.open(save_path, FileAccess.WRITE)
 	if f:
 		f.store_string(JSON.stringify(data, "\t"))
 
 
 ## Loads the save file; false (and a fresh world) when there is none.
 func load_save() -> bool:
-	if not FileAccess.file_exists(SAVE_PATH):
+	if not FileAccess.file_exists(save_path):
 		return false
-	var parsed = JSON.parse_string(FileAccess.get_file_as_string(SAVE_PATH))
+	var parsed = JSON.parse_string(FileAccess.get_file_as_string(save_path))
 	if typeof(parsed) != TYPE_DICTIONARY or int(parsed.get("version", 0)) != VERSION:
 		return false
 	seed_value = int(parsed.seed)
@@ -199,5 +200,5 @@ func load_save() -> bool:
 
 
 static func erase_save() -> void:
-	if FileAccess.file_exists(SAVE_PATH):
-		DirAccess.remove_absolute(ProjectSettings.globalize_path(SAVE_PATH))
+	if FileAccess.file_exists(save_path):
+		DirAccess.remove_absolute(ProjectSettings.globalize_path(save_path))

@@ -122,6 +122,11 @@ one more sword point every sixth, and a large reward at ring 33
   Forest report's checks.
 - In the running game: clear c-0 (two slimes), open the chest, walk out a
   gate, come back through the same gate (it opens: visited), press M.
+- Demo reel: `tools/node_gates_demo.tscn` plays the scene by itself through
+  the input actions (clear c-0, chest, east gate, a shut gate, clear e-1,
+  north, the strategic map, then ring 26's knights) with captions, on its own
+  save file (`user://node_gates_demo.json`, erased at the end). Record it
+  with `--write-movie <out>.avi --fixed-fps 30 --resolution 1720x720`.
 
 ## Reject list (on top of docs/painted-lands.md)
 

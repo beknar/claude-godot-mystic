@@ -123,9 +123,8 @@ func _build() -> void:
 	_hint.offset_top = -64
 	_hint.modulate.a = 0.8
 	_toast = _label(Vector2.ZERO, FONT_SIZE)
-	_toast.set_anchors_preset(Control.PRESET_CENTER_TOP)
+	_toast.set_anchors_and_offsets_preset(Control.PRESET_TOP_WIDE)
 	_toast.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	_toast.grow_horizontal = Control.GROW_DIRECTION_BOTH
 	_toast.offset_top = 160
 	_toast.modulate.a = 0.0
 
