@@ -65,6 +65,12 @@ Rules for each pack: `docs/painted-lands.md`, `docs/green-caves.md`,
 | Pixel Crawler Cemetery | `randomizer-pixelcrawler` | 3 |
 | Pixel Crawler Desert | `randomizer-pixelcrawler` | 3 |
 
+`node-gates` (docs/node-gates.md) adds no map types of its own: it builds
+the first 33 Painted Lands Forest map types (Pastoral to Manor green, one per
+ring) with a gate road to each edge, Cozy Cottage interiors, and the Cozy
+Farm animals, with foes from the Green Caves slimes and the Painted Lands RPG
+Characters.
+
 251 map types in all (36 Painted Lands, 24 Forest mazes, 30 Farm mazes, 24 Green Caves mazes, 23 Pixel Crawler mazes, 33 Green Caves,
 52 Farm in three seasons, 12 farmsteads, 17 Pixel Crawler) and 2 fixed maps.
 `randomizer-paintedlands-forest-farm` builds all 100 Painted Lands map types

@@ -445,6 +445,11 @@ var cozy := false
 ## clearings} of the maze laid.
 var maze := false
 var maze_info := {}
+## node-gates: a road (or a trail) to the middle of each of the four map
+## edges (gate_roads.gd), set before generate(); gate_cells: side ("n", "e",
+## "s", "w") -> {cell, kind}, the left or top cell of the two-cell opening.
+var gates := false
+var gate_cells := {}
 var outbuildings: Array[Dictionary] = [] # {id, origin}: farm buildings, not entered
 var fence := {} # cell -> {atlas, flip}
 var gate := Vector2i(-1, -1) # left cell of a two-cell gate
@@ -492,7 +497,7 @@ func generate(p_map_id: int, p_recipe := -1) -> String:
 	for a in ATTEMPTS:
 		attempt = a
 		_reset(hash(Vector2i(map_id, a)))
-		if _layout() and _autotile_path() and _place_farm():
+		if _layout() and (not gates or GateRoads.lay(self, _rng)) and _autotile_path() and _place_farm():
 			built = true
 			break
 	if not built:
@@ -695,6 +700,7 @@ func _reset(seed_value: int) -> void:
 	dropped.clear()
 	floor_notes.clear()
 	maze_info = {}
+	gate_cells = {}
 	gate = Vector2i(-1, -1)
 	leans = 0
 	hedgerows = 0
@@ -3356,6 +3362,12 @@ func _verify() -> String:
 			fails.append("path cell %s has no tile" % c)
 		elif t in PATH_FILLS and (_mask(c, path, true) != 15 or _open_diagonals(c, path, true) != 0):
 			fails.append("fill on a cap or knuckle at %s" % c)
+	if gates:
+		for side in ["n", "e", "s", "w"]:
+			if not gate_cells.has(side):
+				fails.append("no %s gate" % side)
+			elif not _reaches(spawn, gate_cells[side].cell):
+				fails.append("the %s gate is cut off" % side)
 	if houses.size() != recipe.houses.size():
 		fails.append("houses %d, recipe wants %d" % [houses.size(), recipe.houses.size()])
 	if outbuildings.size() != recipe.get("farm", []).size():

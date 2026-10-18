@@ -85,6 +85,16 @@ Green Caves randomizer:
   (`scenes/forest/walker.tscn`) and the same Esc menu, titled
   "Green Caves randomizer".
 
+Node gates (docs/node-gates.md):
+
+- `scenes/node-gates/node-gates.tscn` — `node_gates.gd` (extends
+  `forest.gd` with `gates` on): Painted Lands Forest maps joined at their
+  edges into a grid of nodes round c-0, the ring setting the map type
+  (Pastoral to Manor green) and the foes (`foe.gd`: Green Caves slimes,
+  Painted Lands RPG Characters); the walker swings a sword (`gate_walker.gd`);
+  HUD, strategic map (M), and Esc menu in `node_gates_ui.gd`; the world and
+  its save file in `gate_world.gd`.
+
 Pixel Crawler mazes (docs/maze-pixelcrawler.md):
 
 - `scenes/maze-pixelcrawler/maze-pixelcrawler.tscn` — `pixelcrawler.gd` with

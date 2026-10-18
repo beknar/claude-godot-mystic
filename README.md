@@ -65,6 +65,9 @@ project, copy them in locally:
   `maze-pixelcrawler`, Forge `Assets/Tiles.png` to `forge/`, Sewer
   `Assets/Tiles.png` and `Props.png` to `sewer/`, and the FREE pack's
   `Environment/Dungeon Prison/Assets/*.png` to `prison/` (not yet used)
+- The Painted Lands RPG Characters (antarcticbees): the pack folder to
+  `assets/pack/rpg_characters/` (one folder per character, `Spritesheets/`
+  inside), for the foes of `node-gates`
 - Time Fantasy tiles (finalbossblues, TimeFantasy_TILES_6.24.17): the
   `TILESETS` folder to `assets/pack/time_fantasy/` (`terrain.png`,
   `outside.png`, `water.png`, `house.png`, `animated/`, `guide.png`)
@@ -134,6 +137,7 @@ generator.
 | `scenes/maze-pixelcrawler/maze-pixelcrawler.tscn` | starts at 460000 (maze type 0, Fairy hedge maze; id % 23), then any | `character_sprite_sheet.png` (the Painted Lands walker) |
 | `scenes/maze-greencaves/maze-greencaves.tscn` | starts at 440016 (maze type 0, Rock labyrinth; id % 24), then any | `character_sprite_sheet.png` (the Painted Lands walker) |
 | `scenes/maze-farm/maze-farm.tscn` | starts at 420000 (maze type 0, Hedgerow maze; id % 30), then any | `character_sprite_sheet.png` (the Painted Lands walker) |
+| `scenes/node-gates/node-gates.tscn` | from the save file (`user://node_gates_save.json`); a new game picks a world seed, and each node's map id comes from it | `character_sprite_sheet.png` (the Painted Lands walker, with a drawn sword swing) |
 | `scenes/randomizer-mysticwoods/randomizer-mysticwoods.tscn` | starts at 21021, then any | `player.png` |
 | `scenes/randomizer-greencaves/randomizer-greencaves.tscn` | starts at 130021, then any | `character_sprite_sheet.png` (the Painted Lands walker) |
 | `scenes/randomizer-paintedlands-farm/randomizer-paintedlands-farm.tscn` | starts at 190008 (recipe 0, Homestead), then any | `character_sprite_sheet.png` (the Painted Lands walker) |
@@ -279,6 +283,18 @@ brick with lava pools and statues, lava channels, and Sewer slime channels
 crossed on plank bridges, lit by lamps. Walls collide where they are drawn;
 every room is reachable from the one entrance to the one exit
 (docs/maze-pixelcrawler.md; `tools/check_maze_pc.gd`).
+
+**Node gates.** `node-gates` joins Painted Lands Forest maps into one world:
+each map has a gate in the middle of every edge, and walking out of one
+builds the next map, a node on a grid round the first (c-0). The ring (the
+distance from c-0) sets the map type, Pastoral at rings 0 and 1, Crossroads at
+ring 2, and so on out to Manor green at ring 33, and the foes: the Green Caves
+slimes near c-0, then the Painted Lands RPG Characters (cloaked figures,
+samurai, fire knights, dark knights), tougher each ring. A new node opens
+only once every foe on the current map is down; a visited one always opens.
+Clearing a map leaves a chest. Every node's state is kept in a save file,
+and the strategic map (M) draws the nodes visited and the moves between them
+(docs/node-gates.md; `tools/check_node_gates.gd`).
 
 The Painted Lands forest and farm randomizer
 (`randomizer-paintedlands-forest-farm`) builds all 100 Painted Lands map
@@ -600,9 +616,14 @@ Art (purchased; not included in this repository, see "Art packs" above):
   furniture, and decoration for the home interiors. License: see the pack's
   itch.io page; purchased, not redistributed here.
 - **The Painted Lands – Green Caves Tileset** by
-  [antarcticbees](https://antarcticbees.itch.io). `green_caves_tileset.png`
-  (the pack's slimes are not used). License: see the pack's itch.io page;
+  [antarcticbees](https://antarcticbees.itch.io). `green_caves_tileset.png`,
+  and the pack's two slimes as foes in `node-gates`. License: see the pack's itch.io page;
   purchased, not redistributed here.
+- **The Painted Lands – RPG Characters** by
+  [antarcticbees](https://antarcticbees.itch.io). The cloaked figure,
+  samurai, fire knight, and dark knight (walk, attack, hurt, defeat) as the
+  foes of `node-gates`. License: see the pack's itch.io page; purchased, not
+  redistributed here.
 - **Farm – 4 Seasons 16x16 Tileset** (full version) by
   [antarcticbees](https://antarcticbees.itch.io). The spring and summer,
   autumn, and winter tilesets, crops, animated trees, windmills, fence gates,

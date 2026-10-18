@@ -40,6 +40,8 @@ const RIDGE_FRONT := 8
 ## map types. Deprecated with randomizer-painted-cozyfarm (the only scene
 ## that sets it); docs/deprecated/cozy-farm.md.
 @export var cozy_buildings := false
+## node-gates: a road to the middle of each map edge (PaintedTerrain `gates`).
+@export var gates := false
 
 @onready var ground: TileMapLayer = $Ground
 @onready var features_layer: TileMapLayer = $Features
@@ -107,6 +109,7 @@ func build(id: int, pinned := -1) -> void:
 	terrain = PaintedTerrain.new()
 	terrain.cozy = cozy_buildings
 	terrain.maze = maze
+	terrain.gates = gates
 	report = terrain.generate(map_id, recipe)
 	for layer in [ground, features_layer, deco_layer, accent_layer] + tone_layers:
 		layer.clear()
