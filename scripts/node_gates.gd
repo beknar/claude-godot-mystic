@@ -6,8 +6,11 @@ extends "res://scripts/forest.gd"
 ## rewards, and the save file). A new node only opens once every foe on the
 ## current one is down; a node already visited always opens. Clearing a node
 ## leaves a chest. Every node's state (foes left and where, the chest) is kept
-## in the save file, so a map comes back as it was left. The strategic map
-## (M) draws the nodes visited and the moves between them.
+## in the save file, so a map comes back as it was left. The HUD
+## (node_gates_ui.gd) has a hotbar of the bag's first nine slots (keys 1-9),
+## the inventory (I), a minimap, the whole map (M), and the strategic map of
+## the nodes (P). Chests hold coins and items (gate_items.gd): healing, mana,
+## and speed potions and food, rolled by rarity. Mana pays for the spin (K).
 ##
 ## Painted Lands Forest tiles, Cozy Cottage interiors behind every door,
 ## Cozy Farm animals round the homes; the foes are the Green Caves slimes and
@@ -17,8 +20,11 @@ const GATE_SIDES := ["n", "e", "s", "w"]
 const FLOW_EVERY := 0.25 # s between flow-field updates
 const ARRIVE_GRACE := 0.6 # s after arriving before a gate can trigger
 const CHEST_ART := {false: [Vector2i(26, 28), Vector2i(27, 28)], true: [Vector2i(26, 29), Vector2i(27, 29)]} # gold -> [closed, open]
-const GATE_RETRIES := 6
-const SAVE_EVERY := 8.0 # s between saves of where the foes stand # map ids tried for a new node whose gates do not all fit
+const GATE_RETRIES := 6 # map ids tried for a new node whose gates do not all fit
+const SAVE_EVERY := 8.0 # s between saves of where the foes stand
+const MANA_REGEN := 1.0 # mana a second
+const SPIN_COST := 20 # mana for a spin
+const SPIN_REACH := 26.0 # px round the walker a spin hits
 
 @onready var ui: CanvasLayer = $UI
 
@@ -35,6 +41,15 @@ var _arrive := 0.0
 var _toast_clock := 0.0
 var _save_clock := SAVE_EVERY
 var _rng := RandomNumberGenerator.new()
+## Buffs from items: "speed" {mult, time, id}, "regen" {rate (hit points a
+## second), time, id}.
+var buffs := {}
+var _regen_acc := 0.0
+var _mana_acc := 0.0
+## The current map drawn whole (one image pixel a world pixel), and shrunk to
+## one pixel a cell for the minimap; made after each build (none headless).
+var map_image: Image
+var mini_image: Image
 
 
 func _ready() -> void:
@@ -85,6 +100,8 @@ func _spawn_walker() -> void:
 	walker.position = _entry_point(world.entry)
 	actors.add_child(walker)
 	walker.swung.connect(_on_swing)
+	walker.spun.connect(_on_spun)
+	walker.spin_wanted.connect(_on_spin_wanted)
 	walker.hurt.connect(_on_hurt)
 	var camera: Camera2D = walker.get_node("Camera")
 	camera.limit_left = 0
@@ -125,8 +142,47 @@ func _enter_node() -> void:
 	_flow_cell = Vector2i(-1, -1)
 	_arrive = ARRIVE_GRACE
 	gate_marks.setup(self)
+	_apply_buffs()
 	ui.refresh()
 	world.save()
+	_capture_map.call_deferred()
+
+
+# Draws the whole map once into an image (a viewport sharing the world, its
+# camera on the map's top-left), keeps it as the node's thumbnail, and
+# shrinks it for the minimap by halving (each step averages 2 x 2 pixels).
+func _capture_map() -> void:
+	if DisplayServer.get_name() == "headless":
+		return
+	var size := Vector2i(PaintedTerrain.WIDTH * TILE, PaintedTerrain.HEIGHT * TILE)
+	var vp := SubViewport.new()
+	vp.size = size
+	vp.world_2d = get_viewport().world_2d
+	vp.canvas_item_default_texture_filter = Viewport.DEFAULT_CANVAS_ITEM_TEXTURE_FILTER_NEAREST
+	vp.render_target_update_mode = SubViewport.UPDATE_ONCE
+	var cam := Camera2D.new()
+	cam.anchor_mode = Camera2D.ANCHOR_MODE_FIXED_TOP_LEFT
+	vp.add_child(cam)
+	add_child(vp)
+	cam.make_current()
+	var node := world.current
+	await RenderingServer.frame_post_draw
+	await RenderingServer.frame_post_draw
+	var img := vp.get_texture().get_image()
+	vp.queue_free()
+	if img == null or node != world.current:
+		return
+	img.convert(Image.FORMAT_RGBA8)
+	map_image = img
+	var small := img.duplicate()
+	while small.get_width() > PaintedTerrain.WIDTH * 2:
+		small.resize(small.get_width() / 2, small.get_height() / 2, Image.INTERPOLATE_BILINEAR)
+	var thumb := small.duplicate() # 120 x 80: the strategic map's
+	DirAccess.make_dir_recursive_absolute(ProjectSettings.globalize_path(world.thumb_path(node).get_base_dir()))
+	thumb.save_png(world.thumb_path(node))
+	small.resize(PaintedTerrain.WIDTH, PaintedTerrain.HEIGHT, Image.INTERPOLATE_BILINEAR)
+	mini_image = small
+	ui.map_captured(node)
 
 
 # First visit: the foes of the ring's plan, spread over the map away from
@@ -215,6 +271,7 @@ func _physics_process(delta: float) -> void:
 		return
 	_toast_clock = maxf(0.0, _toast_clock - delta)
 	_arrive = maxf(0.0, _arrive - delta)
+	_tick_buffs(delta)
 	if not walker_active():
 		return
 	_save_clock -= delta
@@ -235,6 +292,73 @@ func _physics_process(delta: float) -> void:
 			if _at_gate(side):
 				_try_gate(side)
 				break
+
+
+# Mana comes back slowly; speed and regeneration run down.
+func _tick_buffs(delta: float) -> void:
+	var h: Dictionary = world.hero
+	var changed := false
+	if h.mana < h.max_mana:
+		_mana_acc += MANA_REGEN * delta
+		if _mana_acc >= 1.0:
+			h.mana = mini(h.max_mana, h.mana + int(_mana_acc))
+			_mana_acc -= int(_mana_acc)
+			changed = true
+	for k in buffs.keys():
+		var b: Dictionary = buffs[k]
+		b.time -= delta
+		if k == "regen" and h.hp > 0:
+			_regen_acc += b.rate * delta
+			if _regen_acc >= 1.0:
+				h.hp = mini(h.max_hp, h.hp + int(_regen_acc))
+				_regen_acc -= int(_regen_acc)
+				changed = true
+		if b.time <= 0.0:
+			buffs.erase(k)
+			changed = true
+	_apply_buffs()
+	if changed:
+		ui.refresh()
+
+
+func _apply_buffs() -> void:
+	if walker:
+		walker.speed_mult = buffs.speed.mult if buffs.has("speed") else 1.0
+
+
+## Uses the item in bag slot `i` (the hotbar is slots 0-8).
+func use_slot(i: int) -> void:
+	if i < 0 or i >= world.bag.size() or world.bag[i].is_empty() or busy or world.hero.hp <= 0:
+		return
+	var id: String = world.bag[i].id
+	var it := GateItems.item(id)
+	var h: Dictionary = world.hero
+	match it.kind:
+		"healing":
+			if h.hp >= h.max_hp:
+				ui.toast("Your health is already full.")
+				return
+			h.hp = mini(h.max_hp, h.hp + maxi(1, ceili(h.max_hp * it.amount)))
+		"mana":
+			if h.mana >= h.max_mana:
+				ui.toast("Your mana is already full.")
+				return
+			h.mana = mini(h.max_mana, h.mana + maxi(1, ceili(h.max_mana * it.amount)))
+		"speed":
+			if buffs.has("speed") and buffs.speed.mult > 1.0 + it.amount + 0.001:
+				ui.toast("A stronger speed potion is still working.")
+				return
+			buffs.speed = {"mult": 1.0 + it.amount, "time": it.seconds, "id": id, "seconds": it.seconds}
+		"regen":
+			if h.hp >= h.max_hp:
+				ui.toast("Your health is already full.")
+				return
+			buffs.regen = {"rate": h.max_hp * it.amount, "time": it.seconds, "id": id, "seconds": it.seconds}
+	world.take(i)
+	_apply_buffs()
+	ui.toast("%s: %s." % [it.name, GateItems.effect_text(id).to_lower()])
+	ui.refresh()
+	world.save()
 
 
 func walker_active() -> bool:
@@ -294,6 +418,22 @@ func _on_swing(at: Vector2, _dir: Vector2) -> void:
 	for f in foes.duplicate():
 		if f.alive() and (f.position + Vector2(0, -6)).distance_to(at) <= 12.0 + f.radius:
 			f.take_hit(world.hero.damage, walker.position)
+
+
+func _on_spin_wanted() -> void:
+	if world.hero.mana < SPIN_COST:
+		_toast_once("Not enough mana to spin (%d)." % SPIN_COST)
+		return
+	world.hero.mana -= SPIN_COST
+	walker.start_spin()
+	ui.refresh()
+
+
+## A spin hits every foe round the walker, a little harder than a swing.
+func _on_spun(at: Vector2) -> void:
+	for f in foes.duplicate():
+		if f.alive() and (f.position + Vector2(0, -6)).distance_to(at) <= SPIN_REACH + f.radius:
+			f.take_hit(world.hero.damage + 1, walker.position)
 
 
 func hurt_walker(amount: int, from: Vector2) -> void:
@@ -360,13 +500,24 @@ func _open_chest() -> void:
 	h.coins += r.coins
 	h.max_hp += r.max_hp
 	h.damage += r.damage
-	h.hp = mini(h.max_hp, h.hp + r.heal + r.max_hp)
+	h.hp = mini(h.max_hp, h.hp + r.max_hp)
 	var parts := ["%d coins" % r.coins]
 	if r.max_hp > 0:
 		parts.append("+%d heart%s" % [r.max_hp / 2, "" if r.max_hp == 2 else "s"])
 	if r.damage > 0:
 		parts.append("+%d sword" % r.damage)
-	parts.append("healed" if r.heal >= 99 else "a little healing")
+	var found := {}
+	var order: Array[String] = []
+	for id in GateItems.roll(r.items, _rng):
+		if not found.has(id):
+			order.append(id)
+		found[id] = found.get(id, 0) + 1
+	var lost := 0
+	for id in order:
+		lost += world.give(id, found[id])
+		parts.append(GateItems.item(id).name + (" x%d" % found[id] if found[id] > 1 else ""))
+	if lost > 0:
+		parts.append("%d left behind (bag full)" % lost)
 	ui.toast("Chest: " + ", ".join(parts) + ".")
 	ui.refresh()
 	world.save()
@@ -424,6 +575,7 @@ func new_game() -> void:
 		return
 	GateWorld.erase_save()
 	world.new_game(_rng.randi_range(1, 1 << 30))
+	buffs.clear()
 	busy = true
 	walker.frozen = true
 	await ui.fade(1.0)

@@ -4,7 +4,6 @@ extends CanvasLayer
 ## has build(id), map_summary() -> {id, name, checks}, and recipe_names();
 ## when there are recipes, a picker can pin the next seed to one of them.
 
-const FONT_SIZE := 40
 const MAX_ID := 999_999
 
 @export var map_path: NodePath = ^".."
@@ -59,12 +58,21 @@ func _refresh() -> void:
 	_hud.text = "Map %d · %s · Esc for menu" % [s.id, s.name]
 
 
+# The pixel fonts (PixelFonts): Painted Lands scenes use Pixelify Sans for
+# text and Jacquard 12 for the heading; Pixel Crawler scenes Kenney Pixel and
+# Jersey 10, harder faces for its heavy outlines.
+func _fonts() -> Dictionary:
+	var pc := String(map.get_script().resource_path).contains("pixelcrawler")
+	var F := PixelFonts.Role
+	return {"body": F.PC_BODY if pc else F.BODY, "title": F.NUMBERS if pc else F.BIG_TITLE,
+		"outline": Color(0.06, 0.06, 0.07) if pc else Color(0.16, 0.05, 0.12)}
+
+
 func _build_ui() -> void:
+	var fonts := _fonts()
 	_hud = Label.new()
 	_hud.position = Vector2(24, 16)
-	_hud.add_theme_font_size_override("font_size", FONT_SIZE * 3 / 4)
-	_hud.add_theme_color_override("font_outline_color", Color.BLACK)
-	_hud.add_theme_constant_override("outline_size", 8)
+	PixelFonts.apply(_hud, fonts.body, 3, fonts.outline)
 	add_child(_hud)
 
 	_panel = PanelContainer.new()
@@ -84,12 +92,12 @@ func _build_ui() -> void:
 
 	var heading := Label.new()
 	heading.text = title
-	heading.add_theme_font_size_override("font_size", FONT_SIZE * 3 / 2)
+	PixelFonts.apply(heading, fonts.title, 4, Color(0, 0, 0, 0))
 	heading.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	box.add_child(heading)
 
 	_info = Label.new()
-	_info.add_theme_font_size_override("font_size", FONT_SIZE)
+	PixelFonts.apply(_info, fonts.body, 4, Color(0, 0, 0, 0))
 	_info.custom_minimum_size = Vector2(900, 0)
 	_info.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	box.add_child(_info)
@@ -97,22 +105,23 @@ func _build_ui() -> void:
 	var names: Array = map.recipe_names()
 	if not names.is_empty():
 		_recipe = OptionButton.new()
-		_recipe.add_theme_font_size_override("font_size", FONT_SIZE)
-		_recipe.get_popup().add_theme_font_size_override("font_size", FONT_SIZE)
+		PixelFonts.apply(_recipe, fonts.body, 4, Color(0, 0, 0, 0))
+		_recipe.get_popup().add_theme_font_override("font", PixelFonts.font(fonts.body))
+		_recipe.get_popup().add_theme_font_size_override("font_size", PixelFonts.size(fonts.body, 4))
 		_recipe.add_item("Next recipe: any (seed %% %d)" % names.size())
 		for i in names.size():
 			_recipe.add_item("Next recipe: %d %s" % [i, names[i]])
 		box.add_child(_recipe)
 
-	_regenerate = _button(box, "Regenerate with a new seed", _on_regenerate)
-	_button(box, "Resume", func(): _set_open(false))
-	_button(box, "Quit", func(): get_tree().quit())
+	_regenerate = _button(box, "Regenerate with a new seed", _on_regenerate, fonts.body)
+	_button(box, "Resume", func(): _set_open(false), fonts.body)
+	_button(box, "Quit", func(): get_tree().quit(), fonts.body)
 
 
-func _button(parent: Node, text: String, action: Callable) -> Button:
+func _button(parent: Node, text: String, action: Callable, role: PixelFonts.Role) -> Button:
 	var b := Button.new()
 	b.text = text
-	b.add_theme_font_size_override("font_size", FONT_SIZE)
+	PixelFonts.apply(b, role, 4, Color(0, 0, 0, 0))
 	b.pressed.connect(action)
 	parent.add_child(b)
 	return b

@@ -23,6 +23,11 @@ extends Node2D
 ## into .liveliness_walk_maze_caves, and `pc maze` the maze-pixelcrawler
 ## types into .liveliness_walk_maze_pc. The six views tile each map
 ## (a 64-cell farm is wider than a 60-cell Painted Lands map).
+## `gates` walks node-gates (one node per ring, 0-33, or the rings given)
+## into .liveliness_walk_gates, on its own save file, with the foes taken
+## off and the doors shut; after the six views the walker also walks to each
+## of the four gates in turn and out through it, and each gate is reported
+## reached or not (node_gates.gd `_at_gate`).
 
 const Wild := preload("res://scripts/wildlife.gd")
 const MAP_SCENE := preload("res://scenes/wilds/wilds.tscn")
@@ -30,6 +35,8 @@ const CAVE_SCENE := preload("res://scenes/randomizer-greencaves/randomizer-green
 const CAVE_RENDERED_MAPS := [130021, 130022, 130023, 130025, 130026, 130027, 130004, 130009, 130010, 130014]
 const FARM_SCENE := preload("res://scenes/randomizer-paintedlands-farm/randomizer-paintedlands-farm.tscn")
 const PC_SCENE := preload("res://scenes/randomizer-pixelcrawler/randomizer-pixelcrawler.tscn")
+const GATES_SCENE := preload("res://scenes/node-gates/node-gates.tscn")
+const GATE_TIME := 40.0 # s to reach a gate before it counts as missed
 # Farm: four map types of each season's kind (summer 0-29, autumn 30-39,
 # winter 40-47 by id % 52; the rivers are 48-51).
 const FARM_RENDERED_MAPS := [190008, 190011, 190016, 190026, 190031, 190037, 190038, 190041, 190043, 190046, 190048, 190052]
@@ -78,6 +85,10 @@ var _times: Array[float] = []
 var _travel := 0.0
 var _last := Vector2.ZERO
 var _out := ""
+var _gates := false
+var _gate_nodes: Array[Vector2i] = [] # node-gates: the node of each plan entry
+var _gate_i := 0 # the gate being walked to (GATE_SIDES order)
+var _gate_log := {} # side -> {reached, seconds, snags}
 
 
 func _ready() -> void:
@@ -96,6 +107,8 @@ func _ready() -> void:
 			_farm = true
 		elif a == "pc":
 			_pc = true
+		elif a == "gates":
+			_gates = true
 		elif a == "cozy":
 			cozy = true
 		elif a in ["pack", "drawn", "mixed", "maze"]:
@@ -117,6 +130,16 @@ func _ready() -> void:
 	elif _plan.is_empty() and maze:
 		for r in ForestMaze.MAZE_RECIPES.size():
 			_plan.append(400000 + r)
+	if _gates:
+		# One node per ring (or the rings given), on the axes and diagonals in turn.
+		var rings: Array = _plan.duplicate() if not _plan.is_empty() else range(GateWorld.MAX_RING + 1)
+		_plan.clear()
+		for r in rings:
+			var dirs := [Vector2i(0, r), Vector2i(r, 0), Vector2i(0, -r), Vector2i(-r, 0), Vector2i(r, r), Vector2i(-r, -r)]
+			_gate_nodes.append(dirs[r % dirs.size()])
+			_plan.append(r)
+		GateWorld.save_path = "user://node_gates_walker_test.json"
+		GateWorld.erase_save()
 	if _plan.is_empty():
 		if _headless:
 			var first: int = 190000 if _farm else (170000 if _pc else (130000 if _caves else 120000))
@@ -129,12 +152,14 @@ func _ready() -> void:
 		else:
 			_plan = CAVE_RENDERED_MAPS.duplicate() if _caves else RENDERED_MAPS.duplicate()
 	var suffix := ("_maze_farm" if maze else "_farm") if _farm else (("_maze_pc" if maze else "_pc") if _pc else (("_maze_caves" if maze else "_caves") if _caves else ("_maze" if maze else "")))
+	if _gates:
+		suffix = "_gates"
 	_out = ProjectSettings.globalize_path("res://.liveliness_walk" + suffix)
 	if out_dir != "":
 		_out = ProjectSettings.globalize_path("res://" + out_dir)
 	DirAccess.make_dir_recursive_absolute(_out + "/raw")
 	DirAccess.remove_absolute(_out + "/raw/ALL_DONE")
-	_forest = (FARM_SCENE if _farm else (PC_SCENE if _pc else (CAVE_SCENE if _caves else MAP_SCENE))).instantiate()
+	_forest = (GATES_SCENE if _gates else (FARM_SCENE if _farm else (PC_SCENE if _pc else (CAVE_SCENE if _caves else MAP_SCENE)))).instantiate()
 	if _farm:
 		_forest.interiors = false # the route never goes indoors
 		# `mixed`: with the farmsteads (randomizer-paintedlands-forest-farm).
@@ -164,7 +189,24 @@ func _next_map() -> void:
 		_finish()
 		return
 	var id: int = _plan[_map_i]
-	_forest.build(id, -1)
+	if _gates:
+		# The node's map as node_gates.gd builds it, then no foes (they would
+		# knock the walker off its route), the map's own logic paused (no gate
+		# changes, no saves), and the doors shut.
+		var c := _gate_nodes[_map_i]
+		_forest.world.current = c
+		_forest.world.entry = ""
+		id = _forest.world.map_id_for(c)
+		_plan[_map_i] = id
+		_forest.build(id)
+		for f in _forest.foes:
+			f.queue_free()
+		_forest.foes.clear()
+		_forest.busy = true
+		_forest.house_interiors.process_mode = Node.PROCESS_MODE_DISABLED
+		_forest.ui.visible = false # the frames measure the world, not the HUD
+	else:
+		_forest.build(id, -1)
 	seed(id)
 	_walker = _forest.actors.get_node("Walker")
 	_walker.get_node("Camera").enabled = false
@@ -207,6 +249,8 @@ func _physics_process(delta: float) -> void:
 				_capture()
 			if _timer >= RECORD:
 				_finish_view()
+		"gatewalk":
+			_gate_walk(delta)
 
 
 # Heads for the next route point with analog strengths, so all eight
@@ -475,7 +519,10 @@ func _finish_view() -> void:
 		FileAccess.open(tmp, FileAccess.WRITE).store_string(JSON.stringify(meta))
 		DirAccess.rename_absolute(tmp, "%s/raw/%s.json" % [_out, stem])
 	_view_i += 1
-	if _view_i >= _views.size():
+	if _view_i >= _views.size() and _gates:
+		_print_map(id)
+		_start_gate(0)
+	elif _view_i >= _views.size():
 		_print_map(id)
 		_next_map()
 	else:
@@ -515,3 +562,80 @@ func _finish() -> void:
 		FileAccess.open(_out + "/raw/ALL_DONE", FileAccess.WRITE).store_string("done")
 	print("walker test: all done")
 	get_tree().quit()
+
+
+# ---------------------------------------------------------------- gates
+
+# Walks from wherever the walker stands to gate `i` (n, e, s, w), along A*
+# over every cell its body fits in, then on past the map's edge.
+func _start_gate(i: int) -> void:
+	_gate_i = i
+	if i == 0:
+		_gate_log = {}
+	var side: String = _forest.GATE_SIDES[i]
+	var t: PaintedTerrain = _forest.terrain
+	var g: Vector2i = t.gate_cells[side].cell
+	var astar := AStarGrid2D.new()
+	astar.region = Rect2i(0, 0, PaintedTerrain.WIDTH, PaintedTerrain.HEIGHT)
+	astar.cell_size = Vector2(TILE, TILE)
+	astar.diagonal_mode = AStarGrid2D.DIAGONAL_MODE_ONLY_IF_NO_OBSTACLES
+	astar.update()
+	var spot := {}
+	for y in PaintedTerrain.HEIGHT:
+		for x in PaintedTerrain.WIDTH:
+			var c := Vector2i(x, y)
+			var p := _free_point(c) if t.walkable(c) else Vector2.INF
+			astar.set_point_solid(c, p == Vector2.INF)
+			if p != Vector2.INF:
+				spot[c] = p
+	var from := Vector2i(_walker.position / TILE)
+	if not spot.has(from):
+		for c in spot: # the nearest open cell
+			if not spot.has(from) or Vector2(c - Vector2i(_walker.position / TILE)).length() < Vector2(from - Vector2i(_walker.position / TILE)).length():
+				from = c
+	var to := g + (Vector2i(1, 0) if side in ["n", "s"] else Vector2i(0, 1))
+	if not spot.has(to):
+		to = g
+	_route.clear()
+	for c in astar.get_id_path(from, to):
+		_route.append(spot[c])
+	var out := Vector2(GateWorld.DIRS[side].x, -GateWorld.DIRS[side].y)
+	if not _route.is_empty():
+		_route.append(_route[-1] + out * 24.0) # on out through the opening
+	_route_i = 0
+	_best = INF
+	_stuck = 0.0
+	_snags = 0
+	_snag_at.clear()
+	_timer = 0.0
+	_state = "gatewalk"
+
+
+func _gate_walk(delta: float) -> void:
+	var side: String = _forest.GATE_SIDES[_gate_i]
+	_timer += delta
+	var reached: bool = _forest._at_gate(side)
+	if reached or _timer >= GATE_TIME or _route.is_empty():
+		_release()
+		_gate_log[side] = {"reached": reached, "seconds": snappedf(_timer, 0.1), "snags": _snags, "route": _route.size()}
+		if _gate_i + 1 < _forest.GATE_SIDES.size():
+			_start_gate(_gate_i + 1)
+		else:
+			_finish_gates()
+		return
+	# The route's last point is past the edge, so the walker ends up leaning
+	# out through the opening, which is when `_at_gate` holds.
+	_steer(delta)
+
+
+func _finish_gates() -> void:
+	var id: int = _plan[_map_i]
+	var parts := PackedStringArray()
+	var all := true
+	for side in _forest.GATE_SIDES:
+		var r: Dictionary = _gate_log[side]
+		all = all and r.reached
+		parts.append("%s %s (%.1f s, %d snags)" % [side, "reached" if r.reached else "MISSED", r.seconds, r.snags])
+	print("walker test: map %d %s (%s) gates: %s" % [id, GateWorld.node_name(_gate_nodes[_map_i]), _forest.terrain.recipe.name, ", ".join(parts)])
+	_results.append({"map": id, "node": GateWorld.node_name(_gate_nodes[_map_i]), "recipe_name": _forest.terrain.recipe.name, "gates": _gate_log.duplicate(true), "all_gates": all})
+	_next_map()

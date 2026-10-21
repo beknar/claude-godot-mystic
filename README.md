@@ -53,7 +53,8 @@ project, copy them in locally:
   `_extras` to `extras/` (see docs/deprecated/mana-seed.md)
 - Cozy Farm art pack (shubibubi): its `animals/` folder to
   `assets/pack/cozy_farm/animals/` (the Painted Lands, Green Caves, and farm
-  randomizers); `Buildings/buildings.png` to
+  randomizers); `ui/UI.png`, `ui/UI_all.png`, and `ui/items.png` to
+  `assets/pack/cozy_farm/ui/` (node-gates' HUD); `Buildings/buildings.png` to
   `assets/pack/cozy_farm/buildings.png` only for the deprecated cozy farm
   randomizer
 - Pixel Crawler (Anokolisa): the environment sheets to
@@ -65,6 +66,10 @@ project, copy them in locally:
   `maze-pixelcrawler`, Forge `Assets/Tiles.png` to `forge/`, Sewer
   `Assets/Tiles.png` and `Props.png` to `sewer/`, and the FREE pack's
   `Environment/Dungeon Prison/Assets/*.png` to `prison/` (not yet used)
+- Fantasy RPG icon pack (Franuka): `Icon sheet (16x16).png` to
+  `assets/pack/fantasy_rpg_icons/icons16.png` and
+  `Expansions/01 - Colour variations/Colour variations (16x16).png` to
+  `assets/pack/fantasy_rpg_icons/colours16.png` (node-gates' items)
 - The Painted Lands RPG Characters (antarcticbees): the pack folder to
   `assets/pack/rpg_characters/` (one folder per character, `Spritesheets/`
   inside), for the foes of `node-gates`
@@ -586,6 +591,8 @@ the sheet:
 - `assets/pack/`: hand-painted pack sheets only.
 - `assets/ai/`: generated art (Grok Build). Never put generated sheets in
   `assets/pack/`.
+- `assets/fonts/`: the free pixel fonts for the UI, kept in git with their
+  licences (`assets/fonts/README.md`; loaded by `scripts/pixel_fonts.gd`).
 
 `docs/painted-lands-art-fit.md` is the reference for what art from the
 antarcticbees tilesets goes with what (Forest, Green Caves, Cozy Cottage, and
@@ -619,6 +626,10 @@ Art (purchased; not included in this repository, see "Art packs" above):
   [antarcticbees](https://antarcticbees.itch.io). `green_caves_tileset.png`,
   and the pack's two slimes as foes in `node-gates`. License: see the pack's itch.io page;
   purchased, not redistributed here.
+- **Fantasy RPG icon pack** by Franuka (from the RPG Game Builder Assets
+  Kit). Item icons, rarity frames, hearts, coin, sword, and check and cross
+  in node-gates' HUD. License: see the pack's itch.io page; purchased, not
+  redistributed here.
 - **The Painted Lands – RPG Characters** by
   [antarcticbees](https://antarcticbees.itch.io). The cloaked figure,
   samurai, fire knight, and dark knight (walk, attack, hurt, defeat) as the
@@ -636,8 +647,10 @@ Art (purchased; not included in this repository, see "Art packs" above):
   purchased, not redistributed here.
 - **Cozy Farm** art pack by shubibubi: the farm animals (bunny, chicken,
   turkey, sheep, goat, pig, cow) in the Painted Lands, Green Caves, and farm
-  randomizers; its buildings (homes, barn, coop, silos,
-  windmill) only in the deprecated cozy farm randomizer. Purchased; not
+  randomizers; its UI (plate, bar, hotbar, inventory panel, buttons, and the
+  butter, mozzarella, and goat cheese icons) in node-gates' HUD; its
+  buildings (homes, barn, coop, silos, windmill) only in the deprecated cozy
+  farm randomizer. Purchased; not
   redistributed here.
 - **Pixel Crawler** by Anokolisa ([Patreon](https://www.patreon.com/Anokolisa)):
   Fairy Forest, Farm Game Assets, Green Woods (Pixel Crawler FREE),
@@ -649,6 +662,16 @@ Art (purchased; not included in this repository, see "Art packs" above):
   `terrain.png`, `outside.png`, `water.png`, `house.png`, and the animated
   torch and fireplace. License: see the pack's readme; purchased, not
   redistributed here.
+
+Fonts (free; in `assets/fonts/` with their licences):
+
+- **Pixelify Sans** (Stefie Justprince), **Jacquarda Bastarda 9** and
+  **Jacquard 12** (Sarah Cadigan-Fried), **Jersey 10** (Sarah
+  Cadigan-Fried), **Silkscreen** (Jason Kottke), **Micro 5** (Sarah
+  Cadigan-Fried), from [Google Fonts](https://fonts.google.com). License:
+  SIL Open Font License 1.1.
+- **Kenney Pixel** by [Kenney](https://kenney.nl), from Kenney Game Assets
+  All-in-1. License: CC0.
 
 Other:
 

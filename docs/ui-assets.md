@@ -5,6 +5,17 @@ this project's art families each would fit: **The Painted Lands** (PL:
 Forest, Green Caves, Farm, Cozy Cottage, `node-gates`) or **Pixel Crawler**
 (PC). Assessed 2026-10-17. Paths below are relative to `I:\game assets`.
 
+**Fonts in use** (2026-10-19): the game now uses free Google pixel fonts
+(Pixelify Sans, Jacquarda Bastarda 9, Jacquard 12, Jersey 10, Silkscreen,
+and Kenney Pixel for Pixel Crawler scenes) from `assets/fonts/`, which
+closes the font gap below (`docs/project-overview.md`, Fonts).
+
+**In use** (2026-10-19): node-gates' HUD, inventory, minimap, map, and
+strategic map are built from the Painted Lands picks below: Cozy Farm's
+`ui/` for the frames, bars, hotbar, inventory panel, and buttons; the
+Fantasy RPG icon pack for items, rarity frames, and hearts; the Painted
+Lands Farm fish and apple (`docs/node-gates.md`, `scripts/hud_art.gd`).
+
 ## What a UI pack has to match
 
 - **Painted Lands**: 16 px tiles, soft dark maroon or plum outlines

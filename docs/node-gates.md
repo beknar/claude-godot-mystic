@@ -1,8 +1,8 @@
 # Node gates
 
 Read this before touching `scripts/node_gates.gd`, `gate_world.gd`,
-`gate_roads.gd`, `foe.gd`, `gate_walker.gd`, `node_gates_ui.gd`, or
-`scenes/node-gates/`. The maps themselves are the Painted Lands Forest
+`gate_roads.gd`, `gate_items.gd`, `foe.gd`, `gate_walker.gd`,
+`node_gates_ui.gd`, `hud_art.gd`, or `scenes/node-gates/`. The maps themselves are the Painted Lands Forest
 randomizer's (`docs/painted-lands.md`); every rule there applies.
 
 ## What it is
@@ -24,7 +24,8 @@ inside that map's opposite gate.
   Past ring 33 the land ends (no gate).
 - **Saving:** `user://node_gates_save.json` (GateWorld). Every node keeps its
   map id, whether it is cleared, the foes still standing (kind, where they
-  stood, hit points), and its chest; the hero keeps hearts, coins, and sword.
+  stood, hit points), and its chest; the hero keeps hearts, mana, coins,
+  sword, and the bag. Each node's thumbnail is kept beside the save.
   Written on arriving, on every kill, on clearing, on opening a chest, every
   8 s, from the Esc menu's Quit, and on closing the window. A map comes back
   as it was left. A node saved with no foes and not cleared plans its foes
@@ -65,10 +66,34 @@ same kind as ring 1's, a little tougher.
 
 **Rewards.** Clearing a node leaves a chest a few steps from the walker
 (silver to ring 10, gold from ring 11; the Forest sheet's own chests, open
-and shut). Walking into it opens it: coins (3 + 2 per ring), healing (a
-heart near c-0, all of it from ring 3), one more heart every fourth ring,
-one more sword point every sixth, and a large reward at ring 33
-(`GateWorld.reward_for`).
+and shut). Walking into it opens it: coins (3 + 2 per ring), items (one,
+plus one every six rings, at most six; ten at ring 33), one more heart
+every fourth ring, one more sword point every sixth, and a large reward at
+ring 33 (`GateWorld.reward_for`). A bag too full to take an item leaves it.
+
+## Items
+
+Each item a chest holds is rolled by rarity (`GateItems.roll`): an item's
+rarity is its weight, so a small potion (80) turns up 16 times as often as a
+well-done steak (5). Items stack to 99 in the bag's 27 slots.
+
+| Items | Effect | Rarity (weight) | Icon |
+|---|---|---|---|
+| Healing potions: small, medium, large, uncommon, wondrous, rare, very rare, legendary | restore 10, 20, ... 80 % of the hit points | 80, 70, ... 10 | Fantasy RPG icon pack red bottles (small, medium, large; the large from uncommon up) |
+| Mana potions, the same eight | restore 10 ... 80 % of the mana | 80 ... 10 | its blue bottles |
+| Speed potions, the same eight | +10 ... +80 % walking speed for 30 s | 80 ... 10 | its white flasks recolored in its own greens |
+| Bread, fish, fruit, nuts and seeds, jerky, hardtack, travel cake, sweet roll, well-done steak | regenerate 1, 2, ... 9 % of the hit points a second for 10 s | 80, 70, 60, 50, 40, 30, 20, 10, 5 | bread, hardtack, sweet roll: Cozy Farm's butter, mozzarella, goat cheese (no pack draws a loaf, a biscuit, or a roll); fish and fruit: the Painted Lands Farm fish and apple; nuts, jerky, travel cake, steak: the Fantasy RPG icon pack |
+
+The rarity tier (1-8) picks one of the icon pack's eight slot frames: dark,
+silver, bronze, green (uncommon), teal (wondrous), gold (rare), purple (very
+rare), orange (legendary). A potion is not drunk at full health or mana,
+nor food eaten at full health; a speed potion weaker than one still running
+is not drunk. A new game's bag holds two small healing potions and three
+bread.
+
+**Mana** (out of 100, starting at 50) comes back at one a second; a spin
+(K) costs 20 and hits every foe within 26 px of the walker for one more
+than a swing.
 
 ## How it is built
 
@@ -105,14 +130,48 @@ one more sword point every sixth, and a large reward at ring 33
   point 10 px in front. A hit on the walker knocks it back and leaves it
   blinking for 0.9 s. Hearts are two hit points each. At zero the walker is
   carried back to c-0 with full hearts; the map it fell on keeps its foes.
-- **Strategic map** (M or Tab; `NodeGatesUI.StrategicMap`): every node
-  visited as a dot (green when cleared, orange while foes remain), the moves
-  made between nodes as lines, the unvisited ways out of cleared nodes as
-  faint rings, the walker's node ringed in white and named in the header
-  with its map type and ring. Arrows pan, + and - zoom.
-- **HUD**: the node's name and map type, its ring, foes left (or cleared),
-  hearts, coins, and sword. Esc: resume, strategic map, new game (erases the
-  save, asks twice), quit.
+- **HUD art** (`hud_art.gd`): the most compatible UI art for Painted Lands
+  maps (docs/ui-assets.md), cut from the pack sheets at load time and
+  scaled by whole numbers (4 x): Cozy Farm's wooden plate (a 9-slice for
+  every frame and panel; its centre dot and side notches painted over in
+  its own colors so it stretches cleanly), its bar (hangers painted out),
+  hotbar, inventory panel, and plank button; Franuka's Fantasy RPG icon
+  pack for items, rarity frames, hearts, the coin, the sword, the mana drop,
+  check and cross.
+- **HUD** (`node_gates_ui.gd`): top left, a plate with the node's name and
+  map type, its ring and foes left; under it the hearts, the mana bar, and
+  the buffs running (icon and seconds left). Top right, the minimap (the map
+  captured whole after each build and averaged down to a pixel a cell, at
+  4 x, in a plate; the walker blinking white, foes red, the chest gold, the
+  gates pale gold or red) with coins and sword under it. Bottom, the hotbar:
+  the bag's first nine slots, keys 1-9 use them. A hint line bottom left.
+- **Inventory** (I or Tab): Cozy Farm's panel with the bag's 27 slots in its
+  grid (the first row is the hotbar), the selected item large in the
+  portrait frame with its count on the nameplate, and a plate under it with
+  its name, effect, and rarity. Arrows or WASD select, Enter or Space uses,
+  X picks up a slot and X again swaps it with another, a double click uses.
+- **Map** (M; `Overview`): the current map whole, drawn live at 2 x by a
+  viewport sharing the world, in a plate, the walker, foes, and chest
+  ringed and a plate on each gate naming the node it leads to; a side plate
+  with the node's name and type, its ring, and each gate's destination and
+  state.
+- **Strategic map** (P; `StrategicMap`): a screen-sized plate. Every node
+  visited is its thumbnail (the captured map averaged to 120 x 80, kept as
+  `user://node_gates_thumbs/<seed>/<x>_<y>.png`) in a wooden frame with its
+  name under it on a small plate and a check (cleared) or a cross (foes
+  remain); the walker's node blinks. The moves made are wooden roads, the
+  unvisited ways out of cleared nodes faint roads to framed question marks
+  with their names. Arrows pan, + and - (or the wheel) step the zoom (1, 2,
+  3 x the thumbnail).
+- **Menu** (Esc): the plate with plank buttons: resume, inventory, map,
+  strategic map, new game (erases the save, asks twice), quit. Esc closes
+  whichever screen is open first. Every screen pauses the game.
+- **Fonts** (`PixelFonts`, assets/fonts/README.md): node names, coins, and
+  the strategic map's node labels in Jersey 10 (labels step through whole
+  font-pixel sizes with the zoom); map-type names in Jacquarda Bastarda 9;
+  the strategic map's and the menu's titles in Jacquard 12; text, messages,
+  and buttons in Pixelify Sans; the hint line and the map's legend in
+  Silkscreen. All with a maroon outline one font pixel wide.
 
 ## Checks
 
@@ -120,13 +179,37 @@ one more sword point every sixth, and a large reward at ring 33
   type at a few nodes, generated as the scene does; all four gates present
   and reachable, room for the ring's foes, every cell with ground, and the
   Forest report's checks.
+- `tools/walker_test.tscn -- gates [rings...]`: the walker test on one
+  node per ring (0-33 by default), on its own save file, foes off and doors
+  shut: the six camera views of each map as for the other scenes, then the
+  walker walks to each of the four gates in turn and out through it under
+  physics, and each gate is reported reached or missed
+  (`.liveliness_walk_gates/headless.json`).
+- `tools/check_node_gates_health.tscn -- [rings...]` (headless, `--fixed-fps
+  60`): the real scene at one node per ring (0-33), entering by each gate in
+  turn: the walker and every foe spawned clear of colliders and on walkable
+  ground, every blocking body with its collider and the bodies on their
+  layers, everything that moves y-sorted in Actors with its feet on its
+  origin, the liveliness floor met, and the build time and a frame's wall
+  time with the foes awake and chasing (`base` measures the plain
+  randomizer the same way: about 0.7 ms a frame, against about 2 ms here).
+- `tools/check_node_gates_items.tscn`: the items on the real scene
+  (headless): the new bag, healing, mana, speed (and that it wears off),
+  food regeneration, the full-health guard, the spin and its mana, rolls
+  following rarity, and the bag and mana surviving a save.
+- `tools/snapshot.tscn -- res://scenes/node-gates/node-gates.tscn <out.png> 3
+  [map|overview|inventory|menu] tour`: one frame of a screen after a short
+  tour (c-0, e-1, ne-1, n-1, back) with a filled bag.
 - In the running game: clear c-0 (two slimes), open the chest, walk out a
-  gate, come back through the same gate (it opens: visited), press M.
+  gate, come back through the same gate (it opens: visited), press I, M,
+  and P.
 - Demo reel: `tools/node_gates_demo.tscn` plays the scene by itself through
-  the input actions (clear c-0, chest, east gate, a shut gate, clear e-1,
-  north, the strategic map, then ring 26's knights) with captions, on its own
-  save file (`user://node_gates_demo.json`, erased at the end). Record it
-  with `--write-movie <out>.avi --fixed-fps 30 --resolution 1720x720`.
+  the input actions and keys (the HUD; clear c-0 with swings and a spin; the
+  chest; the bag (I); healing, mana, food, and speed from the hotbar; the
+  whole map (M); the east gate, a shut gate, clear e-1, north; the strategic
+  map (P); then ring 26's knights) with captions, on its own save file and
+  bag (`user://node_gates_demo.json`, erased at the end). Record it with
+  `--write-movie <out>.avi --fixed-fps 30` (the movie is the window's size).
 
 ## Reject list (on top of docs/painted-lands.md)
 

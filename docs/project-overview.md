@@ -91,9 +91,12 @@ Node gates (docs/node-gates.md):
   `forest.gd` with `gates` on): Painted Lands Forest maps joined at their
   edges into a grid of nodes round c-0, the ring setting the map type
   (Pastoral to Manor green) and the foes (`foe.gd`: Green Caves slimes,
-  Painted Lands RPG Characters); the walker swings a sword (`gate_walker.gd`);
-  HUD, strategic map (M), and Esc menu in `node_gates_ui.gd`; the world and
-  its save file in `gate_world.gd`.
+  Painted Lands RPG Characters); the walker swings a sword and spins for
+  mana (`gate_walker.gd`); items from chests (`gate_items.gd`: potions and
+  food by rarity); the HUD with hotbar and minimap, the inventory (I), the
+  map (M), the strategic map of node thumbnails (P), and the Esc menu in
+  `node_gates_ui.gd`, from Cozy Farm's UI and the Fantasy RPG icon pack
+  (`hud_art.gd`); the world, bag, and save file in `gate_world.gd`.
 
 Pixel Crawler mazes (docs/maze-pixelcrawler.md):
 
@@ -174,6 +177,20 @@ Time Fantasy randomizer (not suitable):
 
 There is no health, enemy, or save. The editor addon
 `addons/godot_mcp` is how this repo is driven from the Godot MCP server.
+
+## Fonts
+
+`assets/fonts/` holds the UI's free pixel fonts, in git with their licences
+(`assets/fonts/README.md`). `scripts/pixel_fonts.gd` (`PixelFonts`) loads
+them with antialiasing, hinting, and subpixel positioning off and sizes them
+at whole multiples of each font's pixel grid. Roles: text, HUD, and menus in
+Pixelify Sans; titles and map-type names in Jacquarda Bastarda 9 (Jacquard
+12 for big titles); node names and numbers in Jersey 10; hints and legends in
+Silkscreen. Pixel Crawler scenes use Kenney Pixel for text and Jersey 10 for
+headings. The Esc menu of every randomizer and maze scene
+(`randomizer_menu.gd`) and node-gates' HUD, strategic map, and menu use them.
+`tools/snapshot.tscn` saves one frame of any scene (optionally with its menu
+or the strategic map open) for checking UI without the editor.
 
 ## Art directories
 

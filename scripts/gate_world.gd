@@ -21,7 +21,12 @@ const VERSION := 1
 const MAX_RING := 33
 const DIRS := {"n": Vector2i(0, 1), "e": Vector2i(1, 0), "s": Vector2i(0, -1), "w": Vector2i(-1, 0)}
 const OPPOSITE := {"n": "s", "s": "n", "e": "w", "w": "e"}
-const START_HERO := {"hp": 6, "max_hp": 6, "damage": 2, "coins": 0}
+const START_HERO := {"hp": 6, "max_hp": 6, "damage": 2, "coins": 0, "mana": 50, "max_mana": 100}
+## The bag: 27 slots (the inventory's 9 x 3 grid; the first 9 are the
+## hotbar), each {} or {id, count} (GateItems). A new game starts with a
+## little food and two small healing potions.
+const BAG_SLOTS := 27
+const START_BAG := [{"id": "healing_small", "count": 2}, {"id": "bread", "count": 3}]
 
 ## Foes by ring: the kinds (Foe.KINDS) a ring draws from. Rings 0-2 are the
 ## basic slimes (ring 2's a little tougher through the ring scaling).
@@ -41,6 +46,7 @@ var current := Vector2i.ZERO
 ## after a load: the map's own spawn).
 var entry := ""
 var hero := START_HERO.duplicate()
+var bag: Array = [] # BAG_SLOTS entries
 var nodes := {} # Vector2i -> {cleared, foes: Array[{kind, x, y, hp, boss}], chest: {x, y, opened} or {}}
 var links := {} # "x,y|x,y" (sorted) -> true: the moves made between nodes
 
@@ -117,17 +123,19 @@ func foe_plan(c: Vector2i) -> Array[Dictionary]:
 	return out
 
 
-## The reward in a cleared node's chest: coins, healing, and every few rings a
-## lasting gain. Basic near c-0, richer outward.
+## The reward in a cleared node's chest: coins, items rolled by rarity
+## (GateItems.roll; more of them outward), and every few rings a lasting
+## gain. Basic near c-0, richer outward.
 static func reward_for(c: Vector2i) -> Dictionary:
 	var r := ring(c)
-	var out := {"coins": 3 + r * 2, "heal": 2 if r <= 2 else 99, "max_hp": 0, "damage": 0, "gold": r >= 11}
+	var out := {"coins": 3 + r * 2, "items": mini(1 + (r + 2) / 6, 6), "max_hp": 0, "damage": 0, "gold": r >= 11}
 	if r > 0 and r % 4 == 0:
 		out.max_hp = 2
 	if r > 0 and r % 6 == 0:
 		out.damage = 1
 	if r == MAX_RING:
 		out.coins += 100
+		out.items += 4
 		out.max_hp = 4
 		out.damage = 2
 	return out
@@ -150,6 +158,7 @@ func new_game(p_seed: int) -> void:
 	current = Vector2i.ZERO
 	entry = ""
 	hero = START_HERO.duplicate()
+	bag = _start_bag()
 	nodes = {}
 	links = {}
 
@@ -164,6 +173,7 @@ func save() -> void:
 		"current": key(current),
 		"entry": entry,
 		"hero": hero,
+		"bag": bag,
 		"nodes": out_nodes,
 		"links": links.keys(),
 	}
@@ -185,6 +195,15 @@ func load_save() -> bool:
 	hero = START_HERO.duplicate()
 	for k in parsed.hero:
 		hero[k] = int(parsed.hero[k])
+	bag = _start_bag() if not parsed.has("bag") else []
+	if parsed.has("bag"):
+		for slot in parsed.bag:
+			bag.append({} if typeof(slot) != TYPE_DICTIONARY or slot.is_empty() or GateItems.item(String(slot.id)).is_empty()
+				else {"id": String(slot.id), "count": int(slot.count)})
+		bag.resize(BAG_SLOTS)
+		for i in BAG_SLOTS:
+			if bag[i] == null:
+				bag[i] = {}
 	nodes = {}
 	for k in parsed.nodes:
 		var n: Dictionary = parsed.nodes[k]
@@ -197,6 +216,45 @@ func load_save() -> bool:
 	for l in parsed.links:
 		links[String(l)] = true
 	return true
+
+
+static func _start_bag() -> Array:
+	var out: Array = []
+	for i in BAG_SLOTS:
+		out.append(START_BAG[i].duplicate() if i < START_BAG.size() else {})
+	return out
+
+
+## Adds `count` of item `id`: onto stacks of it first, then empty slots
+## (hotbar first). Returns how many did not fit.
+func give(id: String, count := 1) -> int:
+	for slot in bag:
+		if count > 0 and not slot.is_empty() and slot.id == id and slot.count < GateItems.STACK:
+			var add := mini(count, GateItems.STACK - slot.count)
+			slot.count += add
+			count -= add
+	for i in bag.size():
+		if count <= 0:
+			break
+		if bag[i].is_empty():
+			var add := mini(count, GateItems.STACK)
+			bag[i] = {"id": id, "count": add}
+			count -= add
+	return count
+
+
+## Takes one item from slot `i`.
+func take(i: int) -> void:
+	if i < 0 or i >= bag.size() or bag[i].is_empty():
+		return
+	bag[i].count -= 1
+	if bag[i].count <= 0:
+		bag[i] = {}
+
+
+## Where node thumbnails of this world are kept (PNG per node).
+func thumb_path(c: Vector2i) -> String:
+	return "user://node_gates_thumbs/%d/%d_%d.png" % [seed_value, c.x, c.y]
 
 
 static func erase_save() -> void:

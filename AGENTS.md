@@ -13,13 +13,19 @@ changing its generator, painter, or scenes.
   Crawler** (Anokolisa).
 - They are used in **separate maps** and never combined, on the ground, in
   props, or in palettes.
-- **Cozy Farm** (shubibubi) is used for its **animals only**, in
+- **Cozy Farm** (shubibubi) is used for its **animals** (and node-gates'
+  UI, below), in
   `randomizer-paintedlands`, `randomizer-greencaves`,
   `randomizer-paintedlands-farm`, `randomizer-paintedlands-forest-farm`,
   `maze-forest`, `maze-farm`, `maze-greencaves`, and `node-gates` (`cozy_animals`):
   the bunny for the drawn rabbit, farm animals only by homes and in pens.
   Insects, birds, tiny animals, and effects stay as drawn. Its buildings
-  and other art are not used; `randomizer-painted-cozyfarm` is deprecated.
+  are not used; `randomizer-painted-cozyfarm` is deprecated.
+- **UI** (node-gates' HUD, inventory, and maps; `docs/node-gates.md`): Cozy
+  Farm's `ui/` (plate, bar, hotbar, inventory panel, buttons, and three
+  item icons) and Franuka's **Fantasy RPG icon pack** (items, rarity
+  frames, hearts), with the Painted Lands Farm crops and fish; the free
+  pixel fonts in `assets/fonts/`. UI only: never on the ground or as props.
 - **Mana Seed** is not to be used in future development. **Mystic Woods**
   and the **cozy farm randomizer** are deprecated. **Time Fantasy** is not
   suitable (its ground clashes and strains the eyes). Their scenes and docs
@@ -33,7 +39,7 @@ changing its generator, painter, or scenes.
 | Painted Lands, Forest mazes (hedges, canals) | `maze-forest` | `forest_maze.gd` (with `forest_terrain.gd`, `forest.gd`) | `docs/maze-forest.md` |
 | Painted Lands, Green Caves mazes (rock walls, rails, pools, cave homes) | `maze-greencaves` | `cave_maze.gd` (with `cave_terrain.gd`, `caves.gd`) | `docs/maze-greencaves.md` |
 | Painted Lands, Green Caves | `randomizer-greencaves` | `cave_terrain.gd`, `caves.gd`, `cave_life.gd` | `docs/green-caves.md` |
-| Node gates (a world of Forest maps joined at their edges: gates, foes, saves, a strategic map) | `node-gates` | `node_gates.gd` (with `gate_world.gd`, `gate_roads.gd`, `foe.gd`, `gate_walker.gd`, `node_gates_ui.gd`, `forest_terrain.gd`, `forest.gd`) | `docs/node-gates.md` |
+| Node gates (a world of Forest maps joined at their edges: gates, foes, saves, a strategic map) | `node-gates` | `node_gates.gd` (with `gate_world.gd`, `gate_roads.gd`, `gate_items.gd`, `foe.gd`, `gate_walker.gd`, `node_gates_ui.gd`, `hud_art.gd`, `forest_terrain.gd`, `forest.gd`) | `docs/node-gates.md` |
 | Painted Lands, Farm – 4 Seasons (spring and summer, autumn, winter; one season per map, never mixed) | `randomizer-paintedlands-farm` | `farm_terrain.gd`, `farm.gd`, `farm_tiles.gd` | `docs/farm.md` |
 | Painted Lands, Farm mazes (hedges, wheat, corn, bushes, canals; one season per map) | `maze-farm` | `farm_maze.gd` (with `farm_terrain.gd`, `farm.gd`) | `docs/maze-farm.md` |
 | Painted Lands, Forest and Farm combined (every Forest and Farm map type, plus farmsteads: Farm ground with Forest houses, fires, and clutter) | `randomizer-paintedlands-forest-farm` | `forest_farm.gd`, `farm_terrain.gd` (`MIXED_RECIPES`), `farm_tiles.gd` (`FOREST_PROPS`) | `docs/farm.md` (Farmsteads) |
